@@ -1,11 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { AlertTriangle, CheckCircle, Info } from "lucide-react"
+import { AlertTriangle, CheckCircle, Info, Bell, BellOff, X, ArrowRight } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
+import { motion, AnimatePresence } from "framer-motion"
 import type { Notification } from "@/lib/types/database"
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead } from "@/lib/api/notifications"
 
@@ -20,6 +22,7 @@ interface UINotification extends Notification {
 export function NotificationFeed() {
   const [notifications, setNotifications] = useState<UINotification[]>([])
   const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState<NotificationType | 'all'>('all')
   const { toast } = useToast()
 
   useEffect(() => {
@@ -122,13 +125,13 @@ export function NotificationFeed() {
   const getIcon = (type: NotificationType) => {
     switch (type) {
       case "alert":
-        return <AlertTriangle className="h-5 w-5 text-destructive" />
+        return <AlertTriangle className="h-5 w-5 text-red-500 dark:text-red-400" />
       case "warning":
-        return <AlertTriangle className="h-5 w-5 text-warning" />
+        return <AlertTriangle className="h-5 w-5 text-amber-500 dark:text-amber-400" />
       case "info":
-        return <Info className="h-5 w-5 text-info" />
+        return <Info className="h-5 w-5 text-blue-500 dark:text-blue-400" />
       case "success":
-        return <CheckCircle className="h-5 w-5 text-success" />
+        return <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400" />
     }
   }
 
@@ -149,53 +152,182 @@ export function NotificationFeed() {
     }
   }
 
+  const getNotificationBg = (type: NotificationType, read: boolean) => {
+    if (read) return "bg-white/40 dark:bg-slate-800/40"
+    
+    switch (type) {
+      case "alert":
+        return "bg-gradient-to-r from-red-500/10 to-red-600/5"
+      case "warning":
+        return "bg-gradient-to-r from-amber-500/10 to-amber-600/5"
+      case "info":
+        return "bg-gradient-to-r from-blue-500/10 to-blue-600/5"
+      case "success":
+        return "bg-gradient-to-r from-green-500/10 to-green-600/5"
+    }
+  }
+
+  const getNotificationBorder = (type: NotificationType, read: boolean) => {
+    if (read) return "border-transparent"
+    
+    switch (type) {
+      case "alert":
+        return "border-red-300/30 dark:border-red-800/30"
+      case "warning":
+        return "border-amber-300/30 dark:border-amber-800/30"
+      case "info":
+        return "border-blue-300/30 dark:border-blue-800/30"
+      case "success":
+        return "border-green-300/30 dark:border-green-800/30"
+    }
+  }
+
+  const filteredNotifications = filter === 'all' 
+    ? notifications 
+    : notifications.filter(notification => notification.type === filter)
+
+  const unreadCount = notifications.filter(n => !n.read_status).length
+
   if (loading) {
     return (
-      <div className="p-4 flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+      <div className="p-6 flex justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     )
   }
 
   return (
     <div className="p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">Notifications</h3>
-        <Button variant="outline" size="sm" onClick={handleMarkAllAsRead}>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <Bell className="h-5 w-5 text-blue-500" />
+            Notifications
+            {unreadCount > 0 && (
+              <Badge variant="destructive" className="ml-2 bg-red-500 hover:bg-red-600">
+                {unreadCount} new
+              </Badge>
+            )}
+          </h3>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleMarkAllAsRead}
+          className="flex items-center gap-1 text-xs border-blue-200 hover:border-blue-300 dark:border-blue-800 dark:hover:border-blue-700 bg-white/20 hover:bg-white/30 dark:bg-slate-800/20 dark:hover:bg-slate-800/30"
+        >
+          <BellOff className="h-3 w-3 mr-1" />
           Mark all as read
         </Button>
       </div>
-      <div className="space-y-4">
-        {notifications.map((notification) => (
-          <div
-            key={notification.notification_id}
-            className={cn(
-              "flex items-start gap-4 rounded-lg border p-4 transition-colors",
-              notification.read_status ? "bg-background" : "bg-muted",
-            )}
-          >
-            <div className="mt-1">{getIcon(notification.type)}</div>
-            <div className="flex-1 space-y-1">
-              <div className="flex items-center justify-between">
-                <p className="font-medium">{notification.notification_type}</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-xs text-muted-foreground">{notification.time}</p>
-                  {!notification.read_status && (
+
+      <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-200 dark:scrollbar-thumb-blue-800">
+        <Button 
+          variant={filter === 'all' ? "default" : "outline"} 
+          size="sm" 
+          onClick={() => setFilter('all')}
+          className={filter === 'all' ? "bg-blue-500 hover:bg-blue-600" : ""}
+        >
+          All
+        </Button>
+        <Button 
+          variant={filter === 'alert' ? "default" : "outline"} 
+          size="sm" 
+          onClick={() => setFilter('alert')}
+          className={filter === 'alert' ? "bg-red-500 hover:bg-red-600" : ""}
+        >
+          Alerts
+        </Button>
+        <Button 
+          variant={filter === 'warning' ? "default" : "outline"} 
+          size="sm" 
+          onClick={() => setFilter('warning')}
+          className={filter === 'warning' ? "bg-amber-500 hover:bg-amber-600" : ""}
+        >
+          Warnings
+        </Button>
+        <Button 
+          variant={filter === 'info' ? "default" : "outline"} 
+          size="sm" 
+          onClick={() => setFilter('info')}
+          className={filter === 'info' ? "bg-blue-500 hover:bg-blue-600" : ""}
+        >
+          Info
+        </Button>
+        <Button 
+          variant={filter === 'success' ? "default" : "outline"} 
+          size="sm" 
+          onClick={() => setFilter('success')}
+          className={filter === 'success' ? "bg-green-500 hover:bg-green-600" : ""}
+        >
+          Success
+        </Button>
+      </div>
+
+      <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-blue-200 dark:scrollbar-thumb-blue-800">
+        <AnimatePresence>
+          {filteredNotifications.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col items-center justify-center p-8 text-center text-slate-500 dark:text-slate-400"
+            >
+              <BellOff className="h-12 w-12 mb-3 opacity-20" />
+              <p className="text-sm">No {filter !== 'all' ? filter : ''} notifications to display</p>
+            </motion.div>
+          ) : (
+            filteredNotifications.map((notification, index) => (
+              <motion.div
+                key={notification.notification_id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className={cn(
+                  "flex items-start gap-4 rounded-lg border p-4 transition-all duration-200 hover:shadow-md",
+                  getNotificationBg(notification.type, notification.read_status),
+                  getNotificationBorder(notification.type, notification.read_status),
+                  "backdrop-blur-md"
+                )}
+              >
+                <div className="flex-shrink-0 mt-1">{getIcon(notification.type)}</div>
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <p className="font-medium">{notification.notification_type}</p>
+                      {!notification.read_status && (
+                        <span className="ml-2 h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{notification.time}</p>
+                      {!notification.read_status && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 rounded-full"
+                          onClick={() => handleMarkAsRead(notification.notification_id)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">{notification.message}</p>
+                  <div className="pt-1 flex justify-end">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 px-2 text-xs"
-                      onClick={() => handleMarkAsRead(notification.notification_id)}
+                      className="h-6 px-2 text-xs text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
                     >
-                      Mark as read
+                      View Details <ArrowRight className="ml-1 h-3 w-3" />
                     </Button>
-                  )}
+                  </div>
                 </div>
-              </div>
-              <p className="text-sm text-muted-foreground">{notification.message}</p>
-            </div>
-          </div>
-        ))}
+              </motion.div>
+            ))
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )

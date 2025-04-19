@@ -9,8 +9,7 @@ export function Footer() {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           <div>
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <img src="/placeholder-logo.svg" alt="IntelliSupply Logo" className="h-8 w-8" />
+            <Link href="/" className="flex items-center mb-4">
               <span className="font-bold text-xl">IntelliSupply</span>
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
