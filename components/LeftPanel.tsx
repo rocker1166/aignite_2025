@@ -1,4 +1,5 @@
 // src/components/LeftPanel.tsx
+"use client"
 import { FC, useState } from 'react';
 
 interface LeftPanelProps {
