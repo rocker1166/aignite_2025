@@ -13,11 +13,14 @@ import ReactFlow, {
   Connection
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import { toast } from "sonner";
 
 import SimulationToolbar from '../../../components/SimulationToolbar';
 import LeftPanel from '../../../components/LeftPanel';
 import RightPanel from '../../../components/RightPanel';
 import { nodeTypes } from "@/components/CustomNodes";
+import { useUser } from '@/lib/stores/user';
+import insertSupplyChain from '@/utils/functions/insertSupplyChain';
 
 const initialNodes: Node[] = [
   {
@@ -97,7 +100,19 @@ export default function DigitalTwinPage() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedElement, setSelectedElement] = useState<Node | Edge | null>(null);
   const [selectedSupplyChain, setSelectedSupplyChain] = useState("default-chain");
+  const [supplyChainName, setSupplyChainName] = useState("Default Supply Chain");
+  const [description, setDescription] = useState(""); // Add description state
   const [simulationMode, setSimulationMode] = useState(false);
+  const { userData } = useUser();
+  
+  console.log("userdata", userData)
+  console.log("company description", userData?.description)
+  console.log("company name", userData?.organisation_name)
+  console.log("company id", userData?.id)
+  console.log("industry", userData?.industry)
+  console.log("sub_industry", userData?.sub_industry)
+  console.log("location", userData?.location)
+
 
   // When a node is clicked, set it as the selected element for the right panel
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
@@ -169,17 +184,34 @@ export default function DigitalTwinPage() {
     });
 
     const supplyChainData = {
-      id: selectedSupplyChain,  
+      id: selectedSupplyChain,
+      name: supplyChainName, // Include the supply chain name
+      description: description, // Include the description
       nodes,
       edges,
       connections,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      // Include organization data at the top level
+      organisation: {
+        id: userData?.id,
+        name: userData?.organisation_name,
+        description: userData?.description,
+        industry: userData?.industry,
+        sub_industry: userData?.sub_industry,
+        location: userData?.location
+      }
     };
 
     console.log('Saving supply chain:', supplyChainData);
-    // Here you would typically send this to your backend
-    alert('Supply chain saved!');
-  }, [nodes, edges, selectedSupplyChain]);
+    insertSupplyChain(supplyChainData)
+      .then(() => {
+        toast.success('Supply chain saved successfully!');
+      })
+      .catch((error) => {
+        console.error('Error saving supply chain:', error);
+        toast.error('Failed to save supply chain.');
+      });
+  }, [nodes, edges, selectedSupplyChain, supplyChainName, description, userData]);
 
   // Handle running a simulation
   const handleRunSimulation = useCallback(() => {
@@ -243,6 +275,10 @@ export default function DigitalTwinPage() {
         onExport={handleExport}
         simulationMode={simulationMode}
         setSimulationMode={setSimulationMode}
+        supplyChainName={supplyChainName}
+        setSupplyChainName={setSupplyChainName}
+        description={description}
+        setDescription={setDescription}
       />
 
       <div className="flex flex-1 overflow-hidden">

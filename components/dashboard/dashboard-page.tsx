@@ -13,7 +13,7 @@ import { SupplyChainHealthChart } from "@/components/dashboard/supply-chain-heal
 import { DashboardRiskHeatmap } from "@/components/dashboard/risk-heatmap"
 import { SimulationTimeline } from "@/components/dashboard/simulation-timeline"
 
-export function DashboardPage() {
+export default function DashboardPage() {
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-slate-900 overflow-x-hidden">
       {/* Background blurred elements */}

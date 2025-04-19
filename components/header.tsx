@@ -89,7 +89,7 @@ export function Header({ title }: HeaderProps) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="/placeholder-user.jpg" alt="User" />
+                {/* <AvatarImage src="/placeholder-user.jpg" alt="User" /> */}
                 <AvatarFallback>SC</AvatarFallback>
               </Avatar>
               <span className="sr-only">User menu</span>

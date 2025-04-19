@@ -12,6 +12,8 @@ import type { Simulation, SupplyChain } from "@/lib/types/database"
 import { getSupplyChains } from "@/lib/api/supply-chain"
 import { createSimulation, updateSimulation, getSimulations } from "@/lib/api/simulation"
 import { formatISO } from "date-fns"
+import { useUser } from "@/lib/stores/user"
+import { useImpact } from "@/lib/context/impact-context"
 
 export function SimulationPage() {
   const { toast } = useToast()
@@ -33,6 +35,9 @@ export function SimulationPage() {
   const [simulationHistory, setSimulationHistory] = useState<Simulation[]>([])
   const [currentSimulation, setCurrentSimulation] = useState<Simulation | null>(null)
 
+  // Access the impact context
+  const { setImpactData, setIsLoading } = useImpact();
+
   // Basic scenario state
   const [scenarioName, setScenarioName] = useState("Port Strike Scenario")
   const [scenarioType, setScenarioType] = useState("disruption")
@@ -52,10 +57,20 @@ export function SimulationPage() {
   const [alternateRouting, setAlternateRouting] = useState(true)
   const [randomSeed, setRandomSeed] = useState("")
 
+  //fetch user 
+  const { userData } = useUser();
+  console.log("userdata", userData)
+  console.log("company description", userData?.description)
+  console.log("company name", userData?.organisation_name)
+  console.log("company id", userData?.id)
+  console.log("industry", userData?.industry)
+  console.log("sub_industry", userData?.sub_industry)
+  console.log("location", userData?.location)
+
   useEffect(() => {
     const fetchSupplyChains = async () => {
       try {
-        const data = await getSupplyChains("placeholder-user-id")
+        const data = await getSupplyChains(userData?.id)
         setSupplyChains(data)
         if (data.length > 0) {
           setSelectedSupplyChainId(data[0].supply_chain_id)
@@ -112,6 +127,54 @@ export function SimulationPage() {
       setSimulationComplete(false)
       setProgress(0)
 
+      // Create the simulationConfig object to send to the impact API
+      const simulationConfig = {
+        id: created?.simulation_id,
+        name: scenarioName,
+        type: scenarioType,
+        supplyChainId: selectedSupplyChainId,
+        parameters: {
+          severity: disruptionSeverity,
+          duration: disruptionDuration,
+          affectedNode,
+          description,
+          startDate,
+          endDate,
+          monteCarloRuns,
+          distributionType,
+          cascadeEnabled,
+          failureThreshold,
+          bufferPercent,
+          alternateRouting,
+          randomSeed
+        }
+      }
+
+      // Set loading state before API call
+      setIsLoading(true);
+
+      // Call the impact API endpoint
+      try {
+        const response = await fetch('/api/impact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ simulationConfig })
+        });
+
+        if (response.ok) {
+          const apiResponse = await response.json();
+          setImpactData(apiResponse.result); // Use the .result property
+        } else {
+          console.error('Impact API error:', response.status);
+          toast({ title: "API Error", description: `Impact API returned status: ${response.status}`, variant: "destructive" });
+        }
+      } catch (error) {
+        console.error('Error calling impact API:', error);
+        toast({ title: "API Error", description: "Failed to fetch impact assessment data", variant: "destructive" });
+      } finally {
+        setIsLoading(false);
+      }
+
       const interval = setInterval(() => {
         setProgress((prev) => {
           if (prev >= 100) {
@@ -139,6 +202,7 @@ export function SimulationPage() {
       }, 500)
     } catch {
       toast({ title: "Error", description: "Failed to start simulation", variant: "destructive" })
+      setIsLoading(false);
     }
   }
 
