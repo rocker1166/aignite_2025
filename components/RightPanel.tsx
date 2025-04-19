@@ -2,6 +2,7 @@
 import { FC, useState, useEffect, useRef } from 'react';
 import { Node, Edge } from 'reactflow';
 import { useTheme } from 'next-themes';
+import AddressAutocompleteMap from './ui/AutoComplete';
 
 interface RightPanelProps {
   selectedElement: Node | Edge | null;
@@ -12,19 +13,33 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
   const [formValues, setFormValues] = useState<any>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { theme } = useTheme();
-  
+  const [latitude, setLatitude] = useState('')
+  const [longitude, setLongitude] = useState('')
+  const [address, setAddress] = useState('')
+
   // Track if we have an attached file
   const hasAttachedFile = formValues.attachedFile?.name;
-  
+
   // Update form values when selected element changes
   useEffect(() => {
     if (selectedElement) {
       setFormValues(selectedElement.data || {});
+      // Initialize location and address from selected element if available
+      if (selectedElement.data?.location) {
+        setLatitude(selectedElement.data.location.lat?.toString() || '');
+        setLongitude(selectedElement.data.location.lng?.toString() || '');
+      }
+      if (selectedElement.data?.address) {
+        setAddress(selectedElement.data.address);
+      }
     } else {
       setFormValues({});
+      setLatitude('');
+      setLongitude('');
+      setAddress('');
     }
   }, [selectedElement]);
-  
+
   if (!selectedElement) {
     return (
       <div className="w-64 p-4 border-l border-gray-200 dark:border-gray-800/30 bg-white/80 dark:bg-black/20 backdrop-blur-sm">
@@ -39,25 +54,25 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
       </div>
     );
   }
-  
+
   const handleInputChange = (field: string, value: any) => {
     setFormValues({
       ...formValues,
       [field]: value
     });
   };
-  
+
   // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     // Check if it's an Excel file
     if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
       alert('Please upload an Excel file (.xlsx or .xls)');
       return;
     }
-    
+
     // Store file metadata in the node data
     handleInputChange('attachedFile', {
       name: file.name,
@@ -67,43 +82,57 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
       uploadedAt: new Date().toISOString()
     });
   };
-  
+
   // Handle file removal
   const handleFileRemove = () => {
     // Create a new object without the attachedFile property
     const { attachedFile, ...restValues } = formValues;
     setFormValues(restValues);
-    
+
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
-  
+
+  const handleMapCoordinatesChange = (lat: string, lng: string, addressValue: string) => {
+    setLatitude(lat);
+    setLongitude(lng);
+    setAddress(addressValue);
+  }
+
   // Trigger file input click
   const triggerFileUpload = () => {
     fileInputRef.current?.click();
   };
-  
+
   const handleSubmit = () => {
+    // Update location data with current latitude/longitude values
+    const locationData = {
+      lat: latitude ? parseFloat(latitude) : 0,
+      lng: longitude ? parseFloat(longitude) : 0
+    };
+
     const updatedElement = {
       ...selectedElement,
       data: {
-        ...formValues
+        ...formValues,
+        location: locationData,
+        address: address // Add address to the data
       }
     };
     onUpdate(updatedElement);
   };
-  
+
   // Determine if we're dealing with a node or edge
   const isNode = !('source' in selectedElement);
-  
+
   // Generate form fields based on element type
   const renderFormFields = () => {
     if (isNode) {
       // Get node type for conditional rendering
       const nodeType = formValues.type || '';
-      
+
       return (
         <>
           <div className="mb-5">
@@ -116,7 +145,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
             />
           </div>
-          
+
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description</label>
             <textarea
@@ -128,7 +157,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               placeholder="Add a detailed description of this node..."
             />
           </div>
-          
+
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Type</label>
             <select
@@ -145,7 +174,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               <option value="Distribution">Distribution</option>
             </select>
           </div>
-          
+
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Capacity</label>
             <input
@@ -156,7 +185,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
             />
           </div>
-          
+
           {/* Supplier-specific fields */}
           {nodeType === 'Supplier' && (
             <>
@@ -174,7 +203,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               </div>
             </>
           )}
-          
+
           {/* Factory-specific field */}
           {nodeType === 'Factory' && (
             <>
@@ -190,7 +219,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               </div>
             </>
           )}
-          
+
           {/* Port-specific fields */}
           {nodeType === 'Port' && (
             <>
@@ -208,7 +237,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               </div>
             </>
           )}
-          
+
           {/* Warehouse-specific field */}
           {nodeType === 'Warehouse' && (
             <>
@@ -224,7 +253,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               </div>
             </>
           )}
-          
+
           {/* Distribution-specific fields */}
           {nodeType === 'Distribution' && (
             <>
@@ -241,33 +270,38 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               </div>
             </>
           )}
-          
+
+          {/* Address and location section */}
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Location</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Address</label>
+            <AddressAutocompleteMap
+              onCoordinatesChange={handleMapCoordinatesChange}
+              initialAddress={formValues.address || ''}
+              initialLat={formValues.location?.lat?.toString() || ''}
+              initialLng={formValues.location?.lng?.toString() || ''}
+            />
+          </div>
+
+          <div className="mb-5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Location Coordinates</label>
             <div className="flex space-x-2">
               <input
                 type="text"
                 placeholder="Latitude"
-                value={formValues.location?.lat || 0}
-                onChange={(e) => handleInputChange('location', {
-                  ...formValues.location,
-                  lat: parseFloat(e.target.value)
-                })}
+                value={latitude}
                 className="w-1/2 p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+                readOnly
               />
               <input
                 type="text"
                 placeholder="Longitude"
-                value={formValues.location?.lng || 0}
-                onChange={(e) => handleInputChange('location', {
-                  ...formValues.location,
-                  lng: parseFloat(e.target.value)
-                })}
+                value={longitude}
                 className="w-1/2 p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+                readOnly
               />
             </div>
           </div>
-          
+
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Attached File</label>
             {hasAttachedFile ? (
@@ -317,7 +351,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               <option value="air">Air</option>
             </select>
           </div>
-          
+
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Cost per Unit</label>
             <input
@@ -328,7 +362,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
             />
           </div>
-          
+
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Transit Time (days)</label>
             <input
@@ -339,7 +373,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
             />
           </div>
-          
+
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Risk Multiplier</label>
             <input
@@ -360,12 +394,12 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
       );
     }
   };
-  
+
   return (
     <div className="w-64 p-4 border-l border-gray-200 dark:border-gray-800/50 bg-white/90 dark:bg-black/30 backdrop-blur-sm overflow-y-auto shadow-lg">
       <div className="flex items-center justify-between mb-5 border-b border-gray-200 dark:border-gray-800/50 pb-3">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          {isNode 
+          {isNode
             ? `${formValues.label || 'Unnamed'}`
             : `${selectedElement.source} → ${selectedElement.target}`
           }
@@ -374,13 +408,13 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
           {isNode ? formValues.type || 'Node' : 'Edge'}
         </div>
       </div>
-      
+
       <form onSubmit={(e) => {
         e.preventDefault();
         handleSubmit();
       }}>
         {renderFormFields()}
-        
+
         <div className="flex justify-end">
           <button
             type="submit"
