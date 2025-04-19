@@ -1,11 +1,11 @@
 "use client";
 // src/pages/DigitalTwinPage.tsx
 import { useState, useCallback } from 'react';
-import ReactFlow, { 
-  MiniMap, 
-  Controls, 
-  Background, 
-  useNodesState, 
+import ReactFlow, {
+  MiniMap,
+  Controls,
+  Background,
+  useNodesState,
   useEdgesState,
   addEdge,
   Node,
@@ -17,44 +17,51 @@ import 'reactflow/dist/style.css';
 import SimulationToolbar from '../../../components/SimulationToolbar';
 import LeftPanel from '../../../components/LeftPanel';
 import RightPanel from '../../../components/RightPanel';
+import { nodeTypes } from "@/components/CustomNodes";
 
 const initialNodes: Node[] = [
   {
     id: 'supplier-1',
     type: 'supplierNode',
-    data: { 
+    data: {
       label: 'Supplier A',
+      description: 'Primary supplier for raw materials based in Los Angeles.',
       type: 'Supplier',
       capacity: 1000,
       leadTime: 14,
       riskScore: 0.2,
-      location: { lat: 34.052, lng: -118.243 }
+      location: { lat: 34.052, lng: -118.243 },
+      address: '123 Supplier St, Los Angeles, CA 90001'
     },
     position: { x: 250, y: 100 },
   },
   {
     id: 'factory-1',
     type: 'factoryNode',
-    data: { 
+    data: {
       label: 'Factory B',
+      description: 'Main assembly facility located in New York.',
       type: 'Factory',
       capacity: 800,
       leadTime: 5,
       riskScore: 0.1,
-      location: { lat: 40.712, lng: -74.006 }
+      location: { lat: 40.712, lng: -74.006 },
+      address: '456 Factory Ave, New York, NY 10001'
     },
     position: { x: 450, y: 200 },
   },
   {
     id: 'port-1',
     type: 'portNode',
-    data: { 
+    data: {
       label: 'Port C',
+      description: 'Major shipping port in San Francisco.',
       type: 'Port',
       capacity: 5000,
       leadTime: 3,
       riskScore: 0.4,
-      location: { lat: 37.774, lng: -122.419 }
+      location: { lat: 37.774, lng: -122.419 },
+      address: '789 Port Blvd, San Francisco, CA 94111'
     },
     position: { x: 650, y: 100 },
   }
@@ -124,17 +131,19 @@ export default function DigitalTwinPage() {
     const newNode = {
       id: `${nodeType.toLowerCase()}-${nodes.length + 1}`,
       type: `${nodeType.toLowerCase()}Node`,
-      data: { 
+      data: {
         label: `New ${nodeType}`,
+        description: `Description for ${nodeType}`, // Adding default description
         type: nodeType,
         capacity: 500,
         leadTime: 7,
         riskScore: 0.3,
-        location: { lat: 0, lng: 0 }
+        location: { lat: 0, lng: 0 },
+        address: `Default address for ${nodeType}` // Adding default address
       },
-      position: { 
-        x: 300 + Math.random() * 100, 
-        y: 300 + Math.random() * 100 
+      position: {
+        x: 300 + Math.random() * 100,
+        y: 300 + Math.random() * 100
       },
     };
     setNodes(nodes => [...nodes, newNode]);
@@ -143,12 +152,30 @@ export default function DigitalTwinPage() {
 
   // Handle saving the current supply chain
   const handleSave = useCallback(() => {
+    // Create connections data with detailed information
+    const connections = edges.map(edge => {
+      const sourceNode = nodes.find(node => node.id === edge.source);
+      const targetNode = nodes.find(node => node.id === edge.target);
+      return {
+        sourceId: edge.source,
+        targetId: edge.target,
+        sourceLabel: sourceNode?.data.label,
+        targetLabel: targetNode?.data.label,
+        mode: edge.data.mode,
+        cost: edge.data.cost,
+        transitTime: edge.data.transitTime,
+        riskMultiplier: edge.data.riskMultiplier
+      };
+    });
+
     const supplyChainData = {
-      id: selectedSupplyChain,
+      id: selectedSupplyChain,  
       nodes,
       edges,
+      connections,
       timestamp: new Date().toISOString()
     };
+
     console.log('Saving supply chain:', supplyChainData);
     // Here you would typically send this to your backend
     alert('Supply chain saved!');
@@ -160,7 +187,7 @@ export default function DigitalTwinPage() {
     console.log('Running simulation with current graph');
     // Here you would call your simulation backend and update nodes/edges
     // with risk scores and visualization highlights
-    
+
     // Simulate updating risk scores (in a real app, this would come from backend)
     setTimeout(() => {
       setNodes(nodes => nodes.map(node => ({
@@ -174,7 +201,7 @@ export default function DigitalTwinPage() {
           background: Math.random() > 0.7 ? '#ff4d4f' : Math.random() > 0.4 ? '#faad14' : '#52c41a'
         }
       })));
-      
+
       setEdges(edges => edges.map(edge => ({
         ...edge,
         data: {
@@ -199,9 +226,16 @@ export default function DigitalTwinPage() {
     document.body.removeChild(a);
   }, [nodes, edges, selectedSupplyChain]);
 
+  // Handle clearing all nodes and edges
+  const handleClearAllNodes = useCallback(() => {
+    setNodes([]);
+    setEdges([]);
+    setSelectedElement(null);
+  }, [setNodes, setEdges]);
+
   return (
     <div className="flex flex-col h-screen">
-      <SimulationToolbar 
+      <SimulationToolbar
         selectedSupplyChain={selectedSupplyChain}
         setSelectedSupplyChain={setSelectedSupplyChain}
         onSave={handleSave}
@@ -210,13 +244,14 @@ export default function DigitalTwinPage() {
         simulationMode={simulationMode}
         setSimulationMode={setSimulationMode}
       />
-      
+
       <div className="flex flex-1 overflow-hidden">
-        <LeftPanel 
-          onAddNode={handleAddNode} 
+        <LeftPanel
+          onAddNode={handleAddNode}
+          onClearAllNodes={handleClearAllNodes}
           simulationMode={simulationMode}
         />
-        
+
         <div className="flex-1 h-full border border-gray-200">
           <ReactFlow
             nodes={nodes}
@@ -226,6 +261,7 @@ export default function DigitalTwinPage() {
             onConnect={onConnect}
             onNodeClick={onNodeClick}
             onEdgeClick={onEdgeClick}
+            nodeTypes={nodeTypes}
             fitView
           >
             <Controls />
@@ -233,21 +269,21 @@ export default function DigitalTwinPage() {
             <Background />
           </ReactFlow>
         </div>
-        
-        <RightPanel 
-          selectedElement={selectedElement} 
+
+        <RightPanel
+          selectedElement={selectedElement}
           onUpdate={(updatedElement) => {
             if ('source' in updatedElement) {
               // It's an edge
-              setEdges(edges => 
-                edges.map(edge => 
+              setEdges(edges =>
+                edges.map(edge =>
                   edge.id === updatedElement.id ? updatedElement : edge
                 )
               );
             } else {
               // It's a node
-              setNodes(nodes => 
-                nodes.map(node => 
+              setNodes(nodes =>
+                nodes.map(node =>
                   node.id === updatedElement.id ? updatedElement : node
                 )
               );
