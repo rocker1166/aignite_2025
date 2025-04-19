@@ -69,12 +69,7 @@ export function SimulationResults({ simulationId }: SimulationResultsProps) {
   }
 
   // Extract result summary from simulation
-  const resultSummary = simulation?.result_summary || {
-    costImpact: "$1.2M",
-    timeDelay: "14.5 days",
-    inventoryImpact: "-42%",
-    recoveryTime: "35 days",
-  }
+
 
   return (
     <ImpactAssessment />
