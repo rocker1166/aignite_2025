@@ -9,14 +9,16 @@ import { useUser } from "@/lib/stores/user";
 import { useEffect } from "react";
 
 export function LandingHeader() {
+  const setUser = useUser((state) => state.setUserData);
+  
 
   // const { theme, setTheme } = useTheme();
   const { userData } = useUser();
 
   // Refresh user data when component mounts
   useEffect(() => {
-    setUserData();
-  }, [setUserData]);
+    setUser();
+  }, [userData, setUser]);
 
   return (
     <header className="fixed top-0 left-0 w-full bg-background/80 backdrop-blur-md z-50 border-b border-border/40">
