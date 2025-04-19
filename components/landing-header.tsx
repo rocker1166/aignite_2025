@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
 import SignoutButton from "./auth/Signout";
 import { useUser } from "@/lib/stores/user";
-import { useEffect } from "react";
 
 export function LandingHeader() {
   const setUser = useUser((state) => state.setUserData);
@@ -13,6 +12,7 @@ export function LandingHeader() {
 
   // const { theme, setTheme } = useTheme();
   const { userData } = useUser();
+  
 
   // Refresh user data when component mounts
   useEffect(() => {
