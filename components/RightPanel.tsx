@@ -326,6 +326,8 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               </button>
             )}
             <input
+
+              title='Upload File'
               type="file"
               ref={fileInputRef}
               onChange={handleFileSelect}

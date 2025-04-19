@@ -4,43 +4,44 @@ import { google } from '@ai-sdk/google';
 import { z } from 'zod';
 
 // ✅ Supply chain declared ABOVE the handler
-const supplyChainData ={
+const supplyChainData =
+{
     "organization": {
-      "organizationName": "Global Manufacturing Corp.",
-      "description": "Global Manufacturing Corp. is a vertically integrated consumer electronics company specializing in design, assembly, and global distribution of smartphones, laptops, and wearable devices.",
-      "employeesCount": 4500,
-      "industry": "Consumer Electronics",
-      "industryDetail": "Design, manufacturing, assembly, and distribution of consumer electronic devices.",
+      "organizationName": "The Boeing Company",
+      "description": "Boeing is a leading aerospace company that designs, manufactures, and sells airplanes, rotorcraft, rockets, satellites, and telecommunications equipment worldwide.",
+      "employeesCount": 156000,
+      "industry": "Aerospace and Defense",
+      "industryDetail": "Design and manufacture of commercial airplanes, defense systems, and space exploration vehicles.",
       "moreInfo": {
-        "headquarters": "500 Innovation Drive, Silicon Valley, CA 94043",
-        "website": "https://www.globalmanufacturing.com",
-        "contactEmail": "corporate@globalmanufacturing.com",
-        "contactPhone": "+1-650-555-0100"
+        "headquarters": "100 N Riverside Plaza, Chicago, IL 60606, USA",
+        "website": "https://www.boeing.com",
+        "contactEmail": "contact@boeing.com",
+        "contactPhone": "+1-312-544-2000"
       }
     },
     "supplyChain": {
-      "id": "default-chain",
+      "id": "boeing-supply-chain",
       "nodes": [
         {
           "id": "supplier-1",
           "type": "supplierNode",
           "data": {
-            "label": "Supplier A",
-            "description": "Supplies high-grade industrial raw materials including steel and plastic components to manufacturers across North America.",
+            "label": "Spirit AeroSystems",
+            "description": "Manufactures fuselage sections and other aerostructures for Boeing's commercial aircraft.",
             "type": "Supplier",
-            "capacity": 1000,
-            "leadTime": 14,
-            "riskScore": 0.2,
+            "capacity": 1500,
+            "leadTime": 20,
+            "riskScore": 0.7,
             "moreInfo": {
-              "website": "https://www.apexrawmaterials.com",
-              "contactEmail": "info@apexrawmaterials.com",
-              "contactPhone": "+1-310-555-1234"
+              "website": "https://www.spiritaero.com",
+              "contactEmail": "info@spiritaero.com",
+              "contactPhone": "+1-316-526-9000"
             },
             "location": {
-              "lat": 34.052,
-              "lng": -118.243
+              "lat": 37.688,
+              "lng": -97.336
             },
-            "address": "123 Supplier St, Los Angeles, CA 90001"
+            "address": "3801 S Oliver St, Wichita, KS 67210, USA"
           },
           "position": {
             "x": 250,
@@ -48,33 +49,63 @@ const supplyChainData ={
           },
           "width": 150,
           "height": 43,
-          "selected": true,
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "supplier-2",
+          "type": "supplierNode",
+          "data": {
+            "label": "Tata Boeing Aerospace Limited (TBAL)",
+            "description": "Produces aero-structures for Boeing's AH-64 Apache helicopter and vertical fin structures for the 737 aircraft.",
+            "type": "Supplier",
+            "capacity": 1000,
+            "leadTime": 25,
+            "riskScore": 0.3,
+            "moreInfo": {
+              "website": "https://www.boeing.co.in",
+              "contactEmail": "contact@tbal.co.in",
+              "contactPhone": "+91-40-1234-5678"
+            },
+            "location": {
+              "lat": 17.385,
+              "lng": 78.486
+            },
+            "address": "Hyderabad, Telangana, India"
+          },
+          "position": {
+            "x": 250,
+            "y": 200
+          },
+          "width": 150,
+          "height": 43,
+          "selected": false,
           "dragging": false
         },
         {
           "id": "factory-1",
           "type": "factoryNode",
           "data": {
-            "label": "Factory B",
-            "description": "Operates a state-of-the-art manufacturing plant specializing in the assembly of automotive and aerospace components using advanced robotics and lean production methodologies.",
+            "label": "Boeing Everett Factory",
+            "description": "Assembles Boeing's wide-body aircraft, including the 747, 767, 777, and 787 models.",
             "type": "Factory",
-            "capacity": 800,
-            "leadTime": 5,
-            "riskScore": 0.1,
+            "capacity": 2000,
+            "leadTime": 30,
+            "riskScore": 0.5,
             "moreInfo": {
-              "website": "https://www.metropolisassembly.com",
-              "contactEmail": "contact@metropolisassembly.com",
-              "contactPhone": "+1-212-555-5678"
+              "website": "https://www.boeing.com/company/about-bca/everett.page",
+              "contactEmail": "everett@boeing.com",
+              "contactPhone": "+1-425-266-1000"
             },
             "location": {
-              "lat": 40.712,
-              "lng": -74.006
+              "lat": 47.923,
+              "lng": -122.271
             },
-            "address": "456 Factory Ave, New York, NY 10001"
+            "address": "3003 W Casino Rd, Everett, WA 98204, USA"
           },
           "position": {
             "x": 450,
-            "y": 200
+            "y": 150
           },
           "width": 150,
           "height": 43,
@@ -85,26 +116,26 @@ const supplyChainData ={
           "id": "port-1",
           "type": "portNode",
           "data": {
-            "label": "Port C",
-            "description": "Operates a major maritime logistics hub handling container and bulk cargo with extensive intermodal transfer capabilities.",
+            "label": "Port of Seattle",
+            "description": "Facilitates the export of Boeing aircraft and components to international markets.",
             "type": "Port",
             "capacity": 5000,
-            "leadTime": 3,
-            "riskScore": 0.4,
+            "leadTime": 5,
+            "riskScore": 0.2,
             "moreInfo": {
-              "website": "https://www.goldengateshipping.com",
-              "contactEmail": "service@goldengateshipping.com",
-              "contactPhone": "+1-415-555-7890"
+              "website": "https://www.portseattle.org",
+              "contactEmail": "info@portseattle.org",
+              "contactPhone": "+1-206-787-3000"
             },
             "location": {
-              "lat": 37.774,
-              "lng": -122.419
+              "lat": 47.606,
+              "lng": -122.332
             },
-            "address": "789 Port Blvd, San Francisco, CA 94111"
+            "address": "2711 Alaskan Way, Seattle, WA 98121, USA"
           },
           "position": {
             "x": 650,
-            "y": 100
+            "y": 150
           },
           "width": 150,
           "height": 43,
@@ -114,25 +145,36 @@ const supplyChainData ={
       ],
       "edges": [
         {
-          "id": "e1-2",
+          "id": "e1-3",
           "source": "supplier-1",
           "target": "factory-1",
           "data": {
-            "mode": "rail",
-            "cost": 200,
-            "transitTime": 5,
-            "riskMultiplier": 1.2
+            "mode": "road",
+            "cost": 300,
+            "transitTime": 3,
+            "riskMultiplier": 1.1
           }
         },
         {
           "id": "e2-3",
+          "source": "supplier-2",
+          "target": "factory-1",
+          "data": {
+            "mode": "air",
+            "cost": 500,
+            "transitTime": 2,
+            "riskMultiplier": 1.2
+          }
+        },
+        {
+          "id": "e3-4",
           "source": "factory-1",
           "target": "port-1",
           "data": {
             "mode": "road",
-            "cost": 150,
-            "transitTime": 2,
-            "riskMultiplier": 1
+            "cost": 100,
+            "transitTime": 1,
+            "riskMultiplier": 1.0
           }
         }
       ],
@@ -140,27 +182,28 @@ const supplyChainData ={
         {
           "sourceId": "supplier-1",
           "targetId": "factory-1",
-          "sourceLabel": "Supplier A",
-          "targetLabel": "Factory B",
-          "mode": "rail",
-          "cost": 200,
-          "transitTime": 5,
-          "riskMultiplier": 1.2
-        },
-        {
-          "sourceId": "factory-1",
-          "targetId": "port-1",
-          "sourceLabel": "Factory B",
-          "targetLabel": "Port C",
+          "sourceLabel": "Spirit AeroSystems",
+          "targetLabel": "Boeing Everett Factory",
           "mode": "road",
-          "cost": 150,
-          "transitTime": 2,
-          "riskMultiplier": 1
-        }
-      ],
-      "timestamp": "2025-04-19T16:09:13.653Z"
-    }
-  }
+          "cost": 300,
+          "transitTime": 3,
+          "riskMultiplier": 1.1
+        },
+                {
+                  "sourceId": "supplier-2",
+                  "targetId": "factory-1",
+                  "sourceLabel": "Tata Boeing Aerospace Limited (TBAL)",
+                  "targetLabel": "Boeing Everett Factory",
+                  "mode": "air",
+                  "cost": 500,
+                  "transitTime": 2,
+                  "riskMultiplier": 1.2
+                }
+              ]
+            }
+          }
+  
+
 
 // Enhanced schema: array of node intel objects
 const NodeIntelSchema = z.object({
@@ -184,7 +227,7 @@ const intelSchema = z.array(NodeIntelSchema);
 // Single call to collect all node intel in bulk
 async function getAllNodeIntel() {
   const prompt = `
-  Today’s date is ${new Date().toISOString()}. the news should be latest and contain only the most lastest  information. of today date only. 2025 news ans weathear only.
+  Today’s date is ${new Date().toISOString()}. the news should be latest and contain only the most lastest  information. of today date only. 2025 news ans weathear only. include us tariff geo political event which deisrupted port nodes.
 You are a Supply Chain Disruption Intelligence Agent. You will be given a list of nodes (suppliers, factories, ports, warehouses, etc.) with their IDs, types, locations, and attributes. For each node, you must:
 
 1. Retrieve the three most critical news items from the past 24 hours that could disrupt or materially impact that node’s operations. Focus on:

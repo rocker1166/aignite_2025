@@ -2,7 +2,7 @@ import { supabaseClient } from "@/lib/supabase/client"
 import type { SupplyChain, Node, Edge } from "@/lib/types/database"
 
 // Supply Chain CRUD operations
-export async function getSupplyChains(userId: string): Promise<SupplyChain[]> {
+export async function getSupplyChains(userId :any): Promise<SupplyChain[]> {
   const query = supabaseClient.from("supply_chains").select("*").order("created_at", { ascending: false })
   // Only filter by user_id if not a placeholder
   if (userId && userId !== "placeholder-user-id") {

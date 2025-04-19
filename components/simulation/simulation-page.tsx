@@ -12,6 +12,8 @@ import type { Simulation, SupplyChain } from "@/lib/types/database"
 import { getSupplyChains } from "@/lib/api/supply-chain"
 import { createSimulation, updateSimulation, getSimulations } from "@/lib/api/simulation"
 import { formatISO } from "date-fns"
+import { useUser } from "@/lib/stores/user"
+
 
 export function SimulationPage() {
   const { toast } = useToast()
@@ -52,10 +54,22 @@ export function SimulationPage() {
   const [alternateRouting, setAlternateRouting] = useState(true)
   const [randomSeed, setRandomSeed] = useState("")
 
+
+//fetch user 
+const { userData } = useUser();
+  console.log("userdata", userData)
+  console.log("company description", userData?.description)
+  console.log("company name", userData?.organisation_name)
+  console.log("company id", userData?.id)
+  console.log("industry", userData?.industry)
+  console.log("sub_industry", userData?.sub_industry)
+  console.log("location", userData?.location)
+
+
   useEffect(() => {
     const fetchSupplyChains = async () => {
       try {
-        const data = await getSupplyChains("placeholder-user-id")
+        const data = await getSupplyChains(userData?.id)
         setSupplyChains(data)
         if (data.length > 0) {
           setSelectedSupplyChainId(data[0].supply_chain_id)
