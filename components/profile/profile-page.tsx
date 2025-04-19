@@ -43,7 +43,7 @@ const defaultPreferences = {
   dashboard: true
 };
 
-const defaultTheme = "light";
+const defaultTheme = "dark";
 const defaultLayout = "default";
 
 export function ProfilePage(): React.ReactElement {
