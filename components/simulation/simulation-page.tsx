@@ -13,7 +13,7 @@ import { getSupplyChains } from "@/lib/api/supply-chain"
 import { createSimulation, updateSimulation, getSimulations } from "@/lib/api/simulation"
 import { formatISO } from "date-fns"
 import { useUser } from "@/lib/stores/user"
-
+import { useImpact } from "@/lib/context/impact-context"
 
 export function SimulationPage() {
   const { toast } = useToast()
@@ -35,6 +35,9 @@ export function SimulationPage() {
   const [simulationHistory, setSimulationHistory] = useState<Simulation[]>([])
   const [currentSimulation, setCurrentSimulation] = useState<Simulation | null>(null)
 
+  // Access the impact context
+  const { setImpactData, setIsLoading } = useImpact();
+
   // Basic scenario state
   const [scenarioName, setScenarioName] = useState("Port Strike Scenario")
   const [scenarioType, setScenarioType] = useState("disruption")
@@ -54,9 +57,8 @@ export function SimulationPage() {
   const [alternateRouting, setAlternateRouting] = useState(true)
   const [randomSeed, setRandomSeed] = useState("")
 
-
-//fetch user 
-const { userData } = useUser();
+  //fetch user 
+  const { userData } = useUser();
   console.log("userdata", userData)
   console.log("company description", userData?.description)
   console.log("company name", userData?.organisation_name)
@@ -64,7 +66,6 @@ const { userData } = useUser();
   console.log("industry", userData?.industry)
   console.log("sub_industry", userData?.sub_industry)
   console.log("location", userData?.location)
-
 
   useEffect(() => {
     const fetchSupplyChains = async () => {
@@ -149,6 +150,9 @@ const { userData } = useUser();
         }
       }
 
+      // Set loading state before API call
+      setIsLoading(true);
+
       // Call the impact API endpoint
       try {
         const response = await fetch('/api/impact', {
@@ -158,13 +162,17 @@ const { userData } = useUser();
         });
 
         if (response.ok) {
-          const impactData = await response.json();
-          console.log('Impact assessment results:', impactData);
+          const apiResponse = await response.json();
+          setImpactData(apiResponse.result); // Use the .result property
         } else {
           console.error('Impact API error:', response.status);
+          toast({ title: "API Error", description: `Impact API returned status: ${response.status}`, variant: "destructive" });
         }
       } catch (error) {
         console.error('Error calling impact API:', error);
+        toast({ title: "API Error", description: "Failed to fetch impact assessment data", variant: "destructive" });
+      } finally {
+        setIsLoading(false);
       }
 
       const interval = setInterval(() => {
@@ -194,6 +202,7 @@ const { userData } = useUser();
       }, 500)
     } catch {
       toast({ title: "Error", description: "Failed to start simulation", variant: "destructive" })
+      setIsLoading(false);
     }
   }
 

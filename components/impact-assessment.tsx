@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { supplyChainImpactData } from "@/lib/data/impactresult"
+import { useImpact } from "@/lib/context/impact-context"
+import { Skeleton } from "@/components/ui/skeleton"
 
 import CascadingFailureMap from "./cascading-failure-map"
 import MetricsDashboard from "./metrics-dashboard"
@@ -17,6 +18,7 @@ import NodeImpactGrid from "./node-impact-grid"
 
 export default function ImpactAssessment() {
   const { toast } = useToast()
+  const { impactData, isLoading } = useImpact();
   const [isRunning, setIsRunning] = useState(false)
 
   const runSimulation = () => {
@@ -35,8 +37,12 @@ export default function ImpactAssessment() {
     }, 3000)
   }
 
-  // Use the scenario data from the unified data object
-  const scenario = supplyChainImpactData.scenario
+  // Use the scenario data from the context, with null check
+  const scenario = impactData?.scenario || {}
+
+  if (isLoading) {
+    return <LoadingState />
+  }
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -72,11 +78,11 @@ export default function ImpactAssessment() {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>{scenario.name}</CardTitle>
-              <CardDescription>{scenario.description}</CardDescription>
+              <CardTitle>{scenario?.name || 'Scenario'}</CardTitle>
+              <CardDescription>{scenario?.description || 'No description available'}</CardDescription>
             </div>
             <Badge variant="destructive" className="px-3 py-1">
-              {scenario.type}
+              {scenario?.type || 'Unknown'}
             </Badge>
           </div>
         </CardHeader>
@@ -84,35 +90,35 @@ export default function ImpactAssessment() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">Supply Chain</div>
-              <div className="font-medium">{scenario.supplyChain}</div>
+              <div className="font-medium">{scenario?.supplyChain || 'N/A'}</div>
             </div>
             <div className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">Affected Node</div>
-              <div className="font-medium">{scenario.affectedNode}</div>
+              <div className="font-medium">{scenario?.affectedNode || 'N/A'}</div>
             </div>
             <div className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">Duration</div>
-              <div className="font-medium">{scenario.duration}</div>
+              <div className="font-medium">{scenario?.duration || 'N/A'}</div>
             </div>
             <div className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">Severity</div>
-              <div className="font-medium">{scenario.severity}</div>
+              <div className="font-medium">{scenario?.severity || 'N/A'}</div>
             </div>
             <div className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">Monte Carlo Runs</div>
-              <div className="font-medium">{scenario.monteCarloRuns}</div>
+              <div className="font-medium">{scenario?.monteCarloRuns || 'N/A'}</div>
             </div>
             <div className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">Cascading Threshold</div>
-              <div className="font-medium">{scenario.cascadingThreshold}</div>
+              <div className="font-medium">{scenario?.cascadingThreshold || 'N/A'}</div>
             </div>
             <div className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">Inventory Buffer</div>
-              <div className="font-medium">{scenario.inventoryBuffer}</div>
+              <div className="font-medium">{scenario?.inventoryBuffer || 'N/A'}</div>
             </div>
             <div className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">Last Updated</div>
-              <div className="font-medium">{scenario.lastUpdated}</div>
+              <div className="font-medium">{scenario?.lastUpdated || 'N/A'}</div>
             </div>
           </div>
         </CardContent>
@@ -174,6 +180,45 @@ export default function ImpactAssessment() {
           </div>
         </CardContent>
       </Card>
+    </div>
+  )
+}
+
+function LoadingState() {
+  return (
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Impact Assessment</h1>
+          <p className="text-muted-foreground">
+            Loading impact assessment data...
+          </p>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <Skeleton className="h-6 w-40" />
+              <Skeleton className="h-4 w-64 mt-2" />
+            </div>
+            <Skeleton className="h-8 w-24" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array(8).fill(0).map((_, i) => (
+              <div key={i} className="space-y-1">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-5 w-32" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Skeleton className="h-[300px] w-full" />
     </div>
   )
 }

@@ -8,16 +8,21 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { supplyChainImpactData, type SupplyChainNode } from "@/lib/data/impactresult"
-
-// We no longer need the Node type or nodes array defined here
-// as we're using the unified data structure from impactresult.ts
+import { type SupplyChainNode, supplyChainImpactData } from "@/lib/data/impactresult"
+import { useImpact } from "@/lib/context/impact-context"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function NodeImpactGrid() {
   const [sortBy, setSortBy] = useState<keyof SupplyChainNode>("riskScore")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
+  
+  // Get the impact data from context 
+  const { impactData, isLoading } = useImpact();
+  
+  // Use default data if impactData is not available
+  const safeImpactData = impactData || supplyChainImpactData;
 
-  const sortedNodes = [...supplyChainImpactData.nodes].sort((a, b) => {
+  const sortedNodes = [...(safeImpactData.nodes || [])].sort((a, b) => {
     if (sortOrder === "asc") {
       if (typeof a[sortBy] === "string" && typeof b[sortBy] === "string") {
         return (a[sortBy] as string).localeCompare(b[sortBy] as string)
@@ -56,6 +61,10 @@ export default function NodeImpactGrid() {
       default:
         return <Badge>{capitalizedStatus}</Badge>
     }
+  }
+
+  if (isLoading) {
+    return <LoadingState />
   }
 
   return (
@@ -159,6 +168,28 @@ export default function NodeImpactGrid() {
               ))}
             </TableBody>
           </Table>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function LoadingState() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <Skeleton className="h-6 w-64" />
+        </CardTitle>
+        <CardDescription>
+          <Skeleton className="h-4 w-96" />
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-md border">
+          <div className="p-4">
+            <Skeleton className="h-[400px] w-full" />
+          </div>
         </div>
       </CardContent>
     </Card>

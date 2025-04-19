@@ -20,14 +20,24 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
-import { supplyChainImpactData, getNodeStatusData, getImpactByNodeData, NODE_STATUS_COLORS } from "@/lib/data/impactresult"
-
-// No need for local data arrays as we're using the unified data structure
+import { getNodeStatusData, getImpactByNodeData, NODE_STATUS_COLORS, supplyChainImpactData } from "@/lib/data/impactresult"
+import { useImpact } from "@/lib/context/impact-context"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function MetricsDashboard() {
+  // Get data from impact context instead of using the hardcoded data
+  const { impactData, isLoading } = useImpact();
+  
+  // Use the default data if impactData is not available
+  const safeImpactData = impactData || supplyChainImpactData;
+  
   // Get derived data using helper functions
-  const nodeStatusData = getNodeStatusData(supplyChainImpactData)
-  const impactByNodeData = getImpactByNodeData(supplyChainImpactData)
+  const nodeStatusData = getNodeStatusData(safeImpactData)
+  const impactByNodeData = getImpactByNodeData(safeImpactData)
+
+  if (isLoading) {
+    return <LoadingState />
+  }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -41,7 +51,7 @@ export default function MetricsDashboard() {
         </CardHeader>
         <CardContent className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
-            <RechartsLineChart data={supplyChainImpactData.productionData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+            <RechartsLineChart data={safeImpactData.productionData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" />
               <YAxis />
@@ -80,7 +90,7 @@ export default function MetricsDashboard() {
         </CardHeader>
         <CardContent className="h-[200px]">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={supplyChainImpactData.inventoryData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <AreaChart data={safeImpactData.inventoryData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" />
               <YAxis />
@@ -160,6 +170,19 @@ export default function MetricsDashboard() {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+    </div>
+  )
+}
+
+function LoadingState() {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="col-span-full">
+        <Skeleton className="h-[350px] w-full" />
+      </div>
+      <Skeleton className="h-[250px] w-full" />
+      <Skeleton className="h-[250px] w-full" />
+      <Skeleton className="h-[250px] w-full" />
     </div>
   )
 }

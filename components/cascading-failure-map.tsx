@@ -15,9 +15,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Slider } from "@/components/ui/slider"
+import { useImpact } from "@/lib/context/impact-context"
+import { Skeleton } from "@/components/ui/skeleton"
 import { supplyChainImpactData } from "@/lib/data/impactresult"
-
-// No need for local interfaces and sample data as we're using the unified data structure
 
 export default function CascadingFailureMap() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -26,6 +26,12 @@ export default function CascadingFailureMap() {
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [offset, setOffset] = useState({ x: 0, y: 0 })
+  
+  // Get the impact data from context
+  const { impactData, isLoading } = useImpact();
+  
+  // Use default data if impactData is not available
+  const safeImpactData = impactData || supplyChainImpactData;
 
   // Draw the network on canvas
   useEffect(() => {
@@ -44,64 +50,68 @@ export default function CascadingFailureMap() {
     ctx.scale(zoom, zoom)
 
     // Draw links
-    supplyChainImpactData.links.forEach((link) => {
-      const source = supplyChainImpactData.nodes.find((n) => n.id === link.source)
-      const target = supplyChainImpactData.nodes.find((n) => n.id === link.target)
+    if (safeImpactData?.links) {
+      safeImpactData.links.forEach((link) => {
+        const source = safeImpactData.nodes?.find((n) => n.id === link.source)
+        const target = safeImpactData.nodes?.find((n) => n.id === link.target)
 
-      if (source && target) {
-        ctx.beginPath()
-        ctx.moveTo(source.x, source.y)
-        ctx.lineTo(target.x, target.y)
+        if (source && target) {
+          ctx.beginPath()
+          ctx.moveTo(source.x, source.y)
+          ctx.lineTo(target.x, target.y)
 
-        // Style based on node statuses
-        if (source.status === "failed" || target.status === "failed") {
-          ctx.strokeStyle = "#ef4444" // Red for failed connections
-          ctx.lineWidth = 3
-        } else if (source.status === "partial" || target.status === "partial") {
-          ctx.strokeStyle = "#eab308" // Yellow for partial connections
-          ctx.lineWidth = 2
-        } else {
-          ctx.strokeStyle = "#94a3b8" // Gray for normal connections
-          ctx.lineWidth = 1
+          // Style based on node statuses
+          if (source.status === "failed" || target.status === "failed") {
+            ctx.strokeStyle = "#ef4444" // Red for failed connections
+            ctx.lineWidth = 3
+          } else if (source.status === "partial" || target.status === "partial") {
+            ctx.strokeStyle = "#eab308" // Yellow for partial connections
+            ctx.lineWidth = 2
+          } else {
+            ctx.strokeStyle = "#94a3b8" // Gray for normal connections
+            ctx.lineWidth = 1
+          }
+
+          ctx.stroke()
         }
-
-        ctx.stroke()
-      }
-    })
+      })
+    }
 
     // Draw nodes
-    supplyChainImpactData.nodes.forEach((node) => {
-      ctx.beginPath()
-      ctx.arc(node.x, node.y, 20, 0, Math.PI * 2)
+    if (safeImpactData?.nodes) {
+      safeImpactData.nodes.forEach((node) => {
+        ctx.beginPath()
+        ctx.arc(node.x, node.y, 20, 0, Math.PI * 2)
 
-      // Fill based on status
-      if (node.status === "failed") {
-        ctx.fillStyle = "#ef4444" // Red for failed
-      } else if (node.status === "partial") {
-        ctx.fillStyle = "#eab308" // Yellow for partial
-      } else if (node.status === "disrupted") {
-        ctx.fillStyle = "#f97316" // Orange for disrupted
-      } else {
-        ctx.fillStyle = "#22c55e" // Green for operational
-      }
+        // Fill based on status
+        if (node.status === "failed") {
+          ctx.fillStyle = "#ef4444" // Red for failed
+        } else if (node.status === "partial") {
+          ctx.fillStyle = "#eab308" // Yellow for partial
+        } else if (node.status === "disrupted") {
+          ctx.fillStyle = "#f97316" // Orange for disrupted
+        } else {
+          ctx.fillStyle = "#22c55e" // Green for operational
+        }
 
-      ctx.fill()
+        ctx.fill()
 
-      // Node border
-      ctx.strokeStyle = "#ffffff"
-      ctx.lineWidth = 2
-      ctx.stroke()
+        // Node border
+        ctx.strokeStyle = "#ffffff"
+        ctx.lineWidth = 2
+        ctx.stroke()
 
-      // Node label
-      ctx.fillStyle = "#ffffff"
-      ctx.font = "10px sans-serif"
-      ctx.textAlign = "center"
-      ctx.textBaseline = "middle"
-      ctx.fillText(node.name, node.x, node.y)
-    })
+        // Node label
+        ctx.fillStyle = "#ffffff"
+        ctx.font = "10px sans-serif"
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText(node.name, node.x, node.y)
+      })
+    }
 
     ctx.restore()
-  }, [zoom, offset, day])
+  }, [zoom, offset, day, safeImpactData])
 
   // Handle mouse events for dragging
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -138,6 +148,10 @@ export default function CascadingFailureMap() {
 
   const handleDayChange = (value: number[]) => {
     setDay(value[0])
+  }
+  
+  if (isLoading) {
+    return <LoadingState />
   }
 
   return (
@@ -200,6 +214,19 @@ export default function CascadingFailureMap() {
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
       />
+    </div>
+  )
+}
+
+function LoadingState() {
+  return (
+    <div className="relative h-full w-full">
+      <Skeleton className="h-full w-full" />
+      <div className="absolute top-2 right-2 flex gap-2 z-10">
+        <Skeleton className="h-9 w-9" />
+        <Skeleton className="h-9 w-9" />
+        <Skeleton className="h-9 w-28" />
+      </div>
     </div>
   )
 }
