@@ -5,6 +5,7 @@ import { generateObject } from 'ai';
 import { google } from '@ai-sdk/google';
 import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase/server';
+
 // ───────────────────────────────────────────────────────────────────────────────
 // 1️⃣ Define Zod schemas matching your SupplyChainImpactData shape
 // ───────────────────────────────────────────────────────────────────────────────
@@ -58,7 +59,20 @@ const SupplyChainImpactDataSchema = z.object({
   scenario: ScenarioSchema,
   nodes: z.array(NodeSchema),
   links: z.array(LinkSchema),
-  productionData: z.array(MetricSchema),
+  productionData: z
+    .array(
+      z.object({
+        day: z.number(),
+        actual: z
+          .number()
+          .max(100, { message: 'Actual must not exceed 100' })
+          .nullable(),
+        projected: z
+          .number()
+          .max(100, { message: 'Projected must not exceed 100' }),
+      })
+    )
+    .length(30, { message: 'Must include exactly 30 days of data' }),
   inventoryData: z.array(MetricSchema),
 });
 
@@ -71,51 +85,49 @@ export async function POST(req: Request) {
     let supplyChains;
 
     try {
-        // Use the existing supabaseServer client
-        const supabase = supabaseServer;
-    
-        // Fetch users from the database
-        console.log("Fetching users from database...");
-        const { data: users } = await supabase
-          .from('users')
-          .select('*')
-          .limit(1);
-          
-        if (!users || users.length === 0) {
-          return NextResponse.json({ error: "No users found in the database" }, { status: 404 });
-        }
-        
-        const userData = users[0];
-        console.log("Using user:", userData.id);
-        console.log("userdata", userData);
-        
-        // Get the user's supply chains
-        console.log("Fetching supply chains for user:", userData.id);
-        const { data } = await supabase
-          .from('supply_chains')
-          .select('*')
-          .eq('user_id', userData.id);
-        
-        if (!data || data.length === 0) {
-          return NextResponse.json({ error: "No supply chains found for user" }, { status: 404 });
-        }
+      const supabase = supabaseServer;
 
-        supplyChains = data;
-    } catch (innerError) {
-        console.error('❌ Inner Error:', innerError);
+      const { data: users } = await supabase
+        .from('users')
+        .select('*')
+        .limit(1);
+
+      if (!users || users.length === 0) {
         return NextResponse.json(
-          { error: 'Failed to fetch user or supply chain data.' },
-          { status: 500 }
+          { error: 'No users found in the database' },
+          { status: 404 }
         );
+      }
+
+      const userData = users[0];
+
+      const { data } = await supabase
+        .from('supply_chains')
+        .select('*')
+        .eq('user_id', userData.id);
+
+      if (!data || data.length === 0) {
+        return NextResponse.json(
+          { error: 'No supply chains found for user' },
+          { status: 404 }
+        );
+      }
+
+      supplyChains = data;
+    } catch (innerError) {
+      console.error('❌ Inner Error:', innerError);
+      return NextResponse.json(
+        { error: 'Failed to fetch user or supply chain data.' },
+        { status: 500 }
+      );
     }
 
+    const { simulationConfig } = await req.json();
 
-    const { simulationConfig} = await req.json();
-
-    // Build a precise, instruction‐rich prompt
     const prompt = `
-You are an expert supply chain simulation analyst.  
-Using the inputs below, compute a full impact assessment:
+You are an expert supply chain simulation analyst.
+
+🧠 Using the inputs below, compute a full impact assessment:
 - Disruption severity, duration, Monte Carlo runs, thresholds, buffers
 - The complete company supply‐chain map with nodes, edges, inventories
 
@@ -130,12 +142,18 @@ Using the inputs below, compute a full impact assessment:
 8. Monte Carlo Runs: use as basis for a single “median” run—no need for multiple replicates in output.
 9. Last updated: use current timestamp in “Today, HH:MM AM/PM” format.
 
-▶️ Output:
-Return a single JSON object matching this Zod schema exactly (no extra fields):
+⚠️ VERY IMPORTANT:
+- productionData must be an array of exactly 30 days.
+- Values for 'actual' and 'projected' MUST NOT exceed 100.
+- From day 1 to 21, 'actual' must have real numbers (≤100).
+- From day 22 to 30, 'actual' must be null; only 'projected' should be filled.
+- Follow a realistic ramp down → low phase → ramp up pattern.
+
+✅ Output must match this exact Zod schema:
 
 ${SupplyChainImpactDataSchema.toString()}
 
-Inputs:
+📥 Inputs:
 SimulationConfig:
 ${JSON.stringify(simulationConfig, null, 2)}
 
@@ -143,7 +161,6 @@ CompanySitemap:
 ${JSON.stringify(supplyChains, null, 2)}
 `.trim();
 
-    // Invoke the LLM with structured output
     const { object: result } = await generateObject({
       model: google('gemini-1.5-flash', { useSearchGrounding: true }),
       schema: SupplyChainImpactDataSchema,
