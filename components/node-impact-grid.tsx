@@ -8,114 +8,30 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { supplyChainImpactData, type SupplyChainNode } from "@/lib/data/impactresult"
 
-type NodeStatus = "Operational" | "Partial" | "Disrupted" | "Failed"
-
-interface Node {
-  id: string
-  name: string
-  type: string
-  status: NodeStatus
-  statusDetail: string
-  downtime: string
-  outputDrop: string
-  recovery: string
-  riskScore: number
-}
-
-const nodes: Node[] = [
-  {
-    id: "1",
-    name: "Supplier A",
-    type: "Supplier",
-    status: "Disrupted",
-    statusDetail: "Primary disruption",
-    downtime: "14 days",
-    outputDrop: "-70%",
-    recovery: "Day 15",
-    riskScore: 85,
-  },
-  {
-    id: "2",
-    name: "Factory B",
-    type: "Manufacturing",
-    status: "Failed",
-    statusDetail: "Failed (Day 5)",
-    downtime: "9 days",
-    outputDrop: "-60%",
-    recovery: "Day 14",
-    riskScore: 78,
-  },
-  {
-    id: "3",
-    name: "Port C",
-    type: "Logistics",
-    status: "Partial",
-    statusDetail: "Limited capacity",
-    downtime: "—",
-    outputDrop: "-30%",
-    recovery: "Ongoing",
-    riskScore: 65,
-  },
-  {
-    id: "4",
-    name: "Distributor D",
-    type: "Distribution",
-    status: "Partial",
-    statusDetail: "Reduced throughput",
-    downtime: "—",
-    outputDrop: "-25%",
-    recovery: "Day 18",
-    riskScore: 55,
-  },
-  {
-    id: "5",
-    name: "Warehouse E",
-    type: "Storage",
-    status: "Operational",
-    statusDetail: "Using buffer inventory",
-    downtime: "—",
-    outputDrop: "-15%",
-    recovery: "Day 20",
-    riskScore: 40,
-  },
-  {
-    id: "6",
-    name: "Retailer F",
-    type: "Retail",
-    status: "Operational",
-    statusDetail: "Stock limitations",
-    downtime: "—",
-    outputDrop: "-10%",
-    recovery: "Day 21",
-    riskScore: 35,
-  },
-  {
-    id: "7",
-    name: "Supplier G",
-    type: "Supplier",
-    status: "Operational",
-    statusDetail: "Unaffected",
-    downtime: "—",
-    outputDrop: "0%",
-    recovery: "—",
-    riskScore: 10,
-  },
-]
+// We no longer need the Node type or nodes array defined here
+// as we're using the unified data structure from impactresult.ts
 
 export default function NodeImpactGrid() {
-  const [sortBy, setSortBy] = useState<keyof Node>("riskScore")
+  const [sortBy, setSortBy] = useState<keyof SupplyChainNode>("riskScore")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
 
-  const sortedNodes = [...nodes].sort((a, b) => {
+  const sortedNodes = [...supplyChainImpactData.nodes].sort((a, b) => {
     if (sortOrder === "asc") {
-      return a[sortBy] > b[sortBy] ? 1 : -1
+      if (typeof a[sortBy] === "string" && typeof b[sortBy] === "string") {
+        return (a[sortBy] as string).localeCompare(b[sortBy] as string)
+      }
+      return (a[sortBy] ?? 0) > (b[sortBy] ?? 0) ? 1 : -1
     } else {
-      return a[sortBy] < b[sortBy] ? 1 : -1
+      if (typeof a[sortBy] === "string" && typeof b[sortBy] === "string") {
+        return (b[sortBy] as string).localeCompare(a[sortBy] as string)
+      }
+      return (a[sortBy] ?? 0) < (b[sortBy] ?? 0) ? 1 : -1
     }
   })
 
-  const handleSort = (column: keyof Node) => {
+  const handleSort = (column: keyof SupplyChainNode) => {
     if (sortBy === column) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc")
     } else {
@@ -124,16 +40,21 @@ export default function NodeImpactGrid() {
     }
   }
 
-  const getStatusBadge = (status: NodeStatus) => {
+  const getStatusBadge = (status: string) => {
+    // Convert status to capitalized form for display
+    const capitalizedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
+    
     switch (status) {
-      case "Operational":
-        return <Badge className="bg-green-500">Operational</Badge>
-      case "Partial":
-        return <Badge className="bg-yellow-500">Partial</Badge>
-      case "Disrupted":
-        return <Badge className="bg-orange-500">Disrupted</Badge>
-      case "Failed":
-        return <Badge variant="destructive">Failed</Badge>
+      case "operational":
+        return <Badge className="bg-green-500">{capitalizedStatus}</Badge>
+      case "partial":
+        return <Badge className="bg-yellow-500">{capitalizedStatus}</Badge>
+      case "disrupted":
+        return <Badge className="bg-orange-500">{capitalizedStatus}</Badge>
+      case "failed":
+        return <Badge variant="destructive">{capitalizedStatus}</Badge>
+      default:
+        return <Badge>{capitalizedStatus}</Badge>
     }
   }
 
@@ -211,7 +132,7 @@ export default function NodeImpactGrid() {
               {sortedNodes.map((node) => (
                 <TableRow key={node.id}>
                   <TableCell className="font-medium">{node.name}</TableCell>
-                  <TableCell>{node.type}</TableCell>
+                  <TableCell>{node.type.charAt(0).toUpperCase() + node.type.slice(1)}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       {getStatusBadge(node.status)}

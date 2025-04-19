@@ -20,90 +20,15 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
+import { supplyChainImpactData, getNodeStatusData, getImpactByNodeData, NODE_STATUS_COLORS } from "@/lib/data/impactresult"
 
-const productionData = [
-  { day: 1, actual: 100, projected: 100 },
-  { day: 2, actual: 100, projected: 100 },
-  { day: 3, actual: 95, projected: 95 },
-  { day: 4, actual: 80, projected: 80 },
-  { day: 5, actual: 60, projected: 60 },
-  { day: 6, actual: 40, projected: 40 },
-  { day: 7, actual: 30, projected: 30 },
-  { day: 8, actual: 30, projected: 30 },
-  { day: 9, actual: 30, projected: 30 },
-  { day: 10, actual: 30, projected: 30 },
-  { day: 11, actual: 30, projected: 30 },
-  { day: 12, actual: 30, projected: 30 },
-  { day: 13, actual: 30, projected: 30 },
-  { day: 14, actual: 30, projected: 30 },
-  { day: 15, actual: 40, projected: 40 },
-  { day: 16, actual: 50, projected: 50 },
-  { day: 17, actual: 60, projected: 60 },
-  { day: 18, actual: 70, projected: 70 },
-  { day: 19, actual: 80, projected: 80 },
-  { day: 20, actual: 90, projected: 90 },
-  { day: 21, actual: 95, projected: 95 },
-  { day: 22, actual: null, projected: 100 },
-  { day: 23, actual: null, projected: 100 },
-  { day: 24, actual: null, projected: 100 },
-  { day: 25, actual: null, projected: 100 },
-  { day: 26, actual: null, projected: 100 },
-  { day: 27, actual: null, projected: 100 },
-  { day: 28, actual: null, projected: 100 },
-  { day: 29, actual: null, projected: 100 },
-  { day: 30, actual: null, projected: 100 },
-]
-
-const inventoryData = [
-  { day: 1, level: 100 },
-  { day: 2, level: 95 },
-  { day: 3, level: 85 },
-  { day: 4, level: 70 },
-  { day: 5, level: 50 },
-  { day: 6, level: 30 },
-  { day: 7, level: 20 },
-  { day: 8, level: 10 },
-  { day: 9, level: 5 },
-  { day: 10, level: 0 },
-  { day: 11, level: 0 },
-  { day: 12, level: 0 },
-  { day: 13, level: 0 },
-  { day: 14, level: 0 },
-  { day: 15, level: 10 },
-  { day: 16, level: 20 },
-  { day: 17, level: 30 },
-  { day: 18, level: 40 },
-  { day: 19, level: 50 },
-  { day: 20, level: 60 },
-  { day: 21, level: 70 },
-  { day: 22, level: 80 },
-  { day: 23, level: 90 },
-  { day: 24, level: 95 },
-  { day: 25, level: 100 },
-  { day: 26, level: 100 },
-  { day: 27, level: 100 },
-  { day: 28, level: 100 },
-  { day: 29, level: 100 },
-  { day: 30, level: 100 },
-]
-
-const nodeStatusData = [
-  { name: "Operational", value: 7 },
-  { name: "Partial", value: 2 },
-  { name: "Failed", value: 2 },
-]
-
-const COLORS = ["#22c55e", "#eab308", "#ef4444"]
-
-const impactByNodeData = [
-  { name: "Supplier A", impact: 70 },
-  { name: "Factory B", impact: 60 },
-  { name: "Port C", impact: 30 },
-  { name: "Distributor D", impact: 25 },
-  { name: "Warehouse E", impact: 15 },
-]
+// No need for local data arrays as we're using the unified data structure
 
 export default function MetricsDashboard() {
+  // Get derived data using helper functions
+  const nodeStatusData = getNodeStatusData(supplyChainImpactData)
+  const impactByNodeData = getImpactByNodeData(supplyChainImpactData)
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       <Card className="col-span-full">
@@ -116,7 +41,7 @@ export default function MetricsDashboard() {
         </CardHeader>
         <CardContent className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
-            <RechartsLineChart data={productionData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+            <RechartsLineChart data={supplyChainImpactData.productionData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" />
               <YAxis />
@@ -155,7 +80,7 @@ export default function MetricsDashboard() {
         </CardHeader>
         <CardContent className="h-[200px]">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={inventoryData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <AreaChart data={supplyChainImpactData.inventoryData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" />
               <YAxis />
@@ -202,7 +127,7 @@ export default function MetricsDashboard() {
                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
               >
                 {nodeStatusData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={`cell-${index}`} fill={NODE_STATUS_COLORS[index % NODE_STATUS_COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip />

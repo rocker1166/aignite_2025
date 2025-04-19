@@ -126,6 +126,47 @@ const { userData } = useUser();
       setSimulationComplete(false)
       setProgress(0)
 
+      // Create the simulationConfig object to send to the impact API
+      const simulationConfig = {
+        id: created?.simulation_id,
+        name: scenarioName,
+        type: scenarioType,
+        supplyChainId: selectedSupplyChainId,
+        parameters: {
+          severity: disruptionSeverity,
+          duration: disruptionDuration,
+          affectedNode,
+          description,
+          startDate,
+          endDate,
+          monteCarloRuns,
+          distributionType,
+          cascadeEnabled,
+          failureThreshold,
+          bufferPercent,
+          alternateRouting,
+          randomSeed
+        }
+      }
+
+      // Call the impact API endpoint
+      try {
+        const response = await fetch('/api/impact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ simulationConfig })
+        });
+
+        if (response.ok) {
+          const impactData = await response.json();
+          console.log('Impact assessment results:', impactData);
+        } else {
+          console.error('Impact API error:', response.status);
+        }
+      } catch (error) {
+        console.error('Error calling impact API:', error);
+      }
+
       const interval = setInterval(() => {
         setProgress((prev) => {
           if (prev >= 100) {

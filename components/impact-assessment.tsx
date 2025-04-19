@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { supplyChainImpactData } from "@/lib/data/impactresult"
 
 import CascadingFailureMap from "./cascading-failure-map"
 import MetricsDashboard from "./metrics-dashboard"
@@ -33,6 +34,9 @@ export default function ImpactAssessment() {
       })
     }, 3000)
   }
+
+  // Use the scenario data from the unified data object
+  const scenario = supplyChainImpactData.scenario
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -68,11 +72,11 @@ export default function ImpactAssessment() {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Port Strike Scenario</CardTitle>
-              <CardDescription>Supply chain disruption analysis</CardDescription>
+              <CardTitle>{scenario.name}</CardTitle>
+              <CardDescription>{scenario.description}</CardDescription>
             </div>
             <Badge variant="destructive" className="px-3 py-1">
-              Natural Disaster
+              {scenario.type}
             </Badge>
           </div>
         </CardHeader>
@@ -80,35 +84,35 @@ export default function ImpactAssessment() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">Supply Chain</div>
-              <div className="font-medium">fish_chain</div>
+              <div className="font-medium">{scenario.supplyChain}</div>
             </div>
             <div className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">Affected Node</div>
-              <div className="font-medium">Supplier A</div>
+              <div className="font-medium">{scenario.affectedNode}</div>
             </div>
             <div className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">Duration</div>
-              <div className="font-medium">14 days</div>
+              <div className="font-medium">{scenario.duration}</div>
             </div>
             <div className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">Severity</div>
-              <div className="font-medium">70%</div>
+              <div className="font-medium">{scenario.severity}</div>
             </div>
             <div className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">Monte Carlo Runs</div>
-              <div className="font-medium">100</div>
+              <div className="font-medium">{scenario.monteCarloRuns}</div>
             </div>
             <div className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">Cascading Threshold</div>
-              <div className="font-medium">30%</div>
+              <div className="font-medium">{scenario.cascadingThreshold}</div>
             </div>
             <div className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">Inventory Buffer</div>
-              <div className="font-medium">20%</div>
+              <div className="font-medium">{scenario.inventoryBuffer}</div>
             </div>
             <div className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">Last Updated</div>
-              <div className="font-medium">Today, 10:30 AM</div>
+              <div className="font-medium">{scenario.lastUpdated}</div>
             </div>
           </div>
         </CardContent>

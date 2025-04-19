@@ -15,51 +15,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Slider } from "@/components/ui/slider"
+import { supplyChainImpactData } from "@/lib/data/impactresult"
 
-// Define the node data structure
-interface Node {
-  id: string
-  name: string
-  type: string
-  status: "operational" | "partial" | "failed"
-  x: number
-  y: number
-}
-
-// Define the link data structure
-interface Link {
-  source: string
-  target: string
-  value: number
-}
-
-// Sample data for the network
-const nodes: Node[] = [
-  { id: "1", name: "Supplier A", type: "supplier", status: "failed", x: 100, y: 100 },
-  { id: "2", name: "Factory B", type: "manufacturing", status: "failed", x: 250, y: 150 },
-  { id: "3", name: "Port C", type: "logistics", status: "partial", x: 400, y: 100 },
-  { id: "4", name: "Distributor D", type: "distribution", status: "partial", x: 550, y: 150 },
-  { id: "5", name: "Warehouse E", type: "storage", status: "operational", x: 700, y: 100 },
-  { id: "6", name: "Retailer F", type: "retail", status: "operational", x: 850, y: 150 },
-  { id: "7", name: "Supplier G", type: "supplier", status: "operational", x: 100, y: 250 },
-  { id: "8", name: "Factory H", type: "manufacturing", status: "operational", x: 250, y: 300 },
-  { id: "9", name: "Warehouse I", type: "storage", status: "operational", x: 400, y: 250 },
-  { id: "10", name: "Retailer J", type: "retail", status: "operational", x: 550, y: 300 },
-  { id: "11", name: "Supplier K", type: "supplier", status: "operational", x: 700, y: 250 },
-]
-
-const links: Link[] = [
-  { source: "1", target: "2", value: 5 },
-  { source: "2", target: "3", value: 5 },
-  { source: "3", target: "4", value: 5 },
-  { source: "4", target: "5", value: 5 },
-  { source: "5", target: "6", value: 5 },
-  { source: "7", target: "8", value: 5 },
-  { source: "8", target: "9", value: 5 },
-  { source: "9", target: "10", value: 5 },
-  { source: "7", target: "2", value: 3 },
-  { source: "11", target: "5", value: 3 },
-]
+// No need for local interfaces and sample data as we're using the unified data structure
 
 export default function CascadingFailureMap() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -86,9 +44,9 @@ export default function CascadingFailureMap() {
     ctx.scale(zoom, zoom)
 
     // Draw links
-    links.forEach((link) => {
-      const source = nodes.find((n) => n.id === link.source)
-      const target = nodes.find((n) => n.id === link.target)
+    supplyChainImpactData.links.forEach((link) => {
+      const source = supplyChainImpactData.nodes.find((n) => n.id === link.source)
+      const target = supplyChainImpactData.nodes.find((n) => n.id === link.target)
 
       if (source && target) {
         ctx.beginPath()
@@ -112,7 +70,7 @@ export default function CascadingFailureMap() {
     })
 
     // Draw nodes
-    nodes.forEach((node) => {
+    supplyChainImpactData.nodes.forEach((node) => {
       ctx.beginPath()
       ctx.arc(node.x, node.y, 20, 0, Math.PI * 2)
 
@@ -121,6 +79,8 @@ export default function CascadingFailureMap() {
         ctx.fillStyle = "#ef4444" // Red for failed
       } else if (node.status === "partial") {
         ctx.fillStyle = "#eab308" // Yellow for partial
+      } else if (node.status === "disrupted") {
+        ctx.fillStyle = "#f97316" // Orange for disrupted
       } else {
         ctx.fillStyle = "#22c55e" // Green for operational
       }
@@ -219,6 +179,10 @@ export default function CascadingFailureMap() {
         <div className="flex items-center gap-1">
           <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
           <span>Partial</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="h-3 w-3 rounded-full bg-orange-500"></div>
+          <span>Disrupted</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="h-3 w-3 rounded-full bg-red-500"></div>
