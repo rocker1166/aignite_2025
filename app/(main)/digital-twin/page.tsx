@@ -17,6 +17,7 @@ import 'reactflow/dist/style.css';
 import SimulationToolbar from '../../../components/SimulationToolbar';
 import LeftPanel from '../../../components/LeftPanel';
 import RightPanel from '../../../components/RightPanel';
+import { nodeTypes } from "@/components/CustomNodes";
 
 const initialNodes: Node[] = [
   {
@@ -24,6 +25,7 @@ const initialNodes: Node[] = [
     type: 'supplierNode',
     data: { 
       label: 'Supplier A',
+      description: 'Primary supplier for raw materials based in Los Angeles.',
       type: 'Supplier',
       capacity: 1000,
       leadTime: 14,
@@ -37,6 +39,7 @@ const initialNodes: Node[] = [
     type: 'factoryNode',
     data: { 
       label: 'Factory B',
+      description: 'Main assembly facility located in New York.',
       type: 'Factory',
       capacity: 800,
       leadTime: 5,
@@ -50,6 +53,7 @@ const initialNodes: Node[] = [
     type: 'portNode',
     data: { 
       label: 'Port C',
+      description: 'Major shipping port in San Francisco.',
       type: 'Port',
       capacity: 5000,
       leadTime: 3,
@@ -126,6 +130,7 @@ export default function DigitalTwinPage() {
       type: `${nodeType.toLowerCase()}Node`,
       data: { 
         label: `New ${nodeType}`,
+        description: `Description for ${nodeType}`, // Adding default description
         type: nodeType,
         capacity: 500,
         leadTime: 7,
@@ -199,6 +204,13 @@ export default function DigitalTwinPage() {
     document.body.removeChild(a);
   }, [nodes, edges, selectedSupplyChain]);
 
+  // Handle clearing all nodes and edges
+  const handleClearAllNodes = useCallback(() => {
+    setNodes([]);
+    setEdges([]);
+    setSelectedElement(null);
+  }, [setNodes, setEdges]);
+
   return (
     <div className="flex flex-col h-screen">
       <SimulationToolbar 
@@ -214,6 +226,7 @@ export default function DigitalTwinPage() {
       <div className="flex flex-1 overflow-hidden">
         <LeftPanel 
           onAddNode={handleAddNode} 
+          onClearAllNodes={handleClearAllNodes}
           simulationMode={simulationMode}
         />
         
@@ -226,6 +239,7 @@ export default function DigitalTwinPage() {
             onConnect={onConnect}
             onNodeClick={onNodeClick}
             onEdgeClick={onEdgeClick}
+            nodeTypes={nodeTypes}
             fitView
           >
             <Controls />

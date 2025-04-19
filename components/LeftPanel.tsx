@@ -3,19 +3,19 @@ import { FC, useState } from 'react';
 
 interface LeftPanelProps {
   onAddNode: (nodeType: string) => void;
+  onClearAllNodes: () => void; // Add this new prop
   simulationMode: boolean;
 }
 
-const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, simulationMode }) => {
+const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, simulationMode }) => {
   const [expandedSection, setExpandedSection] = useState<string | null>('nodes');
   
   const nodeTypes = [
-    { id: 'Supplier', icon: '📦', description: 'Raw material source' },
-    { id: 'Factory', icon: '🏭', description: 'Manufacturing facility' },
-    { id: 'Port', icon: '🚢', description: 'Shipping port' },
-    { id: 'Warehouse', icon: '🏪', description: 'Storage facility' },
-    { id: 'Distribution', icon: '🚚', description: 'Distribution center' },
-    { id: 'Customer', icon: '👥', description: 'End customer' }
+    { id: 'Supplier', icon: '🏭', description: 'Source of raw materials' },
+    { id: 'Factory', icon: '⚙️', description: 'Manufacturing facility' },
+    { id: 'Port', icon: '🚢', description: 'Maritime shipping point' },
+    { id: 'Warehouse', icon: '📦', description: 'Storage facility' },
+    { id: 'Distribution', icon: '🚚', description: 'Distribution center' }
   ];
   
   const templates = [
@@ -48,14 +48,14 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, simulationMode }) => {
   };
 
   return (
-    <div className="w-64  border-r border-gray-200 overflow-y-auto p-4">
+    <div className="w-64 border-r border-gray-200 overflow-y-auto p-4">
       <h2 className="text-lg font-semibold mb-4">Supply Chain Builder</h2>
       
       {/* Nodes Section */}
       <div className="mb-4">
         <button 
           onClick={() => toggleSection('nodes')}
-          className="flex items-center justify-between w-full p-2  rounded shadow-sm"
+          className="flex items-center justify-between w-full p-2 rounded shadow-sm"
         >
           <span className="font-medium">Add Nodes</span>
           <span>{expandedSection === 'nodes' ? '▼' : '▶'}</span>
@@ -87,7 +87,7 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, simulationMode }) => {
       <div className="mb-4">
         <button 
           onClick={() => toggleSection('templates')}
-          className="flex items-center justify-between w-full p-2  rounded shadow-sm"
+          className="flex items-center justify-between w-full p-2 rounded shadow-sm"
         >
           <span className="font-medium">Templates</span>
           <span>{expandedSection === 'templates' ? '▼' : '▶'}</span>
@@ -117,7 +117,7 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, simulationMode }) => {
       <div className="mb-4">
         <button 
           onClick={() => toggleSection('import')}
-          className="flex items-center justify-between w-full p-2  rounded shadow-sm"
+          className="flex items-center justify-between w-full p-2 rounded shadow-sm"
         >
           <span className="font-medium">Import/Export</span>
           <span>{expandedSection === 'import' ? '▼' : '▶'}</span>
@@ -125,7 +125,7 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, simulationMode }) => {
         
         {expandedSection === 'import' && (
           <div className="mt-2 pl-2 space-y-2">
-            <label className={`flex items-center p-2 w-full  rounded cursor-pointer ${
+            <label className={`flex items-center p-2 w-full rounded cursor-pointer ${
               simulationMode ? 'opacity-50 cursor-not-allowed' : ''
             }`}>
               <span className="text-sm font-medium">Import JSON</span>
@@ -144,6 +144,7 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, simulationMode }) => {
       {/* Bulk Actions */}
       <div className="mt-auto pt-4 border-t border-gray-200">
         <button
+          onClick={onClearAllNodes} // Add this onClick handler
           disabled={simulationMode}
           className={`w-full p-2 mb-2 bg-red-100 text-red-700 rounded hover:bg-red-200 ${
             simulationMode ? 'opacity-50 cursor-not-allowed' : ''
@@ -154,7 +155,7 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, simulationMode }) => {
         
         <button
           disabled={simulationMode}
-          className={`w-full p-2  text-blue-700 rounded hover:bg-blue-200 ${
+          className={`w-full p-2 text-blue-700 rounded hover:bg-blue-200 ${
             simulationMode ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >
