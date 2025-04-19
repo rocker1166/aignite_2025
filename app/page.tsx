@@ -21,6 +21,7 @@ import {
   Zap
 } from "lucide-react"
 import { motion } from "framer-motion"
+import SigninButton from "@/components/auth/Signin"
 
 export default function Home() {
   const supplyChainStates = [
@@ -236,6 +237,7 @@ export default function Home() {
             <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
               Experience the power of AI-driven supply chain resilience. Start your journey today.
             </p>
+
             <div className="flex flex-wrap gap-4 justify-center">
               <Button asChild size="lg" className="bg-blue-700 hover:bg-blue-800 text-white shadow-lg">
                 <a href="/dashboard">Get Started</a>
