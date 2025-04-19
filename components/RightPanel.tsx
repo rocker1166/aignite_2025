@@ -1,4 +1,5 @@
 // src/components/RightPanel.tsx
+"use client"
 import { FC, useState, useEffect, useRef } from 'react';
 import { Node, Edge } from 'reactflow';
 import { useTheme } from 'next-themes';

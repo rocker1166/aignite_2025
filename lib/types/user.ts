@@ -5,6 +5,7 @@ export interface userDataType {
     location: string;
     employee_count: string;
     industry: string;
+    sub_industry: string;
     description: string;
   }
   
