@@ -11,8 +11,7 @@ import { useEffect } from "react";
 export function LandingHeader() {
 
   // const { theme, setTheme } = useTheme();
-  const { userData, userLoading, updateUserData, setUserData } = useUser();
-  console.log("userData", userData);
+  const { userData } = useUser();
 
   // Refresh user data when component mounts
   useEffect(() => {
@@ -23,11 +22,6 @@ export function LandingHeader() {
     <header className="fixed top-0 left-0 w-full bg-background/80 backdrop-blur-md z-50 border-b border-border/40">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <img
-            src="/placeholder-logo.svg"
-            alt="IntelliSupply Logo"
-            className="h-8 w-8"
-          />
           <span className="font-bold text-xl">IntelliSupply</span>
         </Link>
 
