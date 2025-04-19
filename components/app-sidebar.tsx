@@ -123,8 +123,8 @@ export function AppSidebar() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-          <SidebarSeparator />
-          <SidebarGroup>
+          {/* <SidebarSeparator /> */}
+          {/* <SidebarGroup>
             {!isCollapsed && <SidebarGroupLabel>Advanced Tools</SidebarGroupLabel>}
             <SidebarGroupContent>
               <SidebarMenu>
@@ -154,7 +154,7 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
-          </SidebarGroup>
+          </SidebarGroup> */}
         </SidebarContent>
         <SidebarFooter>
           <SidebarGroup>

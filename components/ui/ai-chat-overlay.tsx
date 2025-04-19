@@ -2,7 +2,6 @@
 import { useState, useRef } from "react"
 import Draggable from "react-draggable"
 import type React from "react"
-
 import { Cpu, Paperclip, Mic, CornerDownLeft, X, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
