@@ -1,5 +1,5 @@
 // src/components/RightPanel.tsx
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useRef } from 'react';
 import { Node, Edge } from 'reactflow';
 
 interface RightPanelProps {
@@ -9,6 +9,10 @@ interface RightPanelProps {
 
 const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
   const [formValues, setFormValues] = useState<any>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Track if we have an attached file
+  const hasAttachedFile = formValues.attachedFile?.name;
   
   // Update form values when selected element changes
   useEffect(() => {
@@ -39,6 +43,44 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
       ...formValues,
       [field]: value
     });
+  };
+  
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Check if it's an Excel file
+    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+      alert('Please upload an Excel file (.xlsx or .xls)');
+      return;
+    }
+    
+    // Store file metadata in the node data
+    handleInputChange('attachedFile', {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      lastModified: file.lastModified,
+      uploadedAt: new Date().toISOString()
+    });
+  };
+  
+  // Handle file removal
+  const handleFileRemove = () => {
+    // Create a new object without the attachedFile property
+    const { attachedFile, ...restValues } = formValues;
+    setFormValues(restValues);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+  
+  // Trigger file input click
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
   };
   
   const handleSubmit = () => {
@@ -199,28 +241,6 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
           )}
           
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">Risk Score</label>
-            <input
-              title='Risk Score'
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={formValues.riskScore || 0}
-              onChange={(e) => handleInputChange('riskScore', parseFloat(e.target.value))}
-              className="w-full h-2 rounded-lg appearance-none bg-gray-700 accent-blue-500 cursor-pointer"
-            />
-            <div className="flex justify-between text-xs text-gray-400 mt-1.5">
-              <span>Low</span>
-              <span>Medium</span>
-              <span>High</span>
-            </div>
-            <div className="text-center mt-1 text-blue-400 font-medium text-lg">
-              {(formValues.riskScore || 0).toFixed(1)}
-            </div>
-          </div>
-          
-          <div className="mb-5">
             <label className="block text-sm font-medium text-gray-300 mb-1.5">Location</label>
             <div className="flex space-x-2">
               <input
@@ -244,6 +264,36 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
                 className="w-1/2 p-2.5 bg-gray-900/70 border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
               />
             </div>
+          </div>
+          
+          <div className="mb-5">
+            <label className="block text-sm font-medium text-gray-300 mb-1.5">Attached File</label>
+            {hasAttachedFile ? (
+              <div className="flex items-center space-x-2">
+                <span className="text-gray-200">{formValues.attachedFile.name}</span>
+                <button
+                  type="button"
+                  onClick={handleFileRemove}
+                  className="px-2 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all duration-300"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={triggerFileUpload}
+                className="px-5 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-300 shadow-[0_0_10px_rgba(59,130,246,0.4)] hover:shadow-[0_0_15px_rgba(59,130,246,0.6)] font-medium"
+              >
+                Upload File
+              </button>
+            )}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              className="hidden"
+            />
           </div>
         </>
       );

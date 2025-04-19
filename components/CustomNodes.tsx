@@ -21,8 +21,6 @@ const nodeTypeColors = {
   distribution: 'bg-emerald-100 border-emerald-800 text-emerald-800'
 };
 
-
-
 // Helper to generate risk class
 const getRiskClass = (riskScore: number) => {
   if (riskScore >= 0.7) return 'ring-2 ring-red-500 ring-opacity-70';
@@ -43,17 +41,7 @@ export const SupplierNode = memo(({ data, isConnectable }: NodeProps) => {
         isConnectable={isConnectable}
       />
       
-      <div className="font-bold text-sm">{data.label}</div>
-      <div className="text-xs">Type: Supplier</div>
-      <div className="text-xs">Capacity: {data.capacity}</div>
-      <div className="text-xs">Lead Time: {data.leadTime}d</div>
-      
-      <div className="mt-2 h-1 bg-gray-200 rounded">
-        <div 
-          className="h-1 bg-blue-500 rounded" 
-          style={{ width: `${Math.min(100, data.capacity / 10)}%` }} 
-        />
-      </div>
+      <div className="font-bold text-sm text-center">{data.label}</div>
     </div>
   );
 });
@@ -76,17 +64,7 @@ export const FactoryNode = memo(({ data, isConnectable }: NodeProps) => {
         isConnectable={isConnectable}
       />
 
-      <div className="font-bold text-sm">{data.label}</div>
-      <div className="text-xs">Type: Factory</div>
-      <div className="text-xs">Capacity: {data.capacity}</div>
-      <div className="text-xs">Lead Time: {data.leadTime}d</div>
-
-      <div className="mt-2 h-1 bg-gray-200 rounded">
-        <div
-          className="h-1 bg-purple-500 rounded"
-          style={{ width: `${Math.min(100, data.capacity / 10)}%` }}
-        />
-      </div>
+      <div className="font-bold text-sm text-center">{data.label}</div>
     </div>
   );
 });
@@ -109,17 +87,7 @@ export const PortNode = memo(({ data, isConnectable }: NodeProps) => {
         isConnectable={isConnectable}
       />
       
-      <div className="font-bold text-sm">{data.label}</div>
-      <div className="text-xs">Type: Port</div>
-      <div className="text-xs">Capacity: {data.capacity}</div>
-      <div className="text-xs">Lead Time: {data.leadTime}d</div>
-      
-      <div className="mt-2 h-1 bg-gray-200 rounded">
-        <div 
-          className="h-1 bg-cyan-500 rounded" 
-          style={{ width: `${Math.min(100, data.capacity / 10)}%` }} 
-        />
-      </div>
+      <div className="font-bold text-sm text-center">{data.label}</div>
     </div>
   );
 });
@@ -142,17 +110,7 @@ export const WarehouseNode = memo(({ data, isConnectable }: NodeProps) => {
         isConnectable={isConnectable}
       />
       
-      <div className="font-bold text-sm">{data.label}</div>
-      <div className="text-xs">Type: Warehouse</div>
-      <div className="text-xs">Capacity: {data.capacity}</div>
-      <div className="text-xs">Lead Time: {data.leadTime}d</div>
-      
-      <div className="mt-2 h-1 bg-gray-200 rounded">
-        <div 
-          className="h-1 bg-amber-500 rounded" 
-          style={{ width: `${Math.min(100, data.capacity / 10)}%` }} 
-        />
-      </div>
+      <div className="font-bold text-sm text-center">{data.label}</div>
     </div>
   );
 });
@@ -175,17 +133,7 @@ export const DistributionNode = memo(({ data, isConnectable }: NodeProps) => {
         isConnectable={isConnectable}
       />
       
-      <div className="font-bold text-sm">{data.label}</div>
-      <div className="text-xs">Type: Distribution</div>
-      <div className="text-xs">Capacity: {data.capacity}</div>
-      <div className="text-xs">Lead Time: {data.leadTime}d</div>
-      
-      <div className="mt-2 h-1 bg-gray-200 rounded">
-        <div 
-          className="h-1 bg-emerald-500 rounded" 
-          style={{ width: `${Math.min(100, data.capacity / 10)}%` }} 
-        />
-      </div>
+      <div className="font-bold text-sm text-center">{data.label}</div>
     </div>
   );
 });
