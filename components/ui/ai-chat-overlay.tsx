@@ -1,5 +1,6 @@
 "use client"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef } from "react"
+import Draggable from "react-draggable"
 import type React from "react"
 
 import { Cpu, Paperclip, Mic, CornerDownLeft, X, Loader2 } from "lucide-react"
@@ -11,44 +12,27 @@ import { cn } from "@/lib/utils"
 function AIChatOverlay() {
   const [isOpen, setIsOpen] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
-  const [position, setPosition] = useState({ x: 0, y: 0 })
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
   const [inputValue, setInputValue] = useState("")
   const modalRef = useRef<HTMLDivElement>(null)
-  const inputContainerRef = useRef<HTMLDivElement>(null)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const typingBarRef = useRef<HTMLDivElement>(null) // Fixed ref type
+  const messagesEndRef = useRef<HTMLDivElement>(null) // Added ref for messages end
+  const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
 
   const { messages, input, handleInputChange, handleSubmit, isLoading, append } = useChat({
     initialMessages: [{ id: "1", role: "assistant", content: "Hello! How can I assist you with your supply chain today?" }],
   })
 
-  // Measure the input element to animate from
-  useEffect(() => {
-    if (inputContainerRef.current) {
-      const rect = inputContainerRef.current.getBoundingClientRect()
-      setPosition({ x: rect.left, y: rect.top })
-      setDimensions({ width: rect.width, height: rect.height })
-    }
-  }, [])
-
   const handleOpen = () => {
-    // Update position right before animation
-    if (inputContainerRef.current) {
-      const rect = inputContainerRef.current.getBoundingClientRect();
-      setPosition({ x: rect.left, y: rect.top });
-      setDimensions({ width: rect.width, height: rect.height });
-    }
+    setIsAnimating(true)
+    setIsOpen(true)
+    setDragPosition({ x: 0, y: 0 }) // Reset position to base of the screen
 
-    setIsAnimating(true);
-    setIsOpen(true);
-
-    // Add the input value as the first user message and submit if not empty
     if (inputValue.trim() !== "") {
-      append({ content: inputValue, role: "user" });
-      setInputValue("");
+      append({ content: inputValue, role: "user" })
+      setInputValue("")
     }
-  };
+  }
 
   const handleClose = () => {
     setIsAnimating(true)
@@ -75,70 +59,52 @@ function AIChatOverlay() {
     handleSubmit(e)
   }
 
-  // Handle clicking outside to close
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (isOpen && modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        handleClose()
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [isOpen])
-
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
-
-  // Focus input when modal opens
-  useEffect(() => {
-    if (isOpen && inputRef.current) {
-      setTimeout(() => {
-        inputRef.current?.focus()
-      }, 500)
-    }
-  }, [isOpen])
+  // Handle dragging position
+  const handleDrag = (e: any, data: { x: number; y: number }) => {
+    setDragPosition({ x: data.x, y: data.y })
+  }
 
   return (
     <>
       {!isOpen && (
-        <div className="sticky bottom-6 mx-auto w-full max-w-2xl px-6 z-10">
-          <div 
-            ref={inputContainerRef} 
-            className="flex items-center gap-2 rounded-full border border-blue-400/30 bg-white/10 p-2 backdrop-blur-md shadow-lg transition-all duration-300 hover:shadow-blue-400/20 hover:border-blue-400/50"
+        <Draggable
+        nodeRef={typingBarRef as React.RefObject<HTMLElement>} 
+          position={dragPosition}
+          onDrag={handleDrag}
+        >
+          <div
+            ref={typingBarRef}
+            className="fixed bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-2xl px-6 z-10"
           >
-            <button
-              type="button"
-              onClick={handleOpen}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 relative group"
-              aria-label="Open Chatbot"
+            <div 
+              className="flex items-center gap-2 rounded-full border border-blue-400/30 bg-white/10 p-2 backdrop-blur-md shadow-lg transition-all duration-300 hover:shadow-blue-400/20 hover:border-blue-400/50"
             >
-              <Cpu className="h-4 w-4 text-white" />
-              <span className="absolute bottom-10 left-1/2 transform -translate-x-1/2 scale-0 group-hover:scale-100 transition-transform duration-200 bg-slate-800/90 backdrop-blur-sm text-white text-xs rounded-md px-2 py-1 shadow-lg">
-                Open Chatbot
-              </span>
-            </button>
-            <Input
-              value={inputValue}
-              onChange={handleLocalInputChange}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask AI: 'What if my top supplier in Taiwan fails?'"
-              className="h-8 flex-1 border-0 bg-transparent text-slate-800 dark:text-white placeholder:text-slate-500 focus-visible:ring-0 focus-visible:ring-offset-0"
-            />
-            <Button
-              size="sm"
-              className="h-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 px-3 text-white font-medium shadow-lg relative ask-button-glow transition-all duration-300 hover:scale-105"
-              onClick={handleOpen}
-              disabled={inputValue.trim() === ""}
-            >
-              Ask
-            </Button>
+              <button
+                type="button"
+                onClick={handleOpen}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 relative group"
+                aria-label="Open Chatbot"
+              >
+                <Cpu className="h-4 w-4 text-white" />
+              </button>
+              <Input
+                value={inputValue}
+                onChange={handleLocalInputChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask AI: 'What if my top supplier in Taiwan fails?'"
+                className="h-8 flex-1 border-0 bg-transparent text-slate-800 dark:text-white placeholder:text-slate-500 focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+              <Button
+                size="sm"
+                className="h-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 px-3 text-white font-medium shadow-lg relative ask-button-glow transition-all duration-300 hover:scale-105"
+                onClick={handleOpen}
+                disabled={inputValue.trim() === ""}
+              >
+                Ask
+              </Button>
+            </div>
           </div>
-        </div>
+        </Draggable>
       )}
 
       {isOpen && (
@@ -153,18 +119,9 @@ function AIChatOverlay() {
         >
           <div
             ref={modalRef}
-            style={{
-              transformOrigin: "bottom center",
-              transform: isAnimating && isOpen ? 'scale(1)' : `translate(${position.x}px, ${position.y}px) scale(0.5)`,
-              width: isAnimating && isOpen ? '100%' : `${dimensions.width}px`,
-              height: isAnimating && isOpen ? '450px' : `${dimensions.height}px`, // Reduced from 500px to 450px
-              maxWidth: '800px', // Reduced from 900px to 800px
-              maxHeight: '80vh'
-            }}
             className={cn(
               "relative bg-white/30 dark:bg-slate-900/30 border border-white/20 dark:border-slate-700/20 backdrop-blur-md text-slate-800 dark:text-white rounded-lg shadow-xl transition-all duration-500 overflow-hidden",
-              "chat-modal-animate",
-              isAnimating && isOpen ? "opacity-100" : "opacity-0"
+              "chat-modal-animate"
             )}
           >
             <div className="flex items-center justify-between p-2 border-b border-blue-200/30 dark:border-blue-800/30">
@@ -241,107 +198,6 @@ function AIChatOverlay() {
           </div>
         </div>
       )}
-
-      <style jsx global>{`
-        /* Animation for expanding/unfolding the chat modal */
-        .chat-modal-animate {
-          animation: unfoldAnimation 0.5s cubic-bezier(0.26, 0.86, 0.44, 0.985) forwards;
-        }
-        
-        @keyframes unfoldAnimation {
-          0% {
-            opacity: 0;
-            transform: translateY(20px) scale(0.8);
-          }
-          50% {
-            opacity: 0.5;
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-        
-        /* Message animation */
-        .message-animate {
-          animation: fadeInUp 0.3s ease-out forwards;
-        }
-        
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        /* Typing indicator animation */
-        .typing-dot {
-          animation: bounce 1s infinite;
-        }
-        
-        .typing-dot-1 {
-          animation-delay: 0ms;
-        }
-        
-        .typing-dot-2 {
-          animation-delay: 100ms;
-        }
-        
-        .typing-dot-3 {
-          animation-delay: 200ms;
-        }
-        
-        @keyframes bounce {
-          0%, 80%, 100% {
-            transform: translateY(0);
-          }
-          40% {
-            transform: translateY(-6px);
-          }
-        }
-        
-        /* Pulse animation for AI icon */
-        .pulse-animation {
-          animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-          0% {
-            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
-          }
-          70% {
-            box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
-          }
-          100% {
-            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
-          }
-        }
-        
-        /* Glowing effect for ask button */
-        /* Glowing effect for ask button */
-.ask-button-glow {
-  box-shadow: 0 0 15px 3px rgba(59, 130, 246, 0.8), 0 0 30px 8px rgba(79, 70, 229, 0.6) !important;
-  animation: button-glow 2s infinite alternate !important;
-}
-
-.ask-button-glow:hover {
-  box-shadow: 0 0 20px 5px rgba(59, 130, 246, 0.9), 0 0 40px 10px rgba(79, 70, 229, 0.7) !important;
-}
-
-@keyframes button-glow {
-  from {
-    box-shadow: 0 0 15px 3px rgba(59, 130, 246, 0.8), 0 0 30px 8px rgba(79, 70, 229, 0.6) !important;
-  }
-  to {
-    box-shadow: 0 0 25px 6px rgba(59, 130, 246, 0.9), 0 0 50px 12px rgba(79, 70, 229, 0.7) !important;
-  }
-}
-        
-      `}</style>
     </>
   )
 }
