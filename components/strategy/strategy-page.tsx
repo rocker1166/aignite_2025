@@ -8,7 +8,7 @@ export function StrategyPage() {
   return (
     <div className="container mx-auto py-6 space-y-8">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Supply Chain Strategy</h1>
+        <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">Supply Chain Strategy</h1>
         <p className="text-muted-foreground">
           Analyze and implement resilience strategies with AI-powered recommendations
         </p>

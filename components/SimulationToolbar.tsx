@@ -29,7 +29,7 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
   return (
     <div className="flex items-center justify-between p-4 border-b border-gray-200">
       <div className="flex items-center space-x-4">
-        <h1 className="text-xl font-semibold">Digital Twin</h1>
+        <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">Digital Twin</h1>
         
         <select
             title='Supply Chain'
