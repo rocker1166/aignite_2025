@@ -1,12 +1,10 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
 import SignoutButton from "./auth/Signout";
 import { useUser } from "@/lib/stores/user";
-import { useEffect } from "react";
 
 export function LandingHeader() {
   
@@ -14,18 +12,6 @@ export function LandingHeader() {
   // const { theme, setTheme } = useTheme();
   const { userData } = useUser();
   
-
-  // Refresh user data when component mounts
-  const setUser = useUser((state) => state.setUserData);
-  
-
-  // const { theme, setTheme } = useTheme();
-
-
-  // Refresh user data when component mounts
-  useEffect(() => {
-    setUser();
-  }, [userData, setUser]);
 
   return (
     <header className="fixed top-0 left-0 w-full bg-background/80 backdrop-blur-md z-50 border-b border-border/40">
@@ -57,7 +43,6 @@ export function LandingHeader() {
 
         <div className="flex items-center gap-4">
           <ThemeToggle />
-          <Button asChild variant="outline" className="hidden sm:flex">
             <div>
               {userData ? (
                 <SignoutButton />
@@ -67,11 +52,11 @@ export function LandingHeader() {
                 </Link>
               )}
             </div>
-          </Button>
+         
 
 
           <Button asChild className="bg-blue-700 hover:bg-blue-800">
-            <Link href="/dashboard">Get Started</Link>
+            <Link href="/dashboard" prefetch={true}>Get Started</Link>
           </Button>
         </div>
       </div>
