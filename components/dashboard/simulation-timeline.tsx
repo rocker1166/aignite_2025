@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { motion } from "framer-motion"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -45,16 +45,38 @@ export function SimulationTimeline() {
   const [activeScenario, setActiveScenario] = useState<"port" | "supplier" | "weather">("port")
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentDay, setCurrentDay] = useState(3) // Start with some progress
-  const [currentEvents, setCurrentEvents] = useState(timelineEvents.port)
-  const maxDay = currentEvents[currentEvents.length - 1].day
 
-  // Update events when scenario changes
+  // Memoize currentEvents to avoid recreating on every render
+  const currentEvents = useMemo(() => timelineEvents[activeScenario], [activeScenario])
+  
+  // Memoize maxDay calculation
+  const maxDay = useMemo(() => currentEvents[currentEvents.length - 1].day, [currentEvents])
+  
+  // Memoize current event detail - only the latest visible event
+  const currentEventDetail = useMemo(() => {
+    const visibleEvents = currentEvents.filter(e => e.day <= currentDay)
+    return visibleEvents.length ? visibleEvents[visibleEvents.length - 1] : null
+  }, [currentEvents, currentDay])
+  
+  // Memoize visible timeline events
+  const visibleTimelineEvents = useMemo(() => 
+    currentEvents.filter(e => currentDay >= e.day).slice(-3),
+    [currentEvents, currentDay]
+  )
+  
+  // Memoize impact style classes for better performance
+  const getImpactClasses = useCallback((impact: string) => {
+    if (impact === "Critical") return "bg-red-500/20 text-red-500 dark:text-red-400 border-red-500/30"
+    if (impact === "High") return "bg-amber-500/20 text-amber-500 dark:text-amber-400 border-amber-500/30"
+    return "bg-blue-500/20 text-blue-500 dark:text-blue-400 border-blue-500/30"
+  }, [])
+
+  // Update day when scenario changes
   useEffect(() => {
-    setCurrentEvents(timelineEvents[activeScenario])
     setCurrentDay(3) // Reset to day 3 when changing scenarios
   }, [activeScenario])
 
-  // Handle auto-play simulation
+  // Handle auto-play simulation with useCallback to prevent recreation on every render
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isPlaying) {
@@ -73,10 +95,16 @@ export function SimulationTimeline() {
   }, [isPlaying, maxDay]);
 
   // Handle scenario switch
-  const handleScenarioChange = (value: "port" | "supplier" | "weather") => {
+  const handleScenarioChange = useCallback((value: "port" | "supplier" | "weather") => {
     setActiveScenario(value);
     setIsPlaying(false);
-  }
+  }, []);
+  
+  // Memoize progress percentage for animation
+  const progressPercentage = useMemo(() => 
+    `${(currentDay / maxDay) * 100}%`, 
+    [currentDay, maxDay]
+  )
 
   return (
     <div className="space-y-2 w-full">
@@ -136,15 +164,7 @@ export function SimulationTimeline() {
                       <h4 className="text-xs font-semibold">Day {currentDay}/{maxDay}</h4>
                       <Badge
                         variant="outline"
-                        className={`text-xs px-1.5 py-0 h-5
-                          ${
-                            scenario.impact === "Critical"
-                              ? "bg-red-500/20 text-red-500 dark:text-red-400 border-red-500/30"
-                              : scenario.impact === "High"
-                                ? "bg-amber-500/20 text-amber-500 dark:text-amber-400 border-amber-500/30"
-                                : "bg-blue-500/20 text-blue-500 dark:text-blue-400 border-blue-500/30"
-                          }
-                        `}
+                        className={`text-xs px-1.5 py-0 h-5 ${getImpactClasses(scenario.impact)}`}
                       >
                         {scenario.impact}
                       </Badge>
@@ -161,17 +181,17 @@ export function SimulationTimeline() {
 
                 {/* Current event details */}
                 <div className="p-2 rounded-lg bg-slate-100/50 dark:bg-slate-800/30 backdrop-blur-sm">
-                  {currentEvents.filter(e => e.day <= currentDay).slice(-1).map((event, idx) => (
+                  {currentEventDetail && (
                     <motion.div 
-                      key={`${scenario.id}-${event.day}`}
+                      key={`${scenario.id}-${currentEventDetail.day}`}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <h5 className="text-xs font-semibold">{event.event}</h5>
-                      <p className="text-xs text-slate-600 dark:text-slate-300">{event.description}</p>
+                      <h5 className="text-xs font-semibold">{currentEventDetail.event}</h5>
+                      <p className="text-xs text-slate-600 dark:text-slate-300">{currentEventDetail.description}</p>
                     </motion.div>
-                  ))}
+                  )}
                 </div>
               </div>
 
@@ -183,54 +203,54 @@ export function SimulationTimeline() {
                   
                   {/* Progress fill */}
                   <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(currentDay / maxDay) * 100}%` }}
+                    initial={false}
+                    animate={{ width: progressPercentage }}
                     transition={{ duration: 0.5 }}
                     className="absolute left-0 h-1 bg-blue-500"
                   ></motion.div>
 
                   {/* Event markers */}
                   <div className="relative flex justify-between pt-2">
-                    {timelineEvents[scenario.id].map((event, index) => (
-                      <div
-                        key={index}
-                        className="relative flex flex-col items-center"
-                        style={{
-                          left: `${(event.day / maxDay) * 100}%`,
-                          transform: "translateX(-50%)",
-                        }}
-                      >
+                    {timelineEvents[scenario.id].map((event, index) => {
+                      // Calculate marker position once
+                      const markerPosition = `${(event.day / maxDay) * 100}%`
+                      const isActive = currentDay >= event.day
+                      
+                      return (
                         <div
-                          className={`h-2 w-2 rounded-full ${
-                            currentDay >= event.day 
-                              ? "bg-blue-500 ring-1 ring-blue-500/20" 
-                              : "bg-slate-300 dark:bg-slate-700"
-                          }`}
-                          style={{ marginTop: "-4px" }}
-                        ></div>
-                        <p className="mt-0.5 text-[9px] font-medium">{event.day}</p>
-                        
-                        {/* No event descriptions in timeline for space reasons */}
-                      </div>
-                    ))}
+                          key={index}
+                          className="relative flex flex-col items-center"
+                          style={{
+                            left: markerPosition,
+                            transform: "translateX(-50%)",
+                          }}
+                        >
+                          <div
+                            className={`h-2 w-2 rounded-full ${
+                              isActive 
+                                ? "bg-blue-500 ring-1 ring-blue-500/20" 
+                                : "bg-slate-300 dark:bg-slate-700"
+                            }`}
+                            style={{ marginTop: "-4px" }}
+                          ></div>
+                          <p className="mt-0.5 text-[9px] font-medium">{event.day}</p>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
 
                 {/* Simple event list - more compact */}
                 <div className="grid grid-cols-2 gap-2">
-                  {timelineEvents[scenario.id]
-                    .filter(e => currentDay >= e.day)
-                    .slice(-3)
-                    .map((event, index) => (
-                      <div 
-                        key={index}
-                        className="text-xs p-1.5 border-l-2 border-blue-500 bg-white/5 dark:bg-slate-800/10 rounded-r-sm"
-                      >
-                        <p className="font-medium text-[10px]">Day {event.day}: {event.event}</p>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{event.description}</p>
-                      </div>
-                    ))
-                  }
+                  {visibleTimelineEvents.map((event, index) => (
+                    <div 
+                      key={index}
+                      className="text-xs p-1.5 border-l-2 border-blue-500 bg-white/5 dark:bg-slate-800/10 rounded-r-sm"
+                    >
+                      <p className="font-medium text-[10px]">Day {event.day}: {event.event}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{event.description}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

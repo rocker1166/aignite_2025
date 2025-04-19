@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { motion } from "framer-motion"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowRight } from "lucide-react"
@@ -40,17 +40,59 @@ const riskData = {
 export function DashboardRiskHeatmap() {
   const [activeCategory, setActiveCategory] = useState("geo")
 
-  const getRiskColor = (risk: number) => {
-    if (risk >= 70) return "rgb(239, 68, 68)" // Red
-    if (risk >= 50) return "rgb(250, 204, 21)" // Yellow
-    return "rgb(74, 222, 128)" // Green
-  }
+  // Memoize these functions to prevent recreation on each render
+  const getRiskColor = useCallback((risk: number) => {
+    if (risk >= 70) return "text-red-500 dark:text-red-400" // Red
+    if (risk >= 50) return "text-amber-500 dark:text-amber-400" // Yellow
+    return "text-green-500 dark:text-green-400" // Green
+  }, [])
 
-  const getRiskBg = (risk: number) => {
+  const getRiskBg = useCallback((risk: number) => {
     if (risk >= 70) return "bg-gradient-to-r from-red-500/10 to-red-600/5"
     if (risk >= 50) return "bg-gradient-to-r from-amber-500/10 to-amber-600/5"
     return "bg-gradient-to-r from-green-500/10 to-green-600/5"
-  }
+  }, [])
+
+  // Memoize the background color for progress bars
+  const getProgressBgColor = useCallback((risk: number) => {
+    if (risk >= 70) return "bg-red-500"
+    if (risk >= 50) return "bg-amber-500"
+    return "bg-green-500"
+  }, [])
+
+  // Pre-render the tab content to avoid rendering during tab switches
+  const tabContents = useMemo(() => {
+    return riskCategories.map((category) => (
+      <TabsContent key={category.id} value={category.id} className="mt-4 px-2">
+        <div className="grid grid-cols-1 gap-3">
+          {riskData[category.id as keyof typeof riskData].map((item, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              className={`flex items-center justify-between p-3 rounded-lg ${getRiskBg(item.risk)} backdrop-blur-sm`}
+            >
+              <span className="text-sm font-medium">{item.region}</span>
+              <div className="flex items-center gap-3">
+                <div className="h-2.5 w-40 rounded-full bg-white/20 dark:bg-slate-700/40 backdrop-blur-sm overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${item.risk}%` }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className={`h-full rounded-full ${getProgressBgColor(item.risk)}`}
+                  ></motion.div>
+                </div>
+                <span className={`w-10 text-right text-sm font-mono ${getRiskColor(item.risk)}`}>
+                  {item.risk}%
+                </span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </TabsContent>
+    ));
+  }, [getRiskBg, getRiskColor, getProgressBgColor]);
 
   return (
     <div className="space-y-4">
@@ -67,37 +109,7 @@ export function DashboardRiskHeatmap() {
           ))}
         </TabsList>
 
-        {riskCategories.map((category) => (
-          <TabsContent key={category.id} value={category.id} className="mt-4 px-2">
-            <div className="grid grid-cols-1 gap-3">
-              {riskData[category.id as keyof typeof riskData].map((item, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                  className={`flex items-center justify-between p-3 rounded-lg ${getRiskBg(item.risk)} backdrop-blur-sm`}
-                >
-                  <span className="text-sm font-medium">{item.region}</span>
-                  <div className="flex items-center gap-3">
-                    <div className="h-2.5 w-40 rounded-full bg-white/20 dark:bg-slate-700/40 backdrop-blur-sm overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${item.risk}%` }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                        className="h-full rounded-full"
-                        style={{ backgroundColor: getRiskColor(item.risk) }}
-                      ></motion.div>
-                    </div>
-                    <span className="w-10 text-right text-sm font-mono" style={{ color: getRiskColor(item.risk) }}>
-                      {item.risk}%
-                    </span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </TabsContent>
-        ))}
+        {tabContents}
       </Tabs>
 
       <div className="flex justify-between items-center mt-6 border-t border-slate-200/20 dark:border-slate-700/20 pt-4">

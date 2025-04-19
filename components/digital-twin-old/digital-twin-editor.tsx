@@ -13,9 +13,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Slider } from "@/components/ui/slider"
-import { NodePropertiesPanel } from "@/components/digital-twin/node-properties-panel"
-import { EdgePropertiesPanel } from "@/components/digital-twin/edge-properties-panel"
-import { SupplyChainSelector } from "@/components/digital-twin/supply-chain-selector"
+import { NodePropertiesPanel } from "@/components/digital-twin-old/node-properties-panel"
+import { EdgePropertiesPanel } from "@/components/digital-twin-old/edge-properties-panel"
+import { SupplyChainSelector } from "@/components/digital-twin-old/supply-chain-selector"
 import type { Node, Edge, SupplyChain } from "@/lib/types/database"
 import {
   getCompleteSupplyChain,
