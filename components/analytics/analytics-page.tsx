@@ -15,7 +15,7 @@ export function AnalyticsPage() {
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       <div className="flex items-center justify-between border-b p-4">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">KPI & Impact Dashboard</h1>
+          <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">KPI & Impact Dashboard</h1>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">

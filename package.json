@@ -61,6 +61,7 @@
     "react": "^19",
     "react-day-picker": "8.10.1",
     "react-dom": "^19",
+    "react-draggable": "^4.4.6",
     "react-hook-form": "^7.55.0",
     "react-resizable-panels": "^2.1.7",
     "reactflow": "^11.11.4",

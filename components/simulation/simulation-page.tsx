@@ -18,7 +18,17 @@ export function SimulationPage() {
   const [simulationRunning, setSimulationRunning] = useState(false)
   const [simulationComplete, setSimulationComplete] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [supplyChains, setSupplyChains] = useState<SupplyChain[]>([])
+  const [supplyChains, setSupplyChains] = useState<SupplyChain[]>([
+    {
+      supply_chain_id: "default-1",
+      user_id: "user-123",
+      name: "Default Supply Chain",
+      description: "This is a default supply chain for testing purposes.",
+      status: "active",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+  ])
   const [selectedSupplyChainId, setSelectedSupplyChainId] = useState("")
   const [simulationHistory, setSimulationHistory] = useState<Simulation[]>([])
   const [currentSimulation, setCurrentSimulation] = useState<Simulation | null>(null)
