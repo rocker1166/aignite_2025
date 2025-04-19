@@ -33,7 +33,7 @@ export default function MainLayout({
       </SidebarProvider>
 
       {/* Add AI Chat Overlay */}
-      <AIChatOverlay />
+      {/* <AIChatOverlay /> */}
     </div>
   )
 }

@@ -1,5 +1,3 @@
-// src/components/RightPanel.tsx
-"use client"
 import { FC, useState, useEffect, useRef } from 'react';
 import { Node, Edge } from 'reactflow';
 import { useTheme } from 'next-themes';
@@ -16,7 +14,6 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
   const { theme } = useTheme();
   const [latitude, setLatitude] = useState('')
   const [longitude, setLongitude] = useState('')
-  const [address, setAddress] = useState('')
 
   // Track if we have an attached file
   const hasAttachedFile = formValues.attachedFile?.name;
@@ -25,19 +22,8 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
   useEffect(() => {
     if (selectedElement) {
       setFormValues(selectedElement.data || {});
-      // Initialize location and address from selected element if available
-      if (selectedElement.data?.location) {
-        setLatitude(selectedElement.data.location.lat?.toString() || '');
-        setLongitude(selectedElement.data.location.lng?.toString() || '');
-      }
-      if (selectedElement.data?.address) {
-        setAddress(selectedElement.data.address);
-      }
     } else {
       setFormValues({});
-      setLatitude('');
-      setLongitude('');
-      setAddress('');
     }
   }, [selectedElement]);
 
@@ -69,18 +55,19 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
     if (!file) return;
 
     // Check if it's an Excel file
-    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls') && !file.name.endsWith('.csv')) {
       alert('Please upload an Excel file (.xlsx or .xls)');
       return;
     }
 
-    // Store file metadata in the node data
+    // Store file metadata and the actual file object in the node data
     handleInputChange('attachedFile', {
       name: file.name,
       size: file.size,
       type: file.type,
       lastModified: file.lastModified,
-      uploadedAt: new Date().toISOString()
+      uploadedAt: new Date().toISOString(),
+      fileObject: file // Store the actual file object for processing
     });
   };
 
@@ -95,11 +82,9 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
       fileInputRef.current.value = '';
     }
   };
-
-  const handleMapCoordinatesChange = (lat: string, lng: string, addressValue: string) => {
-    setLatitude(lat);
-    setLongitude(lng);
-    setAddress(addressValue);
+  const handleMapCoordinatesChange = (lat: string, lng: string) => {
+    setLatitude(lat)
+    setLongitude(lng)
   }
 
   // Trigger file input click
@@ -108,18 +93,10 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
   };
 
   const handleSubmit = () => {
-    // Update location data with current latitude/longitude values
-    const locationData = {
-      lat: latitude ? parseFloat(latitude) : 0,
-      lng: longitude ? parseFloat(longitude) : 0
-    };
-
     const updatedElement = {
       ...selectedElement,
       data: {
-        ...formValues,
-        location: locationData,
-        address: address // Add address to the data
+        ...formValues
       }
     };
     onUpdate(updatedElement);
@@ -161,19 +138,12 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
 
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Type</label>
-            <select
-              title='Type'
-              value={formValues.type || ''}
-              onChange={(e) => handleInputChange('type', e.target.value)}
-              className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 disabled:opacity-60 disabled:cursor-not-allowed focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
-              disabled // Type is not editable after creation
-            >
-              <option value="Supplier">Supplier</option>
-              <option value="Factory">Factory</option>
-              <option value="Port">Port</option>
-              <option value="Warehouse">Warehouse</option>
-              <option value="Distribution">Distribution</option>
-            </select>
+            <div className="w-full p-2.5 bg-gray-50 dark:bg-gray-900/40 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200  cursor-not-allowed">
+              {formValues.type || 'Not specified'}
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Node type cannot be changed after creation
+            </div>
           </div>
 
           <div className="mb-5">
@@ -187,7 +157,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
             />
           </div>
 
-          {/* Supplier-specific fields */}
+          {/* Supplier-specific fields
           {nodeType === 'Supplier' && (
             <>
               <div className="mb-5">
@@ -203,7 +173,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
                 />
               </div>
             </>
-          )}
+          )} */}
 
           {/* Factory-specific field */}
           {nodeType === 'Factory' && (
@@ -271,67 +241,80 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               </div>
             </>
           )}
-
-          {/* Address and location section */}
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Address</label>
-            <AddressAutocompleteMap
-              onCoordinatesChange={handleMapCoordinatesChange}
-              initialAddress={formValues.address || ''}
-              initialLat={formValues.location?.lat?.toString() || ''}
-              initialLng={formValues.location?.lng?.toString() || ''}
-            />
-          </div>
+          <AddressAutocompleteMap
+            onCoordinatesChange={handleMapCoordinatesChange}
+            initialAddress={formValues.address || ''}
+            initialLat={formValues.location?.lat || ''}
+            initialLng={formValues.location?.lng || ''}
+          />
 
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Location Coordinates</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Location</label>
             <div className="flex space-x-2">
               <input
                 type="text"
                 placeholder="Latitude"
-                value={latitude}
+                value={formValues.location?.lat || 0}
+                onChange={(e) => handleInputChange('location', {
+                  ...formValues.location,
+                  lat: parseFloat(e.target.value)
+                })}
                 className="w-1/2 p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
-                readOnly
               />
               <input
                 type="text"
                 placeholder="Longitude"
-                value={longitude}
+                value={formValues.location?.lng || 0}
+                onChange={(e) => handleInputChange('location', {
+                  ...formValues.location,
+                  lng: parseFloat(e.target.value)
+                })}
                 className="w-1/2 p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
-                readOnly
               />
             </div>
           </div>
 
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Attached File</label>
-            {hasAttachedFile ? (
-              <div className="flex items-center space-x-2">
-                <span className="text-gray-700 dark:text-gray-200">{formValues.attachedFile.name}</span>
+          {/* Only show file upload for Warehouse or Distribution nodes */}
+          {(nodeType === 'Warehouse' || nodeType === 'Distribution') && (
+            <div className="mb-5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Product Sheet</label>
+                {hasAttachedFile ? (
+                <div className="flex flex-col space-y-2">
+                <div className="overflow-hidden text-ellipsis whitespace-nowrap text-gray-700 dark:text-gray-200" title={formValues.attachedFile.name}>
+                  {formValues.attachedFile.name}
+                </div>
                 <button
-                  type="button"
-                  onClick={handleFileRemove}
-                  className="px-2 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all duration-300"
+                type="button"
+                onClick={handleFileRemove}
+                className="px-2 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all duration-300"
                 >
-                  Remove
+                Remove
                 </button>
               </div>
-            ) : (
+              ) : (
               <button
                 type="button"
                 onClick={triggerFileUpload}
                 className="px-5 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-300 shadow-[0_0_10px_rgba(59,130,246,0.4)] hover:shadow-[0_0_15px_rgba(59,130,246,0.6)] font-medium"
               >
-                Upload File
+                Upload Product Sheet
               </button>
-            )}
-            <input
+              )}
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
+              Upload an Excel file (.xlsx, .xls) or CSV file (.csv) containing product inventory details
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Required columns: <span className="font-medium">Product ID, Name, Quantity, Price, Category, Weight (kg)</span>
+              </div>
+              <input
               type="file"
               ref={fileInputRef}
               onChange={handleFileSelect}
               className="hidden"
-            />
-          </div>
+              accept=".xlsx,.xls,.csv"
+              />
+            </div>
+          )}
         </>
       );
     } else {
