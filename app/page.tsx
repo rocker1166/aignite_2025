@@ -469,42 +469,78 @@ export default function Home() {
                 transition={{ duration: 0.5, delay: 0.2 }}
                 viewport={{ once: true }}
               >
-                <Card className="border-0 bg-white/80 dark:bg-slate-900/50 backdrop-blur-md shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 group">
-                  <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 dark:from-blue-700 dark:to-blue-900 p-6">
+                <Card className="border border-white/20 dark:border-slate-700/20 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 group">
+                  <CardHeader className="bg-gradient-to-r from-blue-600/90 to-blue-800/90 dark:from-blue-700/90 dark:to-blue-900/90 p-6 border-b border-white/10 dark:border-slate-700/10">
                     <CardTitle className="text-white flex items-center justify-between">
                       <span>Real-Time Risk Monitoring</span>
                       <BarChart3 className="h-5 w-5 text-blue-200" />
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="aspect-video relative flex items-center justify-center rounded-md overflow-hidden mb-4">
-                      <div className="h-full w-full bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
-                        <div className="relative h-full w-full">
-                          {/* Line chart visualization placeholder */}
-                          <div className="absolute inset-x-0 bottom-0 h-[60%]">
-                            <div className="relative h-full w-full">
-                              <svg viewBox="0 0 100 30" className="h-full w-full stroke-blue-500 stroke-[1.5] dark:stroke-blue-400">
-                                <path 
-                                  d="M0,15 L10,10 L20,20 L30,5 L40,15 L50,10 L60,20 L70,15 L80,5 L90,10 L100,15" 
-                                  fill="none" 
-                                  strokeLinecap="round" 
-                                  strokeLinejoin="round"
-                                  className="path-animation"
-                                />
-                              </svg>
-                              <div className="absolute bottom-0 left-0 h-1/3 w-full bg-gradient-to-t from-blue-500/20 to-transparent"></div>
+                  <CardContent className="p-6 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 dark:from-blue-500/10 dark:to-indigo-500/10 z-0"></div>
+                    <div className="relative z-10">
+                      <div className="aspect-video relative flex items-center justify-center rounded-xl overflow-hidden mb-4 border border-blue-100/30 dark:border-blue-800/30 shadow-lg">
+                        <div className="h-full w-full bg-gradient-to-br from-blue-50/80 to-indigo-50/80 dark:from-blue-900/30 dark:to-indigo-900/30 backdrop-blur-sm">
+                          <div className="relative h-full w-full">
+                            {/* Line chart visualization placeholder */}
+                            <div className="absolute inset-x-0 bottom-0 h-[60%]">
+                              <div className="relative h-full w-full">
+                                <svg viewBox="0 0 100 30" className="h-full w-full">
+                                  <defs>
+                                    <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                      <stop offset="0%" stopColor="#3B82F6" />
+                                      <stop offset="100%" stopColor="#60A5FA" />
+                                    </linearGradient>
+                                    <filter id="glow">
+                                      <feGaussianBlur stdDeviation="2" result="blur" />
+                                      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                    </filter>
+                                  </defs>
+                                  <path 
+                                    d="M0,15 L10,10 L20,20 L30,5 L40,15 L50,10 L60,20 L70,15 L80,5 L90,10 L100,15" 
+                                    fill="none" 
+                                    strokeWidth="2"
+                                    stroke="url(#lineGradient)"
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                    filter="url(#glow)"
+                                    className="path-animation"
+                                  />
+                                  {/* Add animated data points */}
+                                  <circle cx="0" cy="15" r="2" fill="#3B82F6" className="animate-pulse-slow" />
+                                  <circle cx="20" cy="20" r="2" fill="#3B82F6" className="animate-pulse-slow" />
+                                  <circle cx="40" cy="15" r="2" fill="#3B82F6" className="animate-pulse-slow" />
+                                  <circle cx="60" cy="20" r="2" fill="#3B82F6" className="animate-pulse-slow" />
+                                  <circle cx="80" cy="5" r="3" fill="#3B82F6" className="animate-pulse-slow" filter="url(#glow)" />
+                                  <circle cx="100" cy="15" r="2" fill="#3B82F6" className="animate-pulse-slow" />
+                                </svg>
+                                <div className="absolute bottom-0 left-0 h-1/3 w-full bg-gradient-to-t from-blue-500/20 to-transparent"></div>
+                              </div>
+                            </div>
+                            
+                            {/* Grid lines */}
+                            <div className="absolute inset-0 grid grid-rows-4 grid-cols-5">
+                              {[...Array(20)].map((_, i) => (
+                                <div key={i} className="border-b border-r border-blue-200/20 dark:border-blue-800/20"></div>
+                              ))}
+                            </div>
+                            
+                            {/* Live indicator */}
+                            <div className="absolute top-4 right-4 flex items-center gap-2">
+                              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+                              <span className="text-xs text-blue-700 dark:text-blue-300 font-medium">LIVE</span>
                             </div>
                           </div>
                         </div>
                       </div>
+                      <div className="text-slate-700 dark:text-slate-300 mb-5 leading-relaxed">
+                        Track risk metrics in real-time across your entire supply chain network with advanced analytics and predictive AI.
+                      </div>
+                      <Button variant="ghost" className="group-hover:bg-blue-50 group-hover:text-blue-700 dark:group-hover:bg-blue-900/20 dark:group-hover:text-blue-400 flex items-center gap-1 text-sm">
+                        <span>Learn more</span>
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </Button>
                     </div>
-                    <div className="text-slate-700 dark:text-slate-300 mb-5 leading-relaxed">
-                      Track risk metrics in real-time across your entire supply chain network with advanced analytics and predictive AI.
-                    </div>
-                    <Button variant="ghost" className="group-hover:bg-blue-50 group-hover:text-blue-700 dark:group-hover:bg-blue-900/20 dark:group-hover:text-blue-400 flex items-center gap-1 text-sm">
-                      <span>Learn more</span>
-                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </Button>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -515,65 +551,108 @@ export default function Home() {
                 transition={{ duration: 0.5, delay: 0.4 }}
                 viewport={{ once: true }}
               >
-                <Card className="border-0 bg-white/80 dark:bg-slate-900/50 backdrop-blur-md shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 group">
-                  <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-700 dark:to-pink-700 p-6">
+                <Card className="border border-white/20 dark:border-slate-700/20 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 group">
+                  <CardHeader className="bg-gradient-to-r from-purple-600/90 to-pink-600/90 dark:from-purple-700/90 dark:to-pink-700/90 p-6 border-b border-white/10 dark:border-slate-700/10">
                     <CardTitle className="text-white flex items-center justify-between">
                       <span>Impact Assessment</span>
                       <TrendingUp className="h-5 w-5 text-purple-200" />
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="aspect-video relative flex items-center justify-center rounded-md overflow-hidden mb-4">
-                      <div className="h-full w-full bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
-                        <div className="relative h-full w-full p-4">
-                          {/* Bar chart visualization placeholder */}
-                          <div className="flex h-full items-end justify-around pb-6">
-                            <motion.div 
-                              initial={{ height: '0%' }}
-                              whileInView={{ height: '60%' }}
-                              transition={{ duration: 0.7, delay: 0.5 }}
-                              viewport={{ once: true }}
-                              className="w-[15%] bg-gradient-to-t from-purple-500 to-pink-500 dark:from-purple-500/70 dark:to-pink-500/70 rounded-t"
-                            ></motion.div>
-                            <motion.div 
-                              initial={{ height: '0%' }}
-                              whileInView={{ height: '90%' }}
-                              transition={{ duration: 0.7, delay: 0.6 }}
-                              viewport={{ once: true }}
-                              className="w-[15%] bg-gradient-to-t from-purple-500 to-pink-500 dark:from-purple-500/70 dark:to-pink-500/70 rounded-t"
-                            ></motion.div>
-                            <motion.div 
-                              initial={{ height: '0%' }}
-                              whileInView={{ height: '30%' }}
-                              transition={{ duration: 0.7, delay: 0.7 }}
-                              viewport={{ once: true }}
-                              className="w-[15%] bg-gradient-to-t from-purple-500 to-pink-500 dark:from-purple-500/70 dark:to-pink-500/70 rounded-t"
-                            ></motion.div>
-                            <motion.div 
-                              initial={{ height: '0%' }}
-                              whileInView={{ height: '45%' }}
-                              transition={{ duration: 0.7, delay: 0.8 }}
-                              viewport={{ once: true }}
-                              className="w-[15%] bg-gradient-to-t from-purple-500 to-pink-500 dark:from-purple-500/70 dark:to-pink-500/70 rounded-t"
-                            ></motion.div>
-                            <motion.div 
-                              initial={{ height: '0%' }}
-                              whileInView={{ height: '75%' }}
-                              transition={{ duration: 0.7, delay: 0.9 }}
-                              viewport={{ once: true }}
-                              className="w-[15%] bg-gradient-to-t from-purple-500 to-pink-500 dark:from-purple-500/70 dark:to-pink-500/70 rounded-t"
-                            ></motion.div>
+                  <CardContent className="p-6 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 dark:from-purple-500/10 dark:to-pink-500/10 z-0"></div>
+                    <div className="relative z-10">
+                      <div className="aspect-video relative flex items-center justify-center rounded-xl overflow-hidden mb-4 border border-purple-100/30 dark:border-purple-800/30 shadow-lg">
+                        <div className="h-full w-full bg-gradient-to-br from-purple-50/80 to-pink-50/80 dark:from-purple-900/30 dark:to-pink-900/30 backdrop-blur-sm">
+                          <div className="relative h-full w-full p-4">
+                            {/* Bar chart visualization placeholder with enhanced styling */}
+                            <div className="flex h-full items-end justify-around pb-6 px-4">
+                              <motion.div 
+                                initial={{ height: '0%' }}
+                                whileInView={{ height: '60%' }}
+                                transition={{ duration: 0.7, delay: 0.5 }}
+                                viewport={{ once: true }}
+                                className="w-[12%] relative"
+                              >
+                                <div className="absolute inset-0 rounded-t-lg bg-gradient-to-t from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 opacity-80 shadow-lg shadow-purple-500/20"></div>
+                                <div className="absolute inset-0 rounded-t-lg bg-white/20 dark:bg-white/5 backdrop-blur-sm"></div>
+                                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-medium text-purple-700 dark:text-purple-300">60%</div>
+                              </motion.div>
+                              
+                              <motion.div 
+                                initial={{ height: '0%' }}
+                                whileInView={{ height: '90%' }}
+                                transition={{ duration: 0.7, delay: 0.6 }}
+                                viewport={{ once: true }}
+                                className="w-[12%] relative"
+                              >
+                                <div className="absolute inset-0 rounded-t-lg bg-gradient-to-t from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 opacity-80 shadow-lg shadow-purple-500/20"></div>
+                                <div className="absolute inset-0 rounded-t-lg bg-white/20 dark:bg-white/5 backdrop-blur-sm"></div>
+                                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-medium text-purple-700 dark:text-purple-300">90%</div>
+                              </motion.div>
+                              
+                              <motion.div 
+                                initial={{ height: '0%' }}
+                                whileInView={{ height: '30%' }}
+                                transition={{ duration: 0.7, delay: 0.7 }}
+                                viewport={{ once: true }}
+                                className="w-[12%] relative"
+                              >
+                                <div className="absolute inset-0 rounded-t-lg bg-gradient-to-t from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 opacity-80 shadow-lg shadow-purple-500/20"></div>
+                                <div className="absolute inset-0 rounded-t-lg bg-white/20 dark:bg-white/5 backdrop-blur-sm"></div>
+                                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-medium text-purple-700 dark:text-purple-300">30%</div>
+                              </motion.div>
+                              
+                              <motion.div 
+                                initial={{ height: '0%' }}
+                                whileInView={{ height: '45%' }}
+                                transition={{ duration: 0.7, delay: 0.8 }}
+                                viewport={{ once: true }}
+                                className="w-[12%] relative"
+                              >
+                                <div className="absolute inset-0 rounded-t-lg bg-gradient-to-t from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 opacity-80 shadow-lg shadow-purple-500/20"></div>
+                                <div className="absolute inset-0 rounded-t-lg bg-white/20 dark:bg-white/5 backdrop-blur-sm"></div>
+                                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-medium text-purple-700 dark:text-purple-300">45%</div>
+                              </motion.div>
+                              
+                              <motion.div 
+                                initial={{ height: '0%' }}
+                                whileInView={{ height: '75%' }}
+                                transition={{ duration: 0.7, delay: 0.9 }}
+                                viewport={{ once: true }}
+                                className="w-[12%] relative glow-effect"
+                              >
+                                <div className="absolute inset-0 rounded-t-lg bg-gradient-to-t from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 opacity-80 shadow-lg shadow-purple-500/30"></div>
+                                <div className="absolute inset-0 rounded-t-lg bg-white/20 dark:bg-white/5 backdrop-blur-sm"></div>
+                                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-medium text-purple-700 dark:text-purple-300">75%</div>
+                              </motion.div>
+                            </div>
+                            
+                            {/* Grid lines */}
+                            <div className="absolute inset-0 grid grid-rows-4 grid-cols-5">
+                              {[...Array(20)].map((_, i) => (
+                                <div key={i} className="border-b border-r border-purple-200/20 dark:border-purple-800/20"></div>
+                              ))}
+                            </div>
+                            
+                            {/* Category labels */}
+                            <div className="absolute bottom-0 inset-x-0 flex justify-around px-4">
+                              <div className="text-[10px] text-purple-700 dark:text-purple-300">Asia</div>
+                              <div className="text-[10px] text-purple-700 dark:text-purple-300">Europe</div>
+                              <div className="text-[10px] text-purple-700 dark:text-purple-300">N. America</div>
+                              <div className="text-[10px] text-purple-700 dark:text-purple-300">S. America</div>
+                              <div className="text-[10px] text-purple-700 dark:text-purple-300">Africa</div>
+                            </div>
                           </div>
                         </div>
                       </div>
+                      <div className="text-slate-700 dark:text-slate-300 mb-5 leading-relaxed">
+                        Visualize supplier risk levels and identify critical vulnerabilities with our comprehensive impact assessment tools.
+                      </div>
+                      <Button variant="ghost" className="group-hover:bg-purple-50 group-hover:text-purple-700 dark:group-hover:bg-purple-900/20 dark:group-hover:text-purple-400 flex items-center gap-1 text-sm">
+                        <span>Learn more</span>
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </Button>
                     </div>
-                    <div className="text-slate-700 dark:text-slate-300 mb-5 leading-relaxed">
-                      Visualize supplier risk levels and identify critical vulnerabilities with our comprehensive impact assessment tools.
-                    </div>
-                    <Button variant="ghost" className="group-hover:bg-purple-50 group-hover:text-purple-700 dark:group-hover:bg-purple-900/20 dark:group-hover:text-purple-400 flex items-center gap-1 text-sm">
-                      <span>Learn more</span>
-                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </Button>
                   </CardContent>
                 </Card>
               </motion.div>
