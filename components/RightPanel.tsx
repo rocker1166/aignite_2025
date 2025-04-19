@@ -14,10 +14,10 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
   const { theme } = useTheme();
   const [latitude, setLatitude] = useState('')
   const [longitude, setLongitude] = useState('')
-  
+
   // Track if we have an attached file
   const hasAttachedFile = formValues.attachedFile?.name;
-  
+
   // Update form values when selected element changes
   useEffect(() => {
     if (selectedElement) {
@@ -26,7 +26,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
       setFormValues({});
     }
   }, [selectedElement]);
-  
+
   if (!selectedElement) {
     return (
       <div className="w-64 p-4 border-l border-gray-200 dark:border-gray-800/30 bg-white/80 dark:bg-black/20 backdrop-blur-sm">
@@ -41,41 +41,42 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
       </div>
     );
   }
-  
+
   const handleInputChange = (field: string, value: any) => {
     setFormValues({
       ...formValues,
       [field]: value
     });
   };
-  
+
   // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     // Check if it's an Excel file
-    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls') && !file.name.endsWith('.csv')) {
       alert('Please upload an Excel file (.xlsx or .xls)');
       return;
     }
-    
-    // Store file metadata in the node data
+
+    // Store file metadata and the actual file object in the node data
     handleInputChange('attachedFile', {
       name: file.name,
       size: file.size,
       type: file.type,
       lastModified: file.lastModified,
-      uploadedAt: new Date().toISOString()
+      uploadedAt: new Date().toISOString(),
+      fileObject: file // Store the actual file object for processing
     });
   };
-  
+
   // Handle file removal
   const handleFileRemove = () => {
     // Create a new object without the attachedFile property
     const { attachedFile, ...restValues } = formValues;
     setFormValues(restValues);
-    
+
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -85,12 +86,12 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
     setLatitude(lat)
     setLongitude(lng)
   }
-  
+
   // Trigger file input click
   const triggerFileUpload = () => {
     fileInputRef.current?.click();
   };
-  
+
   const handleSubmit = () => {
     const updatedElement = {
       ...selectedElement,
@@ -100,16 +101,16 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
     };
     onUpdate(updatedElement);
   };
-  
+
   // Determine if we're dealing with a node or edge
   const isNode = !('source' in selectedElement);
-  
+
   // Generate form fields based on element type
   const renderFormFields = () => {
     if (isNode) {
       // Get node type for conditional rendering
       const nodeType = formValues.type || '';
-      
+
       return (
         <>
           <div className="mb-5">
@@ -122,7 +123,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
             />
           </div>
-          
+
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description</label>
             <textarea
@@ -134,8 +135,8 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               placeholder="Add a detailed description of this node..."
             />
           </div>
-          
-            <div className="mb-5">
+
+          <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Type</label>
             <div className="w-full p-2.5 bg-gray-50 dark:bg-gray-900/40 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200  cursor-not-allowed">
               {formValues.type || 'Not specified'}
@@ -143,8 +144,8 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Node type cannot be changed after creation
             </div>
-            </div>
-            
+          </div>
+
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Capacity</label>
             <input
@@ -155,7 +156,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
             />
           </div>
-          
+
           {/* Supplier-specific fields
           {nodeType === 'Supplier' && (
             <>
@@ -173,7 +174,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               </div>
             </>
           )} */}
-          
+
           {/* Factory-specific field */}
           {nodeType === 'Factory' && (
             <>
@@ -189,7 +190,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               </div>
             </>
           )}
-          
+
           {/* Port-specific fields */}
           {nodeType === 'Port' && (
             <>
@@ -207,7 +208,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               </div>
             </>
           )}
-          
+
           {/* Warehouse-specific field */}
           {nodeType === 'Warehouse' && (
             <>
@@ -223,7 +224,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               </div>
             </>
           )}
-          
+
           {/* Distribution-specific fields */}
           {nodeType === 'Distribution' && (
             <>
@@ -239,14 +240,14 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
                 />
               </div>
             </>
-          )}  
+          )}
           <AddressAutocompleteMap
             onCoordinatesChange={handleMapCoordinatesChange}
             initialAddress={formValues.address || ''}
             initialLat={formValues.location?.lat || ''}
             initialLng={formValues.location?.lng || ''}
           />
-          
+
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Location</label>
             <div className="flex space-x-2">
@@ -272,38 +273,50 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               />
             </div>
           </div>
-          
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Attached File</label>
-            {hasAttachedFile ? (
-              <div className="flex items-center space-x-2">
-                <span className="text-gray-700 dark:text-gray-200">{formValues.attachedFile.name}</span>
+
+          {/* Only show file upload for Warehouse or Distribution nodes */}
+          {(nodeType === 'Warehouse' || nodeType === 'Distribution') && (
+            <div className="mb-5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Product Sheet</label>
+                {hasAttachedFile ? (
+                <div className="flex flex-col space-y-2">
+                <div className="overflow-hidden text-ellipsis whitespace-nowrap text-gray-700 dark:text-gray-200" title={formValues.attachedFile.name}>
+                  {formValues.attachedFile.name}
+                </div>
                 <button
-                  type="button"
-                  onClick={handleFileRemove}
-                  className="px-2 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all duration-300"
+                type="button"
+                onClick={handleFileRemove}
+                className="px-2 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all duration-300"
                 >
-                  Remove
+                Remove
                 </button>
               </div>
-            ) : (
+              ) : (
               <button
                 type="button"
                 onClick={triggerFileUpload}
                 className="px-5 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-300 shadow-[0_0_10px_rgba(59,130,246,0.4)] hover:shadow-[0_0_15px_rgba(59,130,246,0.6)] font-medium"
               >
-                Upload File
+                Upload Product Sheet
               </button>
-            )}
-            <input
+              )}
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
+              Upload an Excel file (.xlsx, .xls) or CSV file (.csv) containing product inventory details
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Required columns: <span className="font-medium">Product ID, Name, Quantity, Price, Category, Weight (kg)</span>
+              </div>
+              <input
 
               title='Upload File'
               type="file"
               ref={fileInputRef}
               onChange={handleFileSelect}
               className="hidden"
-            />
-          </div>
+              accept=".xlsx,.xls,.csv"
+              />
+            </div>
+          )}
         </>
       );
     } else {
@@ -324,7 +337,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               <option value="air">Air</option>
             </select>
           </div>
-          
+
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Cost per Unit</label>
             <input
@@ -335,7 +348,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
             />
           </div>
-          
+
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Transit Time (days)</label>
             <input
@@ -346,7 +359,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
             />
           </div>
-          
+
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Risk Multiplier</label>
             <input
@@ -367,12 +380,12 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
       );
     }
   };
-  
+
   return (
     <div className="w-64 p-4 border-l border-gray-200 dark:border-gray-800/50 bg-white/90 dark:bg-black/30 backdrop-blur-sm overflow-y-auto shadow-lg">
       <div className="flex items-center justify-between mb-5 border-b border-gray-200 dark:border-gray-800/50 pb-3">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          {isNode 
+          {isNode
             ? `${formValues.label || 'Unnamed'}`
             : `${selectedElement.source} → ${selectedElement.target}`
           }
@@ -381,13 +394,13 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
           {isNode ? formValues.type || 'Node' : 'Edge'}
         </div>
       </div>
-      
+
       <form onSubmit={(e) => {
         e.preventDefault();
         handleSubmit();
       }}>
         {renderFormFields()}
-        
+
         <div className="flex justify-end">
           <button
             type="submit"
