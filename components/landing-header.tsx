@@ -9,6 +9,8 @@ import { useUser } from "@/lib/stores/user";
 import { useEffect } from "react";
 
 export function LandingHeader() {
+  const setUser = useUser((state) => state.setUserData);
+  
 
   // const { theme, setTheme } = useTheme();
   const { userData } = useUser();

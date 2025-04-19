@@ -89,14 +89,14 @@ export function AppSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
+              {/* <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === "/strategy"}>
                   <Link href="/strategy">
                     <Settings className="h-4 w-4" />
                     <span>Strategy</span>
                   </Link>
                 </SidebarMenuButton>
-              </SidebarMenuItem>
+              </SidebarMenuItem> */}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
