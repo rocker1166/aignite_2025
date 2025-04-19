@@ -104,6 +104,7 @@ export default function DigitalTwinPage() {
   const [description, setDescription] = useState(""); // Add description state
   const [simulationMode, setSimulationMode] = useState(false);
   const { userData } = useUser();
+  
   console.log("userdata", userData)
   console.log("company description", userData?.description)
   console.log("company name", userData?.organisation_name)
