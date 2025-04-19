@@ -1,8 +1,10 @@
 "use client"
 
 import { useTheme } from "next-themes"
+import { useMemo } from "react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 
+// Move this outside the component to prevent recreation on each render
 const data = [
   { month: "Jan", health: 65, disruptions: 2, recovery: 5.2 },
   { month: "Feb", health: 59, disruptions: 4, recovery: 6.1 },
@@ -21,6 +23,19 @@ const data = [
 export function SupplyChainHealthChart() {
   const { theme } = useTheme()
   const isDark = theme === "dark"
+  
+  // Memoize tooltip styles based on theme
+  const tooltipStyle = useMemo(() => ({
+    backgroundColor: isDark ? "#1f2937" : "#fff",
+    borderColor: isDark ? "#374151" : "#e5e7eb",
+    color: isDark ? "#f9fafb" : "#111827",
+  }), [isDark]);
+  
+  // Memoize grid and axis colors based on theme
+  const chartColors = useMemo(() => ({
+    grid: isDark ? "#333" : "#eee",
+    axis: isDark ? "#888" : "#666"
+  }), [isDark]);
 
   return (
     <ResponsiveContainer width="100%" height={350}>
@@ -33,16 +48,10 @@ export function SupplyChainHealthChart() {
           bottom: 5,
         }}
       >
-        <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#333" : "#eee"} />
-        <XAxis dataKey="month" stroke={isDark ? "#888" : "#666"} />
-        <YAxis stroke={isDark ? "#888" : "#666"} />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: isDark ? "#1f2937" : "#fff",
-            borderColor: isDark ? "#374151" : "#e5e7eb",
-            color: isDark ? "#f9fafb" : "#111827",
-          }}
-        />
+        <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+        <XAxis dataKey="month" stroke={chartColors.axis} />
+        <YAxis stroke={chartColors.axis} />
+        <Tooltip contentStyle={tooltipStyle} />
         <Legend />
         <Line type="monotone" dataKey="health" stroke="#3b82f6" activeDot={{ r: 8 }} name="Health Score" />
         <Line type="monotone" dataKey="disruptions" stroke="#ef4444" name="Disruptions" />

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { ThemeToggle } from "./theme-toggle"
 
 interface HeaderProps {
   title: string
@@ -33,6 +34,9 @@ export function Header({ title }: HeaderProps) {
             className="w-64 pl-8 bg-background"
           />
         </div>
+        
+        <ThemeToggle />
+        
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon" className="relative">

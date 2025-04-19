@@ -1,11 +1,16 @@
-import type React from "react"
+import type { ReactNode } from "react"
 import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
+import SessionProvider from "@/lib/context/SessionProvider";
 
-export default function LandingLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen flex flex-col">
-        {children}
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+          <SessionProvider/>
+        </ThemeProvider>
       </body>
     </html>
   );

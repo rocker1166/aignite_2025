@@ -13,7 +13,6 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Intellisupply",
   description: "AI-powered platform for supply chain resilience planning and risk management",
-
 }
 
 export default function RootLayout({
@@ -31,7 +30,7 @@ export default function RootLayout({
           <SidebarProvider>
             <div className="flex h-screen w-full overflow-hidden">
               <AppSidebar />
-              <main className="flex-1 min-h-0 w-0 flex flex-col overflow-auto bg-background">
+              <main className="flex-1 min-h-0 flex flex-col overflow-auto bg-background">
                 {children}
               </main>
             </div>
