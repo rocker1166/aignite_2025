@@ -1,6 +1,7 @@
 // src/components/RightPanel.tsx
 import { FC, useState, useEffect, useRef } from 'react';
 import { Node, Edge } from 'reactflow';
+import { useTheme } from 'next-themes';
 
 interface RightPanelProps {
   selectedElement: Node | Edge | null;
@@ -10,6 +11,7 @@ interface RightPanelProps {
 const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
   const [formValues, setFormValues] = useState<any>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { theme } = useTheme();
   
   // Track if we have an attached file
   const hasAttachedFile = formValues.attachedFile?.name;
@@ -25,8 +27,8 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
   
   if (!selectedElement) {
     return (
-      <div className="w-64 p-4 border-l border-gray-800/30 bg-black/20 backdrop-blur-sm">
-        <div className="text-center text-gray-400 py-8 rounded-lg bg-gray-900/50 border border-gray-800/50 shadow-lg p-4">
+      <div className="w-64 p-4 border-l border-gray-200 dark:border-gray-800/30 bg-white/80 dark:bg-black/20 backdrop-blur-sm">
+        <div className="text-center text-gray-500 dark:text-gray-400 py-8 rounded-lg bg-gray-100/80 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800/50 shadow-lg p-4">
           <div className="mb-3 opacity-70">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
@@ -105,35 +107,35 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
       return (
         <>
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">Label</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Label</label>
             <input
               title='Label'
               type="text"
               value={formValues.label || ''}
               onChange={(e) => handleInputChange('label', e.target.value)}
-              className="w-full p-2.5 bg-gray-900/70 border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+              className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
             />
           </div>
           
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">Description</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description</label>
             <textarea
               title='Description'
               rows={3}
               value={formValues.description || ''}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              className="w-full p-2.5 bg-gray-900/70 border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+              className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
               placeholder="Add a detailed description of this node..."
             />
           </div>
           
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">Type</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Type</label>
             <select
               title='Type'
               value={formValues.type || ''}
               onChange={(e) => handleInputChange('type', e.target.value)}
-              className="w-full p-2.5 bg-gray-900/70 border border-gray-700 rounded-md text-gray-200 disabled:opacity-60 disabled:cursor-not-allowed focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+              className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 disabled:opacity-60 disabled:cursor-not-allowed focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
               disabled // Type is not editable after creation
             >
               <option value="Supplier">Supplier</option>
@@ -145,13 +147,13 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
           </div>
           
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">Capacity</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Capacity</label>
             <input
               title='Capacity'
               type="number"
               value={formValues.capacity || 0}
               onChange={(e) => handleInputChange('capacity', parseInt(e.target.value))}
-              className="w-full p-2.5 bg-gray-900/70 border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+              className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
             />
           </div>
           
@@ -159,7 +161,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
           {nodeType === 'Supplier' && (
             <>
               <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">Quality Rating (1-10)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Quality Rating (1-10)</label>
                 <input
                   title='Quality Rating'
                   type="number"
@@ -167,7 +169,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
                   max="10"
                   value={formValues.qualityRating || 7}
                   onChange={(e) => handleInputChange('qualityRating', parseInt(e.target.value))}
-                  className="w-full p-2.5 bg-gray-900/70 border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+                  className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
                 />
               </div>
             </>
@@ -177,13 +179,13 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
           {nodeType === 'Factory' && (
             <>
               <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">Energy Consumption (kWh)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Energy Consumption (kWh)</label>
                 <input
                   title='Energy Consumption'
                   type="number"
                   value={formValues.energyConsumption || 0}
                   onChange={(e) => handleInputChange('energyConsumption', parseInt(e.target.value))}
-                  className="w-full p-2.5 bg-gray-900/70 border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+                  className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
                 />
               </div>
             </>
@@ -193,7 +195,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
           {nodeType === 'Port' && (
             <>
               <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">Time required at customs (days)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Time required at customs (days)</label>
                 <input
                   title='Time Required at Customs'
                   type="number"
@@ -201,7 +203,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
                   step="0.5"
                   value={formValues.timeRequiredAtCustoms || 2}
                   onChange={(e) => handleInputChange('timeRequiredAtCustoms', parseFloat(e.target.value))}
-                  className="w-full p-2.5 bg-gray-900/70 border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+                  className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
                 />
               </div>
             </>
@@ -211,13 +213,13 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
           {nodeType === 'Warehouse' && (
             <>
               <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">Cost of Storage per Unit</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Cost of Storage per Unit</label>
                 <input
                   title='Storage Cost'
                   type="number"
                   value={formValues.storageUnitCost || 0}
                   onChange={(e) => handleInputChange('storageUnitCost', parseFloat(e.target.value))}
-                  className="w-full p-2.5 bg-gray-900/70 border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+                  className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
                 />
               </div>
             </>
@@ -227,21 +229,21 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
           {nodeType === 'Distribution' && (
             <>
               <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">Number of vehicles available for distribution</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Number of vehicles available for distribution</label>
                 <input
                   title='Available Vehicles'
                   type="number"
                   min="1"
                   value={formValues.availableVehicles || 12}
                   onChange={(e) => handleInputChange('availableVehicles', parseInt(e.target.value))}
-                  className="w-full p-2.5 bg-gray-900/70 border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+                  className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
                 />
               </div>
             </>
           )}
           
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">Location</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Location</label>
             <div className="flex space-x-2">
               <input
                 type="text"
@@ -251,7 +253,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
                   ...formValues.location,
                   lat: parseFloat(e.target.value)
                 })}
-                className="w-1/2 p-2.5 bg-gray-900/70 border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+                className="w-1/2 p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
               />
               <input
                 type="text"
@@ -261,16 +263,16 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
                   ...formValues.location,
                   lng: parseFloat(e.target.value)
                 })}
-                className="w-1/2 p-2.5 bg-gray-900/70 border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+                className="w-1/2 p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
               />
             </div>
           </div>
           
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">Attached File</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Attached File</label>
             {hasAttachedFile ? (
               <div className="flex items-center space-x-2">
-                <span className="text-gray-200">{formValues.attachedFile.name}</span>
+                <span className="text-gray-700 dark:text-gray-200">{formValues.attachedFile.name}</span>
                 <button
                   type="button"
                   onClick={handleFileRemove}
@@ -302,12 +304,12 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
       return (
         <>
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">Transport Mode</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Transport Mode</label>
             <select
               title='Transport Mode'
               value={formValues.mode || 'road'}
               onChange={(e) => handleInputChange('mode', e.target.value)}
-              className="w-full p-2.5 bg-gray-900/70 border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+              className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
             >
               <option value="road">Road</option>
               <option value="rail">Rail</option>
@@ -317,29 +319,29 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
           </div>
           
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">Cost per Unit</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Cost per Unit</label>
             <input
               title='Cost per Unit'
               type="number"
               value={formValues.cost || 0}
               onChange={(e) => handleInputChange('cost', parseInt(e.target.value))}
-              className="w-full p-2.5 bg-gray-900/70 border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+              className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
             />
           </div>
           
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">Transit Time (days)</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Transit Time (days)</label>
             <input
               title='Transit Time'
               type="number"
               value={formValues.transitTime || 0}
               onChange={(e) => handleInputChange('transitTime', parseInt(e.target.value))}
-              className="w-full p-2.5 bg-gray-900/70 border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+              className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
             />
           </div>
           
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">Risk Multiplier</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Risk Multiplier</label>
             <input
               title='Risk Multiplier'
               type="number"
@@ -348,9 +350,9 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               step="0.1"
               value={formValues.riskMultiplier || 1}
               onChange={(e) => handleInputChange('riskMultiplier', parseFloat(e.target.value))}
-              className="w-full p-2.5 bg-gray-900/70 border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+              className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
             />
-            <div className="text-xs text-gray-400 mt-1.5">
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
               1.0 = standard risk, &gt;1.0 = higher risk
             </div>
           </div>
@@ -360,15 +362,15 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
   };
   
   return (
-    <div className="w-64 p-4 border-l border-gray-800/50 bg-black/30 backdrop-blur-sm overflow-y-auto shadow-lg">
-      <div className="flex items-center justify-between mb-5 border-b border-gray-800/50 pb-3">
-        <h2 className="text-lg font-semibold text-white">
+    <div className="w-64 p-4 border-l border-gray-200 dark:border-gray-800/50 bg-white/90 dark:bg-black/30 backdrop-blur-sm overflow-y-auto shadow-lg">
+      <div className="flex items-center justify-between mb-5 border-b border-gray-200 dark:border-gray-800/50 pb-3">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
           {isNode 
             ? `${formValues.label || 'Unnamed'}`
             : `${selectedElement.source} → ${selectedElement.target}`
           }
         </h2>
-        <div className="text-xs px-2 py-1 rounded-full bg-gray-800 text-blue-400 font-semibold">
+        <div className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-blue-600 dark:text-blue-400 font-semibold">
           {isNode ? formValues.type || 'Node' : 'Edge'}
         </div>
       </div>
