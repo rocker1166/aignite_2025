@@ -307,7 +307,6 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
               Required columns: <span className="font-medium">Product ID, Name, Quantity, Price, Category, Weight (kg)</span>
               </div>
               <input
-
               title='Upload File'
               type="file"
               ref={fileInputRef}
