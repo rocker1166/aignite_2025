@@ -1,56 +1,103 @@
 "use client"
-import { User } from "lucide-react"
+import React, { useState, useEffect } from "react"
+import { Edit } from "lucide-react"
 import { Card } from "../ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs"
 import { Table } from "../ui/table"
 import { Switch } from "../ui/switch"
 import { Button } from "../ui/button"
-import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar"
+import { Avatar, AvatarFallback } from "../ui/avatar"
 import { Separator } from "../ui/separator"
-import { useState } from "react"
+import { UpdateProfileForm } from "./UpdateProfileForm"
+import { useUser } from "@/lib/stores/user"
 
-// Dummy user data
-const user = {
-  name: "Alex Morgan",
-  email: "alex.morgan@acme.com",
-  role: "Supply Chain Analyst",
-  avatar: "/placeholder-user.jpg",
-  theme: "light",
-  notificationPreferences: {
-    email: true,
-    sms: false,
-    dashboard: true,
-  },
-  dashboardLayout: "default",
+// Define TypeScript interfaces based on the provided schema
+
+interface Notification {
+  id: number;
+  message: string;
+  date: string;
+  read: boolean;
 }
 
-const notifications = [
+interface AuditLog {
+  id: number;
+  action: string;
+  date: string;
+}
+
+const notifications: Notification[] = [
   { id: 1, message: "Simulation completed: Port Strike Scenario", date: "2025-04-15", read: false },
   { id: 2, message: "New risk alert: Supplier X at 80% risk", date: "2025-04-14", read: true },
 ]
 
-const auditLogs = [
+const auditLogs: AuditLog[] = [
   { id: 1, action: "Ran simulation: Earthquake in Japan", date: "2025-04-13" },
   { id: 2, action: "Changed theme to dark", date: "2025-04-12" },
 ]
 
-export function ProfilePage() {
-  const [theme, setTheme] = useState(user.theme)
-  const [notifPrefs, setNotifPrefs] = useState(user.notificationPreferences)
+// Default values for properties not in schema
+const defaultPreferences = {
+  email: true,
+  sms: false,
+  dashboard: true
+};
+
+const defaultTheme = "light";
+const defaultLayout = "default";
+
+export function ProfilePage(): React.ReactElement {
+
+  const { userData,setUserData, userLoading } = useUser();
+  
+  // Declare all hooks at the top level, before any conditional logic
+  const [theme, setTheme] = useState<string>(defaultTheme);
+  const [notifPrefs, setNotifPrefs] = useState(defaultPreferences);
+  const [isUpdateFormOpen, setIsUpdateFormOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    setUserData()
+  }, []);
+
+  // If still loading or no user data, show loading state
+  if (userLoading || !userData) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  }
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 space-y-8">
-      <Card className="flex items-center gap-6 p-6">
+      <Card className="flex flex-col md:flex-row items-start md:items-center gap-6 p-6">
         <Avatar className="w-20 h-20">
-          <AvatarImage src={user.avatar} alt={user.name} />
-          <AvatarFallback>{user.name[0]}</AvatarFallback>
+          {/* Using Avatar Fallback to display first letter of organization name */}
+          <AvatarFallback className="bg-primary text-primary-foreground">
+            {userData.organisation_name ? userData.organisation_name[0].toUpperCase() : "U"}
+          </AvatarFallback>
         </Avatar>
-        <div>
-          <div className="text-2xl font-bold">{user.name}</div>
-          <div className="text-muted-foreground">{user.email}</div>
-          <div className="mt-1 text-sm text-primary/80">{user.role}</div>
+        <div className="flex-1">
+          <div className="text-2xl font-bold">{userData.organisation_name || "Unnamed Organization"}</div>
+          <div className="text-muted-foreground">{userData.email}</div>
+          <div className="mt-1 text-sm text-primary/80">
+            {userData.industry || "No industry specified"} - {userData.sub_industry || "No sub-industry specified"}
+          </div>
+          
+          <div className="mt-2 text-sm">
+            <span className="font-medium">Location:</span> {userData.location || "Not specified"}
+          </div>
+          <div className="mt-1 text-sm">
+            <span className="font-medium">Employees:</span> {userData.employee_count || "Not specified"}
+          </div>
         </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex items-center gap-2"
+          onClick={() => setIsUpdateFormOpen(true)}
+        >
+          <Edit className="h-4 w-4" />
+          Update Profile
+        </Button>
       </Card>
+      
       <Tabs defaultValue="settings" className="w-full">
         <TabsList>
           <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -80,28 +127,33 @@ export function ProfilePage() {
                   <span>Email Notifications</span>
                   <Switch
                     checked={notifPrefs.email}
-                    onCheckedChange={v => setNotifPrefs(p => ({ ...p, email: v }))}
+                    onCheckedChange={(v: boolean) => setNotifPrefs(p => ({ ...p, email: v }))}
                   />
                 </div>
                 <div className="flex items-center justify-between">
                   <span>SMS Notifications</span>
                   <Switch
                     checked={notifPrefs.sms}
-                    onCheckedChange={v => setNotifPrefs(p => ({ ...p, sms: v }))}
+                    onCheckedChange={(v: boolean) => setNotifPrefs(p => ({ ...p, sms: v }))}
                   />
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Dashboard Alerts</span>
                   <Switch
                     checked={notifPrefs.dashboard}
-                    onCheckedChange={v => setNotifPrefs(p => ({ ...p, dashboard: v }))}
+                    onCheckedChange={(v: boolean) => setNotifPrefs(p => ({ ...p, dashboard: v }))}
                   />
                 </div>
               </div>
               <div className="flex-1 space-y-4">
                 <div className="font-semibold">Dashboard Layout</div>
                 <label htmlFor="layout-select" className="sr-only">Dashboard Layout</label>
-                <select id="layout-select" aria-label="Dashboard Layout" className="border rounded px-2 py-1 w-full" defaultValue={user.dashboardLayout}>
+                <select 
+                  id="layout-select" 
+                  aria-label="Dashboard Layout" 
+                  className="border rounded px-2 py-1 w-full" 
+                  defaultValue={defaultLayout}
+                >
                   <option value="default">Default</option>
                   <option value="compact">Compact</option>
                   <option value="analytics">Analytics Focus</option>
@@ -170,6 +222,13 @@ export function ProfilePage() {
           </div>
         </div>
       </Card>
+
+      {/* Profile Update Form Modal */}
+      <UpdateProfileForm 
+        isOpen={isUpdateFormOpen} 
+        onClose={() => setIsUpdateFormOpen(false)}
+        currentProfile={userData}
+      />
     </div>
   )
 }

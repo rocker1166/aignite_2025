@@ -28,7 +28,7 @@ const SigninPage = () => {
         if (result) {
           console.log('Successfully signed up:', result.user);
           setSuccessMessage('Signup successful! ');
-          router.push('/'); 
+          router.push('/');
           setIsSignUpMode(false);
         } else {
           setError('Signup failed. Email might already be in use or invalid.');

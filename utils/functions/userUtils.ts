@@ -31,9 +31,12 @@ const updateUserData = async (data: any) => {
     const { error } = await supabaseClient
       .from('users')
       .update({
-        name: data.full_name,
-        phone: data.phone,
-        gender: data.gender,
+        organisation_name: data.organisation_name,
+        location: data.location,
+        employee_count: data.employee_count,
+        industry: data.industry,
+        sub_industry: data.industry,
+        description: data.description
       })
       .eq('id', data.id);
     if (error) {
