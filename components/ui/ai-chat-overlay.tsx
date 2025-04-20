@@ -1,5 +1,5 @@
 "use client"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import Draggable from "react-draggable"
 import type React from "react"
 import { Cpu, Paperclip, Mic, CornerDownLeft, X, Loader2 } from "lucide-react"
@@ -14,23 +14,49 @@ function AIChatOverlay() {
   const [inputValue, setInputValue] = useState("")
   const modalRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const typingBarRef = useRef<HTMLDivElement>(null) // Fixed ref type
-  const messagesEndRef = useRef<HTMLDivElement>(null) // Added ref for messages end
+  const typingBarRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
 
   const { messages, input, handleInputChange, handleSubmit, isLoading, append } = useChat({
     initialMessages: [{ id: "1", role: "assistant", content: "Hello! How can I assist you with your supply chain today?" }],
   })
 
+  // Handle clicks outside the modal
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (isOpen && modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        handleClose()
+      }
+    }
+
+    // Add event listener when modal is open
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+
+    // Cleanup event listener
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [isOpen])
+
   const handleOpen = () => {
     setIsAnimating(true)
     setIsOpen(true)
-    setDragPosition({ x: 0, y: 0 }) // Reset position to base of the screen
+    setDragPosition({ x: 0, y: 0 })
 
     if (inputValue.trim() !== "") {
       append({ content: inputValue, role: "user" })
       setInputValue("")
     }
+
+    // Auto scroll to bottom of messages when opening
+    setTimeout(() => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+      }
+    }, 100)
   }
 
   const handleClose = () => {
@@ -56,6 +82,13 @@ function AIChatOverlay() {
     e.preventDefault()
     if (!input.trim()) return
     handleSubmit(e)
+
+    // Auto scroll to bottom of messages after sending
+    setTimeout(() => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+      }
+    }, 100)
   }
 
   // Handle dragging position
@@ -67,7 +100,7 @@ function AIChatOverlay() {
     <>
       {!isOpen && (
         <Draggable
-        nodeRef={typingBarRef as React.RefObject<HTMLElement>} 
+          nodeRef={typingBarRef as React.RefObject<HTMLElement>}
           position={dragPosition}
           onDrag={handleDrag}
         >
@@ -75,7 +108,7 @@ function AIChatOverlay() {
             ref={typingBarRef}
             className="fixed bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-2xl px-6 z-10"
           >
-            <div 
+            <div
               className="flex items-center gap-2 rounded-full border border-blue-400/30 bg-white/10 p-2 backdrop-blur-md shadow-lg transition-all duration-300 hover:shadow-blue-400/20 hover:border-blue-400/50"
             >
               <button
@@ -109,7 +142,7 @@ function AIChatOverlay() {
       {isOpen && (
         <div
           className={cn(
-            "fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/50 backdrop-blur-sm transition-all duration-300 px-6 py-12",
+            "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300 px-6 py-8",
             {
               "opacity-0": isAnimating && !isOpen,
               "opacity-100": !(isAnimating && !isOpen)
@@ -119,32 +152,33 @@ function AIChatOverlay() {
           <div
             ref={modalRef}
             className={cn(
-              "relative bg-white/30 dark:bg-slate-900/30 border border-white/20 dark:border-slate-700/20 backdrop-blur-md text-slate-800 dark:text-white rounded-lg shadow-xl transition-all duration-500 overflow-hidden",
+              "relative bg-white/30 dark:bg-slate-900/30 border border-white/20 dark:border-slate-700/20 backdrop-blur-md text-slate-800 dark:text-white rounded-lg shadow-xl transition-all duration-500 overflow-hidden w-full max-w-4xl h-3/4",
               "chat-modal-animate"
             )}
+            onClick={(e) => e.stopPropagation()} // Prevent clicks on the modal from closing it
           >
-            <div className="flex items-center justify-between p-2 border-b border-blue-200/30 dark:border-blue-800/30">
-              <div className="flex items-center gap-2 mt-2">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 pulse-animation">
-                  <Cpu className="h-2.5 w-2.5 text-white" />
+            <div className="flex items-center justify-between p-3 border-b border-blue-200/30 dark:border-blue-800/30">
+              <div className="flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 pulse-animation">
+                  <Cpu className="h-3 w-3 text-white" />
                 </div>
-                <h2 className="text-base font-semibold">AI Supply Chain Assistant</h2>
+                <h2 className="text-lg font-semibold">AI Supply Chain Assistant</h2>
               </div>
-              <Button variant="ghost" size="icon" onClick={handleClose} className="text-slate-500 hover:text-slate-800 dark:hover:text-white mt-2 h-7 w-7">
-                <X className="h-4 w-4" />
+              <Button variant="ghost" size="icon" onClick={handleClose} className="text-slate-500 hover:text-slate-800 dark:hover:text-white h-8 w-8">
+                <X className="h-5 w-5" />
               </Button>
             </div>
-            <div className="h-[calc(450px-100px)] overflow-y-auto p-3 pt-1 modal-container">
+            <div className="h-[calc(100%-120px)] overflow-y-auto p-4 pt-2 modal-container">
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`mb-3 flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                  className={`mb-4 flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
                     className={cn(
-                      "rounded-lg p-2.5 max-w-[80%] shadow-sm message-animate text-sm",
-                      message.role === "user" 
-                        ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white" 
+                      "rounded-lg p-3 max-w-[80%] shadow-sm message-animate text-base",
+                      message.role === "user"
+                        ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white"
                         : "bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm text-slate-800 dark:text-white"
                     )}
                   >
@@ -165,31 +199,31 @@ function AIChatOverlay() {
               )}
               <div ref={messagesEndRef} />
             </div>
-            <div className="p-2 border-t border-blue-200/30 dark:border-blue-800/30">
+            <div className="p-3 border-t border-blue-200/30 dark:border-blue-800/30">
               <form onSubmit={onSubmitChat} className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" type="button" className="text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 h-8 w-8">
-                  <Paperclip className="h-4 w-4" />
+                <Button variant="ghost" size="icon" type="button" className="text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 h-10 w-10">
+                  <Paperclip className="h-5 w-5" />
                 </Button>
-                <Button variant="ghost" size="icon" type="button" className="text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 h-8 w-8">
-                  <Mic className="h-4 w-4" />
+                <Button variant="ghost" size="icon" type="button" className="text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 h-10 w-10">
+                  <Mic className="h-5 w-5" />
                 </Button>
                 <Input
                   ref={inputRef}
                   value={input}
                   onChange={handleInputChange}
                   placeholder="Type your message..."
-                  className="flex-1 rounded-md bg-white/30 dark:bg-slate-800/30 backdrop-blur-sm text-slate-800 dark:text-white text-sm placeholder:text-slate-500 border-0 focus-visible:ring-1 focus-visible:ring-blue-500 h-8"
+                  className="flex-1 rounded-md bg-white/30 dark:bg-slate-800/30 backdrop-blur-sm text-slate-800 dark:text-white text-base placeholder:text-slate-500 border-0 focus-visible:ring-1 focus-visible:ring-blue-500 h-10"
                 />
                 <Button
                   type="submit"
                   size="sm"
                   disabled={isLoading || !input.trim()}
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg send-button-glow transition-all duration-300 h-8 w-8"
+                  className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg send-button-glow transition-all duration-300 h-10 w-10"
                 >
                   {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
-                    <CornerDownLeft className="h-4 w-4" />
+                    <CornerDownLeft className="h-5 w-5" />
                   )}
                 </Button>
               </form>

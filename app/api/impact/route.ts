@@ -86,57 +86,57 @@ export async function POST(req: Request) {
     const { simulationConfig, user_id } = await req.json();
 
     try {
-        // Use the existing supabaseServer client
-        const supabase = supabaseServer;
-    
-        // Get the user's supply chain
-        const { data } = await supabase
-          .from('supply_chains')
-          .select('*')
-          .eq('user_id', user_id);
-        
-        if (!data || data.length === 0) {
-          return NextResponse.json({ error: "No supply chains found for user" }, { status: 404 });
-        }
+      // Use the existing supabaseServer client
+      const supabase = supabaseServer;
 
-        supplyChains = data;
+      // Get the user's supply chain
+      const { data } = await supabase
+        .from('supply_chains')
+        .select('*')
+        .eq('user_id', user_id);
+
+      if (!data || data.length === 0) {
+        return NextResponse.json({ error: "No supply chains found for user" }, { status: 404 });
+      }
+
+      supplyChains = data;
     } catch (innerError) {
-        console.error('❌ Inner Error:', innerError);
-        return NextResponse.json(
-          { error: 'Failed to fetch user or supply chain data.' },
-          { status: 500 }
-        );
+      console.error('❌ Inner Error:', innerError);
+      return NextResponse.json(
+        { error: 'Failed to fetch user or supply chain data.' },
+        { status: 500 }
+      );
     }
 
     // Build a precise, instruction-rich prompt that emphasizes compact output
     const prompt = `
     You are a senior supply chain simulation analyst AI.
     
-    Your task is to return a **single, fully-formed JSON object** matching **exactly** the schema below, strictly without extra text, commentary, or explanations. You must **only** return this object.
+    Your task is to return a *single, fully-formed JSON object* matching *exactly* the schema below, strictly without extra text, commentary, or explanations. You must *only* return this object.
     
     🧠 You are given:
     - A disruption scenario (severity, duration, Monte Carlo runs, thresholds, buffers)
     - A company supply chain map (nodes, edges, inventories)
     
-    ▶️ Simulation Rules:
+    ▶ Simulation Rules:
     1. Apply disruption severity to the affected node’s daily output.
     2. Deplete inventory buffer day‑by‑day. If inputs fall below the cascading failure threshold, mark the node as "failed".
     3. Propagate failures downstream based on links. Update outputs of affected nodes accordingly.
     4. Recovery time = disruption duration + days until buffer or alternate routing restores full flow.
     5. Risk score = severity × node.riskScore × (1 + downstreamDependencies/10), clamped to 0–100.
-    6. Generate daily **productionData** and **inventoryData** for a 30-day simulation.
+    6. Generate daily *productionData* and *inventoryData* for a 30-day simulation.
     7. Assign each node a position (x, y) from the map.
-    8. Perform **Monte Carlo** simulations internally, but return a single, **median** representative outcome.
+    8. Perform *Monte Carlo* simulations internally, but return a single, *median* representative outcome.
     9. Last updated timestamp must be generated in this format: "Today, HH:MM AM/PM".
     
-    ⚠️ ABSOLUTE RULES:
+    ⚠ ABSOLUTE RULES:
     - You must return a single JSON object that matches this exact schema:
     ${SupplyChainImpactDataSchema.toString()}
     
     - productionData:
       • Must be exactly 30 objects (days 1–30)
       • Values:
-        – actual: number (0–100) from day 1–21, **null from day 22–30**
+        – actual: number (0–100) from day 1–21, *null from day 22–30*
         – projected: number (0–100) for all 30 days
       • Follow this pattern:
         – Day 1–7: ramp down
@@ -149,10 +149,10 @@ export async function POST(req: Request) {
       • Track daily inventory changes for affected and critical nodes
     
     ✅ Your response must include:
-    - A valid \`scenario\` object
-    - Updated \`nodes\` (with correct status, outputDrop, downtime, recovery, and x,y)
-    - \`links\` as-is from input
-    - Complete 30-day \`productionData\` and \`inventoryData\`
+    - A valid \scenario\ object
+    - Updated \nodes\ (with correct status, outputDrop, downtime, recovery, and x,y)
+    - \links\ as-is from input
+    - Complete 30-day \productionData\ and \inventoryData\
     
     📥 Inputs:
     SimulationConfig:
@@ -161,13 +161,13 @@ export async function POST(req: Request) {
     CompanySitemap:
     ${JSON.stringify(supplyChains, null, 2)}
     `.trim();
-    
+
 
     try {
       // Invoke the LLM with structured output and explicit limits
       const { object: result } = await generateObject({
-        model: google('gemini-1.5-flash', {    
-          useSearchGrounding: true 
+        model: google('gemini-1.5-flash', {
+          useSearchGrounding: true
         }),
         schema: SupplyChainImpactDataSchema,
         prompt,
@@ -176,7 +176,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ result });
     } catch (llmError) {
       console.error('❌ LLM Error:', llmError);
-      
+
       // Attempt to provide a fallback for development purposes
       return NextResponse.json({
         error: 'Failed to generate complete impact assessment. The response may be too large.',

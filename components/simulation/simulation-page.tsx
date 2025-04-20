@@ -27,13 +27,13 @@ function SimulationPageContent() {
   const [isAIScenarioOpen, setIsAIScenarioOpen] = useState(false)
 
   // Access scenario context
-  const { 
-    scenarioData, 
-    updateScenarioData, 
-    supplyChains, 
-    setSupplyChains, 
-    selectedSupplyChainId, 
-    setSelectedSupplyChainId 
+  const {
+    scenarioData,
+    updateScenarioData,
+    supplyChains,
+    setSupplyChains,
+    selectedSupplyChainId,
+    setSelectedSupplyChainId
   } = useScenario()
 
   // Access the impact context
@@ -64,7 +64,7 @@ function SimulationPageContent() {
         toast({ title: "Error", description: "Failed to load supply chains", variant: "destructive" })
       }
     }
-    
+
     if (!supplyChains.length && userData?.id) {
       fetchSupplyChains()
     } else if (supplyChains.length > 0 && !selectedSupplyChainId) {
@@ -72,6 +72,7 @@ function SimulationPageContent() {
       fetchSimulationHistory(supplyChains[0].supply_chain_id)
     }
   }, [toast, supplyChains, userData, selectedSupplyChainId, setSelectedSupplyChainId, setSupplyChains])
+
 
   const fetchSimulationHistory = async (id: string) => {
     try {
@@ -84,10 +85,10 @@ function SimulationPageContent() {
 
   const handleAIScenarioSelect = (scenario: ScenarioData) => {
     updateScenarioData(scenario)
-    toast({ 
-      title: "AI Scenario Applied", 
-      description: `Applied "${scenario.scenarioName}" to the builder`, 
-      variant: "default" 
+    toast({
+      title: "AI Scenario Applied",
+      description: `Applied "${scenario.scenarioName}" to the builder`,
+      variant: "default"
     })
   }
 
@@ -152,27 +153,25 @@ function SimulationPageContent() {
       // Set loading state before API call
       setIsLoading(true)
 
-      // Call the impact API endpoint
-      try {
-        const response = await fetch('/api/impact', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ simulationConfig, user_id })
-        })
+      // Call the impact API with the simulation configuration
+      const response = await fetch('/api/impact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          simulationConfig,
+          user_id
+        }),
+      });
 
-        if (response.ok) {
-          const apiResponse = await response.json()
-          setImpactData(apiResponse.result) // Use the .result property
-        } else {
-          console.error('Impact API error:', response.status)
-          toast({ title: "API Error", description: `Impact API returned status: ${response.status}`, variant: "destructive" })
-        }
-      } catch (error) {
-        console.error('Error calling impact API:', error)
-        toast({ title: "API Error", description: "Failed to fetch impact assessment data", variant: "destructive" })
-      } finally {
-        setIsLoading(false)
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to get impact assessment');
       }
+
+      const impactData = await response.json();
+      setImpactData(impactData.result);
 
       const interval = setInterval(() => {
         setProgress((prev) => {
@@ -199,18 +198,23 @@ function SimulationPageContent() {
           return prev + 10
         })
       }, 500)
-    } catch {
-      toast({ title: "Error", description: "Failed to start simulation", variant: "destructive" })
+    } catch (error) {
+      console.error("Simulation error:", error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to start simulation",
+        variant: "destructive"
+      })
       setIsLoading(false)
     }
   }
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
-      <SimulationToolbar 
-        onRun={runSimulation} 
+      <SimulationToolbar
+        onRun={runSimulation}
         onAIScenarioClick={() => setIsAIScenarioOpen(true)}
-        disabled={simulationRunning || !selectedSupplyChainId} 
+        disabled={simulationRunning || !selectedSupplyChainId}
       />
 
       <div className="flex flex-1 overflow-hidden">

@@ -61,17 +61,17 @@ export default function ImpactAssessment() {
           </p>
         </div>
         <div className="">
-      
-      <Button size="lg" onClick={handleOpenSheet} className="bg-[#1D3557] hover:bg-[#1D3557]/90">
-        View Disruption Strategy
-      </Button>
 
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="bottom" className="h-[90vh] overflow-y-auto p-0 sm:max-w-none">
-          <StrategyDashboard scenarioId={scenarioId} />
-        </SheetContent>
-      </Sheet>
-    </div>
+          <Button size="lg" onClick={handleOpenSheet} className="bg-[#1D3557] hover:bg-[#1D3557]/90">
+            View Disruption Strategy
+          </Button>
+
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetContent side="bottom" className="h-[90vh] overflow-y-auto p-0 sm:max-w-none">
+              <StrategyDashboard scenarioId={scenarioId} />
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
 
       <Card>
