@@ -3,7 +3,8 @@
 import { useState } from "react"
 import { AlertTriangle, Download, Info, RefreshCw } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-
+import { Sheet, SheetContent } from "@/components/ui/sheet"
+import StrategyDashboard from "@/components/strategy-dashboard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,6 +21,12 @@ export default function ImpactAssessment() {
   const { toast } = useToast()
   const { impactData, isLoading } = useImpact();
   const [isRunning, setIsRunning] = useState(false)
+  const [open, setOpen] = useState(false)
+  const [scenarioId, setScenarioId] = useState("PORT-CLOSURE-Q3-25")
+
+  const handleOpenSheet = () => {
+    setOpen(true)
+  }
 
   const runSimulation = () => {
     setIsRunning(true)
@@ -53,25 +60,18 @@ export default function ImpactAssessment() {
             Analyze disruption impacts and cascading effects across your supply chain
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export Report
-          </Button>
-          <Button size="sm" onClick={runSimulation} disabled={isRunning}>
-            {isRunning ? (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                Running...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Run Simulation
-              </>
-            )}
-          </Button>
-        </div>
+        <div className="">
+      
+      <Button size="lg" onClick={handleOpenSheet} className="bg-[#1D3557] hover:bg-[#1D3557]/90">
+        View Disruption Strategy
+      </Button>
+
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="bottom" className="h-[90vh] overflow-y-auto p-0 sm:max-w-none">
+          <StrategyDashboard scenarioId={scenarioId} />
+        </SheetContent>
+      </Sheet>
+    </div>
       </div>
 
       <Card>
