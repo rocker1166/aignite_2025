@@ -14,8 +14,18 @@ import {
   DollarSign, 
   Scale,
   Shield, 
-  TrendingUp 
+  TrendingUp,
+  CheckCircle,
+  CalendarIcon
 } from "lucide-react"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
+import StrategyDashboard from "@/components/strategy-dashboard"
 
 interface Strategy {
   id: string
@@ -84,6 +94,7 @@ const mockStrategies: Strategy[] = [
 export function StrategyRecommendations() {
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null)
   const [filter, setFilter] = useState<'all' | 'recommended' | 'in-progress' | 'implemented'>('all')
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
 
   const filteredStrategies = mockStrategies.filter(
     strategy => filter === 'all' || strategy.status === filter
@@ -120,7 +131,6 @@ export function StrategyRecommendations() {
           </Button>
           <Button 
             variant={filter === 'in-progress' ? 'default' : 'outline'}
-            onClick={() => setFilter('in-progress')}
           >
             In Progress
           </Button>
@@ -219,10 +229,33 @@ export function StrategyRecommendations() {
               </div>
 
               <div className="pt-4">
-                <Button className="w-full">
-                  View Implementation Plan
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+                <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                  <Button className="w-full" onClick={() => setIsSheetOpen(true)}>
+                    View Implementation Plan
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                  <SheetContent side="bottom" className="h-[90vh] overflow-y-auto p-0 sm:max-w-none">
+                    {selectedStrategy ? (
+                      <>
+                        <div className="p-6 bg-white border-b">
+                          <SheetHeader className="pb-2">
+                            <SheetTitle>Implementation Plan: {selectedStrategy.title}</SheetTitle>
+                            <SheetDescription>
+                              Detailed implementation strategy and expected outcomes
+                            </SheetDescription>
+                          </SheetHeader>
+                        </div>
+                        
+                        <StrategyDashboard scenarioId={`${selectedStrategy.title} - ${selectedStrategy.id}`} />
+                      </>
+                    ) : (
+                      <div className="p-6 text-center text-muted-foreground">
+                        <AlertTriangle className="mx-auto h-8 w-8 mb-2" />
+                        <p>No strategy selected. Please select a strategy to view the implementation plan.</p>
+                      </div>
+                    )}
+                  </SheetContent>
+                </Sheet>
               </div>
             </CardContent>
           </Card>
@@ -268,4 +301,80 @@ function MetricCard({
       </CardContent>
     </Card>
   )
+}
+
+function ImplementationTimeline({ strategy }: { strategy: Strategy }) {
+  // Generate implementation steps based on strategy type
+  const getImplementationSteps = (strategy: Strategy) => {
+    const baseSteps = [
+      { title: "Initial Assessment", description: "Conduct assessment of current state and requirements", duration: "7 days" },
+      { title: "Planning Phase", description: "Develop detailed implementation roadmap", duration: "14 days" },
+      { title: "Team Alignment", description: "Brief team members and assign responsibilities", duration: "3 days" },
+    ];
+
+    // Add strategy-specific steps
+    if (strategy.title.includes("Dual-Sourcing")) {
+      return [...baseSteps,
+        { title: "Supplier Evaluation", description: "Identify and evaluate backup suppliers", duration: "30 days" },
+        { title: "Contract Negotiation", description: "Negotiate terms with selected suppliers", duration: "21 days" },
+        { title: "Integration", description: "Integrate new suppliers into supply chain systems", duration: "15 days" },
+      ];
+    } else if (strategy.title.includes("Safety Stock")) {
+      return [...baseSteps,
+        { title: "Data Collection", description: "Gather historical demand and supply data", duration: "10 days" },
+        { title: "Algorithm Development", description: "Develop AI models for optimization", duration: "18 days" },
+        { title: "Inventory Adjustment", description: "Gradually adjust inventory levels across network", duration: "14 days" },
+      ];
+    } else if (strategy.title.includes("Transportation")) {
+      return [...baseSteps,
+        { title: "Route Analysis", description: "Analyze alternative transport routes", duration: "12 days" },
+        { title: "Carrier Selection", description: "Identify backup carriers for critical lanes", duration: "14 days" },
+        { title: "Route Testing", description: "Test alternative routes with small shipments", duration: "21 days" },
+      ];
+    } else {
+      return [...baseSteps,
+        { title: "Development Phase", description: "Deploy necessary technology or processes", duration: "21 days" },
+        { title: "Testing Phase", description: "Test implementation in controlled environment", duration: "14 days" },
+        { title: "Full Rollout", description: "Complete implementation across organization", duration: "14 days" },
+      ];
+    }
+  };
+
+  const steps = getImplementationSteps(strategy);
+  
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Implementation Timeline</CardTitle>
+      </CardHeader>
+      <CardContent className="pl-2">
+        <div className="relative">
+          <div className="absolute left-4 top-0 bottom-0 w-[1px] bg-border" />
+          <div className="space-y-6">
+            {steps.map((step, index) => (
+              <div key={index} className="relative pl-10">
+                <div className="absolute left-[13px] top-1 h-6 w-6 rounded-full border border-border bg-background flex items-center justify-center">
+                  <CalendarIcon className="h-3 w-3 text-muted-foreground" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium leading-none">{step.title}</h4>
+                  <p className="text-xs text-muted-foreground mt-1 mb-1">{step.description}</p>
+                  <p className="text-xs font-medium text-muted-foreground">{step.duration}</p>
+                </div>
+              </div>
+            ))}
+            <div className="relative pl-10">
+              <div className="absolute left-[13px] top-1 h-6 w-6 rounded-full border border-green-500 bg-green-500/10 flex items-center justify-center">
+                <CheckCircle className="h-3 w-3 text-green-500" />
+              </div>
+              <div>
+                <h4 className="text-sm font-medium leading-none">Final Review</h4>
+                <p className="text-xs text-muted-foreground mt-1">Assess implementation success and gather learnings</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }

@@ -15,6 +15,7 @@ import { SelectContent } from "@/components/ui/select"
 import { SelectItem } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { AdvancedSettings } from "./advanced-settings"
+import { useScenario } from "@/lib/context/scenario-context"
 import type { SupplyChain } from "@/lib/types/database"
 
 type Props = {
@@ -105,4 +106,61 @@ export function ScenarioBuilder(props: Props) {
       </CardContent>
     </Card>
   )
+}
+
+// This is the new context-connected version of the component
+export function ScenarioBuilderWithContext() {
+  const { 
+    scenarioData, 
+    updateScenarioData, 
+    supplyChains, 
+    selectedSupplyChainId, 
+    setSelectedSupplyChainId 
+  } = useScenario();
+
+  // Handler for updating individual scenario fields
+  const handleScenarioUpdate = (field: string, value: any) => {
+    updateScenarioData({ [field]: value });
+  };
+
+  // Create the props object for the base ScenarioBuilder
+  const scenarioBuilderProps: Props = {
+    scenarioName: scenarioData.scenarioName,
+    setScenarioName: (val) => handleScenarioUpdate('scenarioName', val),
+    scenarioType: scenarioData.scenarioType,
+    setScenarioType: (val) => handleScenarioUpdate('scenarioType', val),
+    supplyChains,
+    selectedSupplyChainId,
+    handleSupplyChainChange: setSelectedSupplyChainId,
+    disruptionSeverity: scenarioData.disruptionSeverity,
+    setDisruptionSeverity: (val) => handleScenarioUpdate('disruptionSeverity', val),
+    disruptionDuration: scenarioData.disruptionDuration,
+    setDisruptionDuration: (val) => handleScenarioUpdate('disruptionDuration', val),
+    affectedNode: scenarioData.affectedNode,
+    setAffectedNode: (val) => handleScenarioUpdate('affectedNode', val),
+    description: scenarioData.description,
+    setDescription: (val) => handleScenarioUpdate('description', val),
+    advancedProps: {
+      startDate: scenarioData.startDate,
+      setStartDate: (val: string) => handleScenarioUpdate('startDate', val),
+      endDate: scenarioData.endDate, 
+      setEndDate: (val: string) => handleScenarioUpdate('endDate', val),
+      monteCarloRuns: scenarioData.monteCarloRuns,
+      setMonteCarloRuns: (val: number) => handleScenarioUpdate('monteCarloRuns', val),
+      distributionType: scenarioData.distributionType,
+      setDistributionType: (val: string) => handleScenarioUpdate('distributionType', val),
+      cascadeEnabled: scenarioData.cascadeEnabled,
+      setCascadeEnabled: (val: boolean) => handleScenarioUpdate('cascadeEnabled', val),
+      failureThreshold: scenarioData.failureThreshold,
+      setFailureThreshold: (val: number) => handleScenarioUpdate('failureThreshold', val),
+      bufferPercent: scenarioData.bufferPercent,
+      setBufferPercent: (val: number) => handleScenarioUpdate('bufferPercent', val),
+      alternateRouting: scenarioData.alternateRouting,
+      setAlternateRouting: (val: boolean) => handleScenarioUpdate('alternateRouting', val),
+      randomSeed: scenarioData.randomSeed,
+      setRandomSeed: (val: string) => handleScenarioUpdate('randomSeed', val),
+    }
+  };
+  
+  return <ScenarioBuilder {...scenarioBuilderProps} />;
 }

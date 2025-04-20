@@ -4,10 +4,12 @@ import { useEffect, useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { SimulationResults } from "@/components/simulation/simulation-results"
 import { SimulationHistory } from "@/components/simulation/simulation-history"
-import { ScenarioBuilder } from "@/components/simulation/test/scenario-builder"
+import { ScenarioBuilder, ScenarioBuilderWithContext } from "@/components/simulation/test/scenario-builder"
 import { SimulationToolbar } from "@/components/simulation/test/simulation-toolbar"
 import { SimulationLoader } from "@/components/simulation/test/simulation-loader"
 import { SimulationEmptyState } from "@/components/simulation/test/simulation-empty-state"
+import { AIScenarioSuggestions } from "@/components/simulation/test/ai-scenario-suggestions"
+import { ScenarioProvider, useScenario, ScenarioData } from "@/lib/context/scenario-context"
 import type { Simulation, SupplyChain } from "@/lib/types/database"
 import { getSupplyChains } from "@/lib/api/supply-chain"
 import { createSimulation, updateSimulation, getSimulations } from "@/lib/api/simulation"
@@ -15,50 +17,30 @@ import { formatISO } from "date-fns"
 import { useUser } from "@/lib/stores/user"
 import { useImpact } from "@/lib/context/impact-context"
 
-export function SimulationPage() {
+function SimulationPageContent() {
   const { toast } = useToast()
   const [simulationRunning, setSimulationRunning] = useState(false)
   const [simulationComplete, setSimulationComplete] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [supplyChains, setSupplyChains] = useState<SupplyChain[]>([
-    {
-      supply_chain_id: "default-1",
-      user_id: "user-123",
-      name: "Default Supply Chain",
-      description: "This is a default supply chain for testing purposes.",
-      status: "active",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-  ])
-  const [selectedSupplyChainId, setSelectedSupplyChainId] = useState("")
   const [simulationHistory, setSimulationHistory] = useState<Simulation[]>([])
   const [currentSimulation, setCurrentSimulation] = useState<Simulation | null>(null)
+  const [isAIScenarioOpen, setIsAIScenarioOpen] = useState(false)
+
+  // Access scenario context
+  const { 
+    scenarioData, 
+    updateScenarioData, 
+    supplyChains, 
+    setSupplyChains, 
+    selectedSupplyChainId, 
+    setSelectedSupplyChainId 
+  } = useScenario()
 
   // Access the impact context
-  const { setImpactData, setIsLoading } = useImpact();
-
-  // Basic scenario state
-  const [scenarioName, setScenarioName] = useState("Port Strike Scenario")
-  const [scenarioType, setScenarioType] = useState("disruption")
-  const [disruptionSeverity, setDisruptionSeverity] = useState(70)
-  const [disruptionDuration, setDisruptionDuration] = useState(14)
-  const [affectedNode, setAffectedNode] = useState("supplier-a")
-  const [description, setDescription] = useState("Simulating a port strike affecting key suppliers...")
-
-  // Advanced state
-  const [startDate, setStartDate] = useState(formatISO(new Date()))
-  const [endDate, setEndDate] = useState(formatISO(new Date()))
-  const [monteCarloRuns, setMonteCarloRuns] = useState(100)
-  const [distributionType, setDistributionType] = useState("normal")
-  const [cascadeEnabled, setCascadeEnabled] = useState(true)
-  const [failureThreshold, setFailureThreshold] = useState(30)
-  const [bufferPercent, setBufferPercent] = useState(20)
-  const [alternateRouting, setAlternateRouting] = useState(true)
-  const [randomSeed, setRandomSeed] = useState("")
+  const { setImpactData, setIsLoading } = useImpact()
 
   //fetch user 
-  const { userData } = useUser();
+  const { userData } = useUser()
   console.log("userdata", userData)
   console.log("company description", userData?.description)
   console.log("company name", userData?.organisation_name)
@@ -66,6 +48,8 @@ export function SimulationPage() {
   console.log("industry", userData?.industry)
   console.log("sub_industry", userData?.sub_industry)
   console.log("location", userData?.location)
+
+  const user_id = userData?.id
 
   useEffect(() => {
     const fetchSupplyChains = async () => {
@@ -80,8 +64,14 @@ export function SimulationPage() {
         toast({ title: "Error", description: "Failed to load supply chains", variant: "destructive" })
       }
     }
-    fetchSupplyChains()
-  }, [toast])
+    
+    if (!supplyChains.length && userData?.id) {
+      fetchSupplyChains()
+    } else if (supplyChains.length > 0 && !selectedSupplyChainId) {
+      setSelectedSupplyChainId(supplyChains[0].supply_chain_id)
+      fetchSimulationHistory(supplyChains[0].supply_chain_id)
+    }
+  }, [toast, supplyChains, userData, selectedSupplyChainId, setSelectedSupplyChainId, setSupplyChains])
 
   const fetchSimulationHistory = async (id: string) => {
     try {
@@ -90,6 +80,15 @@ export function SimulationPage() {
     } catch {
       toast({ title: "Error", description: "Failed to load simulation history", variant: "destructive" })
     }
+  }
+
+  const handleAIScenarioSelect = (scenario: ScenarioData) => {
+    updateScenarioData(scenario)
+    toast({ 
+      title: "AI Scenario Applied", 
+      description: `Applied "${scenario.scenarioName}" to the builder`, 
+      variant: "default" 
+    })
   }
 
   const runSimulation = async () => {
@@ -101,22 +100,22 @@ export function SimulationPage() {
     try {
       const newSim: Partial<Simulation> = {
         supply_chain_id: selectedSupplyChainId,
-        name: scenarioName,
-        scenario_type: scenarioType,
+        name: scenarioData.scenarioName,
+        scenario_type: scenarioData.scenarioType,
         parameters: {
-          severity: disruptionSeverity,
-          duration: disruptionDuration,
-          affectedNode,
-          description,
-          startDate,
-          endDate,
-          monteCarloRuns,
-          distributionType,
-          cascadeEnabled,
-          failureThreshold,
-          bufferPercent,
-          alternateRouting,
-          randomSeed
+          severity: scenarioData.disruptionSeverity,
+          duration: scenarioData.disruptionDuration,
+          affectedNode: scenarioData.affectedNode,
+          description: scenarioData.description,
+          startDate: scenarioData.startDate,
+          endDate: scenarioData.endDate,
+          monteCarloRuns: scenarioData.monteCarloRuns,
+          distributionType: scenarioData.distributionType,
+          cascadeEnabled: scenarioData.cascadeEnabled,
+          failureThreshold: scenarioData.failureThreshold,
+          bufferPercent: scenarioData.bufferPercent,
+          alternateRouting: scenarioData.alternateRouting,
+          randomSeed: scenarioData.randomSeed
         },
         status: "running"
       }
@@ -130,49 +129,49 @@ export function SimulationPage() {
       // Create the simulationConfig object to send to the impact API
       const simulationConfig = {
         id: created?.simulation_id,
-        name: scenarioName,
-        type: scenarioType,
+        name: scenarioData.scenarioName,
+        type: scenarioData.scenarioType,
         supplyChainId: selectedSupplyChainId,
         parameters: {
-          severity: disruptionSeverity,
-          duration: disruptionDuration,
-          affectedNode,
-          description,
-          startDate,
-          endDate,
-          monteCarloRuns,
-          distributionType,
-          cascadeEnabled,
-          failureThreshold,
-          bufferPercent,
-          alternateRouting,
-          randomSeed
+          severity: scenarioData.disruptionSeverity,
+          duration: scenarioData.disruptionDuration,
+          affectedNode: scenarioData.affectedNode,
+          description: scenarioData.description,
+          startDate: scenarioData.startDate,
+          endDate: scenarioData.endDate,
+          monteCarloRuns: scenarioData.monteCarloRuns,
+          distributionType: scenarioData.distributionType,
+          cascadeEnabled: scenarioData.cascadeEnabled,
+          failureThreshold: scenarioData.failureThreshold,
+          bufferPercent: scenarioData.bufferPercent,
+          alternateRouting: scenarioData.alternateRouting,
+          randomSeed: scenarioData.randomSeed
         }
       }
 
       // Set loading state before API call
-      setIsLoading(true);
+      setIsLoading(true)
 
       // Call the impact API endpoint
       try {
         const response = await fetch('/api/impact', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ simulationConfig })
-        });
+          body: JSON.stringify({ simulationConfig, user_id })
+        })
 
         if (response.ok) {
-          const apiResponse = await response.json();
-          setImpactData(apiResponse.result); // Use the .result property
+          const apiResponse = await response.json()
+          setImpactData(apiResponse.result) // Use the .result property
         } else {
-          console.error('Impact API error:', response.status);
-          toast({ title: "API Error", description: `Impact API returned status: ${response.status}`, variant: "destructive" });
+          console.error('Impact API error:', response.status)
+          toast({ title: "API Error", description: `Impact API returned status: ${response.status}`, variant: "destructive" })
         }
       } catch (error) {
-        console.error('Error calling impact API:', error);
-        toast({ title: "API Error", description: "Failed to fetch impact assessment data", variant: "destructive" });
+        console.error('Error calling impact API:', error)
+        toast({ title: "API Error", description: "Failed to fetch impact assessment data", variant: "destructive" })
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
 
       const interval = setInterval(() => {
@@ -202,38 +201,21 @@ export function SimulationPage() {
       }, 500)
     } catch {
       toast({ title: "Error", description: "Failed to start simulation", variant: "destructive" })
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
-      <SimulationToolbar onRun={runSimulation} disabled={simulationRunning || !selectedSupplyChainId} />
+      <SimulationToolbar 
+        onRun={runSimulation} 
+        onAIScenarioClick={() => setIsAIScenarioOpen(true)}
+        disabled={simulationRunning || !selectedSupplyChainId} 
+      />
 
       <div className="flex flex-1 overflow-hidden">
         <div className="w-80 border-r bg-background overflow-y-auto">
-          <ScenarioBuilder
-            scenarioName={scenarioName} setScenarioName={setScenarioName}
-            scenarioType={scenarioType} setScenarioType={setScenarioType}
-            supplyChains={supplyChains}
-            selectedSupplyChainId={selectedSupplyChainId}
-            handleSupplyChainChange={setSelectedSupplyChainId}
-            disruptionSeverity={disruptionSeverity} setDisruptionSeverity={setDisruptionSeverity}
-            disruptionDuration={disruptionDuration} setDisruptionDuration={setDisruptionDuration}
-            affectedNode={affectedNode} setAffectedNode={setAffectedNode}
-            description={description} setDescription={setDescription}
-            advancedProps={{
-              startDate, setStartDate,
-              endDate, setEndDate,
-              monteCarloRuns, setMonteCarloRuns,
-              distributionType, setDistributionType,
-              cascadeEnabled, setCascadeEnabled,
-              failureThreshold, setFailureThreshold,
-              bufferPercent, setBufferPercent,
-              alternateRouting, setAlternateRouting,
-              randomSeed, setRandomSeed
-            }}
-          />
+          <ScenarioBuilderWithContext />
         </div>
 
         <div className="flex-1 overflow-y-auto">
@@ -258,6 +240,22 @@ export function SimulationPage() {
           )}
         </div>
       </div>
+
+      {/* AI Scenario Suggestions Sheet */}
+      <AIScenarioSuggestions
+        open={isAIScenarioOpen}
+        onOpenChange={setIsAIScenarioOpen}
+        onSelectScenario={handleAIScenarioSelect}
+      />
     </div>
+  )
+}
+
+// Wrap component with context provider
+export function SimulationPage() {
+  return (
+    <ScenarioProvider>
+      <SimulationPageContent />
+    </ScenarioProvider>
   )
 }
