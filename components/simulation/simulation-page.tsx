@@ -49,6 +49,8 @@ function SimulationPageContent() {
   console.log("sub_industry", userData?.sub_industry)
   console.log("location", userData?.location)
 
+  const user_id = userData?.id
+
   useEffect(() => {
     const fetchSupplyChains = async () => {
       try {
@@ -155,7 +157,7 @@ function SimulationPageContent() {
         const response = await fetch('/api/impact', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ simulationConfig })
+          body: JSON.stringify({ simulationConfig, user_id })
         })
 
         if (response.ok) {

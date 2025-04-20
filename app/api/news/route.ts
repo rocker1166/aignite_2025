@@ -72,48 +72,72 @@ export async function GET(request:any) {
     // Use the existing supabaseServer client
     const supabase = supabaseServer;
 
-    // Fetch users from the database
+    // Fetch all users from the database
     console.log("Fetching users from database...");
-    const { data: users } = await supabase
+    const { data: users, error: usersError } = await supabase
       .from('users')
-      .select('*')
-      .limit(1);
+      .select('*');
       
+    if (usersError) {
+      console.error("Error fetching users:", usersError);
+      return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
+    }
+    
     if (!users || users.length === 0) {
       return NextResponse.json({ error: "No users found in the database" }, { status: 404 });
     }
     
-    const userData = users[0];
-    console.log("Using user:", userData.id);
-    console.log("userdata", userData);
+    // Process each user
+    const results = [];
     
-    // Get the user's supply chains
-    console.log("Fetching supply chains for user:", userData.id);
-    const { data: supplyChains } = await supabase
-      .from('supply_chains')
-      .select('*')
-      .eq('user_id', userData.id);
-    
-    if (!supplyChains || supplyChains.length === 0) {
-      return NextResponse.json({ error: "No supply chains found for user" }, { status: 404 });
+    for (const userData of users) {
+      console.log(`Processing user: ${userData.id}`);
+      
+      // Get the user's supply chains
+      const { data: supplyChains, error: supplyChainError } = await supabase
+        .from('supply_chains')
+        .select('*')
+        .eq('user_id', userData.id);
+      
+      if (supplyChainError) {
+        console.error(`Error fetching supply chains for user ${userData.id}:`, supplyChainError);
+        continue; // Skip this user and continue with the next one
+      }
+      
+      if (!supplyChains || supplyChains.length === 0) {
+        console.log(`No supply chains found for user ${userData.id}, skipping...`);
+        continue; // Skip this user and continue with the next one
+      }
+      
+      console.log(`Found ${supplyChains.length} supply chains for user ${userData.id}`);
+      
+      // Process each supply chain for the current user
+      for (const supplyChain of supplyChains) {
+        console.log(`Processing supply chain: ${supplyChain.supply_chain_id}`);
+        
+        // Generate intelligence for this supply chain
+        const supplyChainResults = await getAllNodeIntel(supplyChain);
+        
+        // Store the results in the database
+        console.log(`Storing intelligence data for supply chain ${supplyChain.supply_chain_id}...`);
+        await storeSupplyChainIntel(
+          userData.id,
+          supplyChain.supply_chain_id,
+          supplyChainResults as NodeIntel[]
+        );
+        
+        // Add to the results array
+        results.push({
+          user_id: userData.id,
+          supply_chain_id: supplyChain.supply_chain_id,
+          results: supplyChainResults
+        });
+        
+        console.log(`Intelligence data stored successfully for supply chain ${supplyChain.supply_chain_id}`);
+      }
     }
     
-   
-    console.log(`Using supply chain:`, supplyChains);
-  
-    // Pass raw data directly to the LLM
-    console.log("Generating node intelligence with AI...");
-    const results = await getAllNodeIntel(supplyChains);
-    
-    // Store the results in the database
-    console.log("Storing intelligence data in the database...");
-    await storeSupplyChainIntel(
-      userData.id,
-      supplyChains[0].supply_chain_id,
-      results as NodeIntel[]
-    );
-    console.log("Intelligence data stored successfully");
-    
+    console.log(`Processed intelligence data for ${results.length} supply chains`);
     return NextResponse.json({ results });
   } catch (error) {
     console.error("AI agent error:", error);

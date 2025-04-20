@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
 import SignoutButton from "./auth/Signout";
 import { useUser } from "@/lib/stores/user";
+import { useEffect } from "react";
 
 export function LandingHeader() {
   const setUser = useUser((state) => state.setUserData);

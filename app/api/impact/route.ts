@@ -5,10 +5,10 @@ import { generateObject } from 'ai';
 import { google } from '@ai-sdk/google';
 import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase/server';
-
 // ───────────────────────────────────────────────────────────────────────────────
 // 1️⃣ Define Zod schemas matching your SupplyChainImpactData shape
 // ───────────────────────────────────────────────────────────────────────────────
+
 
 const MetricSchema = z.object({
   day: z.number(),
@@ -83,91 +83,107 @@ const SupplyChainImpactDataSchema = z.object({
 export async function POST(req: Request) {
   try {
     let supplyChains;
+    const { simulationConfig, user_id } = await req.json();
 
     try {
-      const supabase = supabaseServer;
+        // Use the existing supabaseServer client
+        const supabase = supabaseServer;
+    
+        // Get the user's supply chain
+        const { data } = await supabase
+          .from('supply_chains')
+          .select('*')
+          .eq('user_id', user_id);
+        
+        if (!data || data.length === 0) {
+          return NextResponse.json({ error: "No supply chains found for user" }, { status: 404 });
+        }
 
-      const { data: users } = await supabase
-        .from('users')
-        .select('*')
-        .limit(1);
-
-      if (!users || users.length === 0) {
-        return NextResponse.json(
-          { error: 'No users found in the database' },
-          { status: 404 }
-        );
-      }
-
-      const userData = users[0];
-
-      const { data } = await supabase
-        .from('supply_chains')
-        .select('*')
-        .eq('user_id', userData.id);
-
-      if (!data || data.length === 0) {
-        return NextResponse.json(
-          { error: 'No supply chains found for user' },
-          { status: 404 }
-        );
-      }
-
-      supplyChains = data;
+        supplyChains = data;
     } catch (innerError) {
-      console.error('❌ Inner Error:', innerError);
-      return NextResponse.json(
-        { error: 'Failed to fetch user or supply chain data.' },
-        { status: 500 }
-      );
+        console.error('❌ Inner Error:', innerError);
+        return NextResponse.json(
+          { error: 'Failed to fetch user or supply chain data.' },
+          { status: 500 }
+        );
     }
 
-    const { simulationConfig } = await req.json();
-
+    // Build a precise, instruction-rich prompt that emphasizes compact output
     const prompt = `
-You are an expert supply chain simulation analyst.
+    You are a senior supply chain simulation analyst AI.
+    
+    Your task is to return a **single, fully-formed JSON object** matching **exactly** the schema below, strictly without extra text, commentary, or explanations. You must **only** return this object.
+    
+    🧠 You are given:
+    - A disruption scenario (severity, duration, Monte Carlo runs, thresholds, buffers)
+    - A company supply chain map (nodes, edges, inventories)
+    
+    ▶️ Simulation Rules:
+    1. Apply disruption severity to the affected node’s daily output.
+    2. Deplete inventory buffer day‑by‑day. If inputs fall below the cascading failure threshold, mark the node as "failed".
+    3. Propagate failures downstream based on links. Update outputs of affected nodes accordingly.
+    4. Recovery time = disruption duration + days until buffer or alternate routing restores full flow.
+    5. Risk score = severity × node.riskScore × (1 + downstreamDependencies/10), clamped to 0–100.
+    6. Generate daily **productionData** and **inventoryData** for a 30-day simulation.
+    7. Assign each node a position (x, y) from the map.
+    8. Perform **Monte Carlo** simulations internally, but return a single, **median** representative outcome.
+    9. Last updated timestamp must be generated in this format: "Today, HH:MM AM/PM".
+    
+    ⚠️ ABSOLUTE RULES:
+    - You must return a single JSON object that matches this exact schema:
+    ${SupplyChainImpactDataSchema.toString()}
+    
+    - productionData:
+      • Must be exactly 30 objects (days 1–30)
+      • Values:
+        – actual: number (0–100) from day 1–21, **null from day 22–30**
+        – projected: number (0–100) for all 30 days
+      • Follow this pattern:
+        – Day 1–7: ramp down
+        – Day 8–15: low/stable phase
+        – Day 16–21: ramp up
+        – Day 22–30: future projected values (actual: null)
+    
+    - inventoryData:
+      • Same 30-day timeline
+      • Track daily inventory changes for affected and critical nodes
+    
+    ✅ Your response must include:
+    - A valid \`scenario\` object
+    - Updated \`nodes\` (with correct status, outputDrop, downtime, recovery, and x,y)
+    - \`links\` as-is from input
+    - Complete 30-day \`productionData\` and \`inventoryData\`
+    
+    📥 Inputs:
+    SimulationConfig:
+    ${JSON.stringify(simulationConfig, null, 2)}
+    
+    CompanySitemap:
+    ${JSON.stringify(supplyChains, null, 2)}
+    `.trim();
+    
 
-🧠 Using the inputs below, compute a full impact assessment:
-- Disruption severity, duration, Monte Carlo runs, thresholds, buffers
-- The complete company supply‐chain map with nodes, edges, inventories
+    try {
+      // Invoke the LLM with structured output and explicit limits
+      const { object: result } = await generateObject({
+        model: google('gemini-1.5-flash', {    
+          useSearchGrounding: true 
+        }),
+        schema: SupplyChainImpactDataSchema,
+        prompt,
+      });
 
-▶️ Rules:
-1. Apply disruption severity to the affected node’s daily output.
-2. Deplete inventory buffer day‑by‑day; if input falls below failure threshold, mark node as failed.
-3. Propagate failures downstream along edges; calculate output drops.
-4. Recovery time = disruption duration + days until buffer / alternate routing restores flow.
-5. Risk score = severity × node’s riskScore × (1 + #downstreamDependencies/10), clamped 0–100.
-6. Generate daily productionData (actual vs projected) and inventoryData for the full horizon.
-7. Assign (x,y) from the map for each node’s position.
-8. Monte Carlo Runs: use as basis for a single “median” run—no need for multiple replicates in output.
-9. Last updated: use current timestamp in “Today, HH:MM AM/PM” format.
-
-⚠️ VERY IMPORTANT:
-- productionData must be an array of exactly 30 days.
-- Values for 'actual' and 'projected' MUST NOT exceed 100.
-- From day 1 to 21, 'actual' must have real numbers (≤100).
-- From day 22 to 30, 'actual' must be null; only 'projected' should be filled.
-- Follow a realistic ramp down → low phase → ramp up pattern.
-
-✅ Output must match this exact Zod schema:
-
-${SupplyChainImpactDataSchema.toString()}
-
-📥 Inputs:
-SimulationConfig:
-${JSON.stringify(simulationConfig, null, 2)}
-
-CompanySitemap:
-${JSON.stringify(supplyChains, null, 2)}
-`.trim();
-
-    const { object: result } = await generateObject({
-      model: google('gemini-1.5-flash', { useSearchGrounding: true }),
-      schema: SupplyChainImpactDataSchema,
-      prompt,
-    });
-
-    return NextResponse.json({ result });
+      return NextResponse.json({ result });
+    } catch (llmError) {
+      console.error('❌ LLM Error:', llmError);
+      
+      // Attempt to provide a fallback for development purposes
+      return NextResponse.json({
+        error: 'Failed to generate complete impact assessment. The response may be too large.',
+        message: 'Consider reducing the complexity of your supply chain or the simulation duration.',
+        details: llmError instanceof Error ? llmError.message : 'Unknown LLM error'
+      }, { status: 500 });
+    }
   } catch (error) {
     console.error('❌ Scenario Impact Agent Error:', error);
     return NextResponse.json(
