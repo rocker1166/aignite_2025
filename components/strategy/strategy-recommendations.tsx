@@ -235,16 +235,25 @@ export function StrategyRecommendations() {
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                   <SheetContent side="bottom" className="h-[90vh] overflow-y-auto p-0 sm:max-w-none">
-                    <div className="p-6 bg-white border-b">
-                      <SheetHeader className="pb-2">
-                        <SheetTitle>Implementation Plan: {selectedStrategy.title}</SheetTitle>
-                        <SheetDescription>
-                          Detailed implementation strategy and expected outcomes
-                        </SheetDescription>
-                      </SheetHeader>
-                    </div>
-                    
-                    <StrategyDashboard scenarioId={`${selectedStrategy.title} - ${selectedStrategy.id}`} />
+                    {selectedStrategy ? (
+                      <>
+                        <div className="p-6 bg-white border-b">
+                          <SheetHeader className="pb-2">
+                            <SheetTitle>Implementation Plan: {selectedStrategy.title}</SheetTitle>
+                            <SheetDescription>
+                              Detailed implementation strategy and expected outcomes
+                            </SheetDescription>
+                          </SheetHeader>
+                        </div>
+                        
+                        <StrategyDashboard scenarioId={`${selectedStrategy.title} - ${selectedStrategy.id}`} />
+                      </>
+                    ) : (
+                      <div className="p-6 text-center text-muted-foreground">
+                        <AlertTriangle className="mx-auto h-8 w-8 mb-2" />
+                        <p>No strategy selected. Please select a strategy to view the implementation plan.</p>
+                      </div>
+                    )}
                   </SheetContent>
                 </Sheet>
               </div>
