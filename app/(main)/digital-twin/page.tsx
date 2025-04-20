@@ -1,6 +1,6 @@
 "use client";
 // src/pages/DigitalTwinPage.tsx
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -21,6 +21,8 @@ import RightPanel from '../../../components/RightPanel';
 import { nodeTypes } from "@/components/CustomNodes";
 import { useUser } from '@/lib/stores/user';
 import insertSupplyChain from '@/utils/functions/insertSupplyChain';
+import { Simulation } from '@/lib/types/database';
+import { getSimulations } from '@/lib/api/simulation';
 
 const initialNodes: Node[] = [
   {
@@ -99,11 +101,13 @@ export default function DigitalTwinPage() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedElement, setSelectedElement] = useState<Node | Edge | null>(null);
-  const [selectedSupplyChain, setSelectedSupplyChain] = useState("default-chain");
+  const [selectedSupplyChain, setSelectedSupplyChain] = useState<string>('');
+
   const [supplyChainName, setSupplyChainName] = useState("Default Supply Chain");
   const [description, setDescription] = useState(""); // Add description state
   const [simulationMode, setSimulationMode] = useState(false);
   const { userData } = useUser();
+  const [localSupplyChains, setLocalSupplyChains] = useState<Array<{id: string, name: string}>>([]);
   
   console.log("userdata", userData)
   console.log("company description", userData?.description)
@@ -113,6 +117,52 @@ export default function DigitalTwinPage() {
   console.log("sub_industry", userData?.sub_industry)
   console.log("location", userData?.location)
 
+  useEffect(() => {
+    try {
+      const supplyChainKeys = Object.keys(localStorage).filter(key => key.startsWith('supplyChain_'));
+      const chains = supplyChainKeys.map(key => {
+        const data = JSON.parse(localStorage.getItem(key) || '{}');
+        const name = key.replace('supplyChain_', '');
+        return {
+          id: name,
+          name: name
+        };
+      }).filter(Boolean);
+      
+      setLocalSupplyChains(chains);
+    } catch (error) {
+      console.error('Error loading supply chains:', error);
+      setLocalSupplyChains([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedSupplyChain && supplyChainName) {
+      setLocalSupplyChains(prevChains => {
+        const updatedChains = prevChains.map(chain => 
+          chain.id === selectedSupplyChain 
+            ? { ...chain, name: supplyChainName }
+            : chain
+        );
+        return updatedChains;
+      });
+
+      const storageKey = `supplyChain_${selectedSupplyChain}`;
+      const existingData = localStorage.getItem(storageKey);
+      if (existingData) {
+        try {
+          const parsedData = JSON.parse(existingData);
+          const updatedData = {
+            ...parsedData,
+            name: supplyChainName
+          };
+          localStorage.setItem(storageKey, JSON.stringify(updatedData));
+        } catch (error) {
+          console.error('Error updating supply chain name:', error);
+        }
+      }
+    }
+  }, [supplyChainName, selectedSupplyChain]);
 
   // When a node is clicked, set it as the selected element for the right panel
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
@@ -185,13 +235,12 @@ export default function DigitalTwinPage() {
 
     const supplyChainData = {
       id: selectedSupplyChain,
-      name: supplyChainName, // Include the supply chain name
-      description: description, // Include the description
+      name: supplyChainName,
+      description: description,
       nodes,
       edges,
       connections,
       timestamp: new Date().toISOString(),
-      // Include organization data at the top level
       organisation: {
         id: userData?.id,
         name: userData?.organisation_name,
@@ -204,7 +253,32 @@ export default function DigitalTwinPage() {
 
     console.log('Saving supply chain:', supplyChainData);
     insertSupplyChain(supplyChainData)
-      .then(() => {
+      .then((response) => {
+        const supply_chain_id = response.data?.[0]?.supply_chain_id || crypto.randomUUID();
+        
+        const dataToStore = {
+          ...supplyChainData,
+          supply_chain_id: supply_chain_id
+        };
+        
+        // Use the supply chain name as the key
+        const storageKey = `supplyChain_${supplyChainName}`;
+        
+        // Store in localStorage with the name-based key
+        localStorage.setItem(storageKey, JSON.stringify(dataToStore));
+        
+        // Update the localSupplyChains state
+        setLocalSupplyChains(prevChains => [
+          ...prevChains,
+          {
+            id: supply_chain_id,
+            name: supplyChainName
+          }
+        ]);
+
+        // Reset the select to default state
+        setSelectedSupplyChain('');
+        
         toast.success('Supply chain saved successfully!');
       })
       .catch((error) => {
@@ -279,6 +353,46 @@ export default function DigitalTwinPage() {
         setSupplyChainName={setSupplyChainName}
         description={description}
         setDescription={setDescription}
+        localSupplyChains={localSupplyChains || []}
+        onSupplyChainSelect={(selectedName) => {
+          if (!selectedName) {
+            setSelectedSupplyChain('');
+            setSupplyChainName('Default Supply Chain');
+            setDescription('');
+            setNodes(initialNodes);
+            setEdges(initialEdges);
+            setSimulationMode(false);
+            return;
+          }
+
+          // Get data directly using the selected name
+          const localData = localStorage.getItem(`supplyChain_${selectedName}`);
+          if (localData) {
+            try {
+              const parsedData = JSON.parse(localData);
+              
+              setSelectedSupplyChain(selectedName);
+              setSupplyChainName(selectedName);
+              setDescription(parsedData.description || '');
+              
+              if (parsedData.nodes) {
+                setNodes(parsedData.nodes);
+              }
+              if (parsedData.edges) {
+                setEdges(parsedData.edges);
+              }
+              setSimulationMode(true);
+
+              console.log('Selected chain:', {
+                name: selectedName,
+                storedData: parsedData
+              });
+            } catch (error) {
+              console.error('Error loading supply chain:', error);
+              toast.error('Error loading supply chain data');
+            }
+          }
+        }}
       />
 
       <div className="flex flex-1 overflow-hidden">
