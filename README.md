@@ -100,20 +100,6 @@ Here are the available scripts in the `package.json` file:
 - **`pnpm format`**: Format code using Prettier.
 
 ---
-
-## Deployment
-
-The easiest way to deploy this application is via [Vercel](https://vercel.com/). Follow these steps:
-
-1. Push your code to a GitHub repository.
-2. Connect your repository to Vercel.
-3. Set up the required environment variables in the Vercel dashboard.
-4. Deploy your application.
-
-For more details, refer to the [Next.js Deployment Documentation](https://nextjs.org/docs/app/building-your-application/deploying).
-
----
-
 ## Known Issues
 
 ### Simulation Function Timeout
