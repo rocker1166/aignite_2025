@@ -123,9 +123,8 @@ export function AppSidebar() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-          {/* <SidebarSeparator />
-          <SidebarSeparator />
-          <SidebarGroup>
+          {/* <SidebarSeparator /> */}
+          {/* <SidebarGroup>
             {!isCollapsed && <SidebarGroupLabel>Advanced Tools</SidebarGroupLabel>}
             <SidebarGroupContent>
               <SidebarMenu>

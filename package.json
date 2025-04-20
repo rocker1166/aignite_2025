@@ -11,6 +11,7 @@
   "dependencies": {
     "@ai-sdk/google": "^1.2.11",
     "@ai-sdk/react": "^1.2.9",
+    "@edge-runtime/cookies": "^6.0.0",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.4",
@@ -58,6 +59,7 @@
     "lucide-react": "^0.454.0",
     "next": "15.2.4",
     "next-themes": "latest",
+    "open-graph-scraper": "^6.9.0",
     "papaparse": "^5.5.2",
     "react": "^19",
     "react-day-picker": "8.10.1",
