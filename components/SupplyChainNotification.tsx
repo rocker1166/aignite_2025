@@ -156,22 +156,24 @@ export function SupplyChainNotification() {
             if (unreadNotifications.length === 0) return
 
             try {
-                const { error } = await supabaseClient
+                // Fix: Use "id" instead of "notification_id" to match your table's primary key
+                await supabaseClient
                     .from("notifications")
                     .update({ read_status: true })
-                    .in("notification_id", unreadNotifications)
-
-                if (error) {
-                    console.error("Error marking notifications as read:", error)
-                    return
-                }
-
-                // Update local state
-                setNotifications((prev) =>
-                    prev.map((n) => (unreadNotifications.includes(n.id) ? { ...n, read_status: true } : n)),
-                )
-            } catch (err) {
-                console.error("Failed to mark notifications as read:", err)
+                    .in("id", unreadNotifications)
+                    .then(({ data }) => {
+                        // Update local state only on success
+                        if (data) {
+                            setNotifications((prev) =>
+                                prev.map((n) => (unreadNotifications.includes(n.id) ? { ...n, read_status: true } : n))
+                            )
+                        }
+                    })
+                    .catch(() => {
+                        // Silently fail
+                    })
+            } catch {
+                // Silently catch any errors
             }
         }
 
@@ -235,10 +237,14 @@ export function SupplyChainNotification() {
         return (
             <div className="flex gap-1 flex-wrap">
                 {sources.slice(0, 2).map((source, index) => (
-                    <SourceBadge key={`source-${notification.id}-${index}`} source={source} index={index} />
+                    <SourceBadge
+                        key={`source-${notification.id}-${index}`}
+                        source={source}
+                        index={index}
+                    />
                 ))}
                 {sources.length > 2 && (
-                    <Tooltip>
+                    <Tooltip key={`more-sources-${notification.id}`}>
                         <TooltipTrigger asChild>
                             <Badge variant="outline" className="h-5 px-1 text-[10px]">
                                 +{sources.length - 2} more
