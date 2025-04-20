@@ -12,6 +12,8 @@ interface SimulationToolbarProps {
   setSupplyChainName?: (name: string) => void;
   description?: string;
   setDescription?: (desc: string) => void;
+  localSupplyChains: Array<{id: string, name: string}>;
+  onSupplyChainSelect: (id: string) => void;
 }
 
 const SimulationToolbar: FC<SimulationToolbarProps> = ({
@@ -25,7 +27,9 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
   supplyChainName,
   setSupplyChainName,
   description,
-  setDescription
+  setDescription,
+  localSupplyChains,
+  onSupplyChainSelect
 }) => {
   const [inputValue, setInputValue] = useState('');
 
@@ -66,61 +70,61 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-between p-4 border-b border-gray-200">
-      <div className="flex items-center space-x-4">
-        <h1 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">Digital Twin</h1>
+    <div className="flex items-center gap-4 p-4 border-b border-gray-200">
+      <div className="flex items-center space-x-4 flex-1">
+        {/* Supply Chain Selection */}
+        <div className="w-64">
+          <select
+            id="supply-chain-select"
+            value={selectedSupplyChain}
+            onChange={(e) => onSupplyChainSelect(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          >
+            <option value="">Select Supply Chain</option>
+            {localSupplyChains.map((chain) => (
+              <option key={chain.id} value={chain.id}>
+                {chain.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
+        {/* Supply Chain Name */}
         <input
           type="text"
-          title="Supply Chain"
-          value={inputValue}
-          onChange={handleInputChange}
-          onBlur={handleBlur}
-          className="border border-gray-300 rounded px-3 py-2 w-64"
-          placeholder="Enter supply chain name"
+          value={supplyChainName}
+          onChange={(e) => setSupplyChainName?.(e.target.value)}
+          placeholder="Supply Chain Name"
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         />
 
+        {/* Description */}
         <input
           type="text"
-          title="Description"
-          value={description || ""}
-          onChange={handleDescriptionChange}
-          className="border border-gray-300 rounded px-3 py-2 w-64"
-          placeholder="Enter supply chain description"
+          value={description}
+          onChange={(e) => setDescription?.(e.target.value)}
+          placeholder="Description"
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         />
       </div>
 
-      <div className="flex items-center space-x-2">
-        {simulationMode && (
-          <button
-            onClick={() => setSimulationMode(false)}
-            className="px-4 py-2 text-gray-800 rounded hover:bg-gray-300"
-          >
-            Exit Simulation
-          </button>
-        )}
-
+      {/* Action Buttons */}
+      <div className="flex items-center gap-2">
         <button
           onClick={onSave}
-          disabled={simulationMode}
-          className={`px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 ${simulationMode ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
+          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
         >
           Save
         </button>
-
         <button
           onClick={onRun}
-          disabled={simulationMode}
-          className={`px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 ${simulationMode ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
+          className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
         >
           Run Simulation
         </button>
-
         <button
           onClick={onExport}
-          className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
         >
           Export
         </button>
