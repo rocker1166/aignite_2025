@@ -3,6 +3,7 @@
 Intellisupply is an advanced AI-powered platform designed to enhance supply chain resilience, risk management, and operational efficiency. It leverages cutting-edge technologies like AI, data visualization, and real-time analytics to provide actionable insights for supply chain optimization.
 
 ---
+Live Demo : https://drive.google.com/file/d/1aQ1ng3_-7mzZ0SvPzQKsxalNSy7PDqSN/view?pli=1
 
 ## Table of Contents
 
