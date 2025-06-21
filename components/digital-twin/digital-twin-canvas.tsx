@@ -1,6 +1,6 @@
 "use client";
 // src/pages/DigitalTwinPage.tsx
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -15,6 +15,9 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { toast } from "sonner";
+import { useQueryState } from 'nuqs';
+
+import debounce from 'lodash.debounce';
 
 import SimulationToolbar from './SimulationToolbar';
 import LeftPanel from './LeftPanel';
@@ -22,6 +25,7 @@ import RightPanel from './RightPanel';
 import { nodeTypes } from "./CustomNodes";
 import { useUser } from '@/lib/stores/user';
 import insertSupplyChain from '@/utils/functions/insertSupplyChain';
+
 
 interface DigitalTwinCanvasProps {
   initialNodes?: Node[];
@@ -32,8 +36,39 @@ export default function DigitalTwinCanvas({
   initialNodes = [], 
   initialEdges = [] 
 }: DigitalTwinCanvasProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  // URL state management
+  const [archParam, setArchParam] = useQueryState('arch', {
+    defaultValue: '',
+    shallow: false
+  });
+  
+  // Initialize with empty state - will be populated by hydration effect
+  const [hydratedNodes, setHydratedNodes] = useState<Node[]>([]);
+  const [hydratedEdges, setHydratedEdges] = useState<Edge[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
+  
+  const [nodes, setNodes, onNodesChange] = useNodesState(hydratedNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(hydratedEdges);
+  
+  // Track if we need to force URL update
+  const forceURLUpdate = useRef(false);
+  
+  // Custom nodes change handler to force URL updates
+  const handleNodesChange = useCallback((changes: any[]) => {
+    console.log('Nodes changed:', changes);
+    onNodesChange(changes);
+    
+    // Check if any change involves position updates
+    const hasPositionChange = changes.some(change => 
+      change.type === 'position' || change.type === 'dimensions'
+    );
+    
+    if (hasPositionChange) {
+      console.log('Position change detected, forcing URL update');
+      forceURLUpdate.current = true;
+    }
+  }, [onNodesChange]);
+  
   const [selectedElement, setSelectedElement] = useState<Node | Edge | null>(null);
   const [selectedSupplyChain, setSelectedSupplyChain] = useState("default-chain");
   const [supplyChainName, setSupplyChainName] = useState("Default Supply Chain");
@@ -42,7 +77,171 @@ export default function DigitalTwinCanvas({
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
   const { userData } = useUser();
   
+  // Track if we're updating from URL to prevent infinite loops
+  const isUpdatingFromURL = useRef(false);
 
+    // Hydrate state from URL on component mount
+  useEffect(() => {
+    const hydrateFromURL = async () => {
+      console.log('🔄 hydrateFromURL called - isHydrated:', isHydrated);
+      console.log('📦 archParam exists:', !!archParam, 'length:', archParam?.length);
+      console.log('📦 initialNodes length:', initialNodes.length);
+      console.log('📦 initialEdges length:', initialEdges.length);
+      
+      if (!isHydrated) {
+        if (archParam) {
+          try {
+            console.log('🎯 Starting URL hydration with archParam:', archParam.substring(0, 100) + '...');
+            
+            // Decode the base64 URL parameter directly to JSON
+            console.log('🔍 Step 1: Decoding base64 to JSON string');
+            
+            // Add back padding if needed for base64
+            const padding = '='.repeat((4 - (archParam.length % 4)) % 4);
+            const paddedBase64 = archParam
+              .replace(/-/g, '+')
+              .replace(/_/g, '/') + padding;
+            
+            const jsonString = atob(paddedBase64);
+            console.log('✅ Base64 decoded, JSON string length:', jsonString.length);
+            console.log('🔍 First 200 chars of JSON:', jsonString.substring(0, 200));
+            
+            console.log('🔍 Step 2: Parsing JSON');
+            const canvasData = JSON.parse(jsonString);
+            console.log('✅ JSON parsed successfully');
+            
+            console.log('🔍 Canvas data structure:', {
+              hasNodes: !!canvasData.nodes,
+              hasEdges: !!canvasData.edges,
+              nodesCount: canvasData.nodes?.length || 0,
+              edgesCount: canvasData.edges?.length || 0,
+              timestamp: canvasData.timestamp,
+              keys: Object.keys(canvasData)
+            });
+            
+            if (canvasData.nodes && canvasData.edges) {
+              console.log('🎯 Setting nodes and edges from URL data');
+              console.log('📊 Nodes to set:', canvasData.nodes.length);
+              console.log('🔗 Edges to set:', canvasData.edges.length);
+              
+              setHydratedNodes(canvasData.nodes);
+              setHydratedEdges(canvasData.edges);
+              
+              // Update React Flow state
+              isUpdatingFromURL.current = true;
+              setNodes(canvasData.nodes);
+              setEdges(canvasData.edges);
+              
+              console.log('✅ State updated from URL');
+              
+              // Reset flag after a short delay to ensure state updates are complete
+              setTimeout(() => {
+                isUpdatingFromURL.current = false;
+                console.log('🏁 URL hydration complete');
+              }, 100);
+            } else {
+              console.warn('⚠️ Canvas data missing nodes or edges:', {
+                nodes: canvasData.nodes,
+                edges: canvasData.edges
+              });
+            }
+          } catch (error) {
+            console.error('❌ Failed to hydrate canvas state from URL:', error);
+            console.error('❌ Error details:', {
+              message: error instanceof Error ? error.message : String(error),
+              stack: error instanceof Error ? error.stack : undefined
+            });
+            // Fall back to initial props only if URL parsing fails
+            console.log('🔄 Falling back to initial props');
+            setHydratedNodes(initialNodes);
+            setHydratedEdges(initialEdges);
+            setNodes(initialNodes);
+            setEdges(initialEdges);
+          }
+        } else {
+          // No URL param - use initial props
+          console.log('📦 No URL parameter, using initial props - nodes:', initialNodes.length, 'edges:', initialEdges.length);
+          setHydratedNodes(initialNodes);
+          setHydratedEdges(initialEdges);
+          setNodes(initialNodes);
+          setEdges(initialEdges);
+        }
+        setIsHydrated(true);
+        console.log('✅ Hydration complete, isHydrated set to true');
+      } else {
+        console.log('⚠️ Already hydrated, skipping');
+      }
+    };
+
+    hydrateFromURL();
+  }, [archParam, initialNodes, initialEdges, isHydrated, setNodes, setEdges]);
+
+  // Debounced function to update URL with current state
+  const debouncedUpdateURL = useCallback(
+    debounce((currentNodes: Node[], currentEdges: Edge[]) => {
+      console.log('debouncedUpdateURL called', {
+        isUpdatingFromURL: isUpdatingFromURL.current,
+        nodesLength: currentNodes.length,
+        edgesLength: currentEdges.length
+      });
+      
+      if (isUpdatingFromURL.current) return;
+      
+      try {
+        const canvasData = {
+          nodes: currentNodes,
+          edges: currentEdges,
+          timestamp: Date.now()
+        };
+        
+        const jsonString = JSON.stringify(canvasData);
+        console.log('JSON string length:', jsonString.length);
+        
+        // Encode JSON directly to base64
+        const base64String = btoa(jsonString)
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=/g, '');
+        
+        console.log('Base64 string length:', base64String.length);
+        console.log('Setting archParam to:', base64String.substring(0, 50) + '...');
+        
+        setArchParam(base64String);
+      } catch (error) {
+        console.error('Failed to update URL with canvas state:', error);
+      }
+    }, 1000), // 1000ms debounce to capture all position changes
+    [setArchParam]
+  );
+
+  // Update URL when nodes or edges change
+  useEffect(() => {
+    console.log('URL update effect triggered:', {
+      isHydrated,
+      nodesLength: nodes.length,
+      edgesLength: edges.length,
+      isUpdatingFromURL: isUpdatingFromURL.current,
+      forceUpdate: forceURLUpdate.current
+    });
+    
+    // Always update URL when hydrated and not currently updating from URL
+    if (isHydrated && !isUpdatingFromURL.current) {
+      console.log('Calling debouncedUpdateURL with nodes/edges');
+      debouncedUpdateURL(nodes, edges);
+      
+      // Reset force update flag
+      if (forceURLUpdate.current) {
+        forceURLUpdate.current = false;
+      }
+    }
+  }, [nodes, edges, isHydrated, debouncedUpdateURL]);
+
+  // Cleanup debounced function on unmount
+  useEffect(() => {
+    return () => {
+      debouncedUpdateURL.cancel();
+    };
+  }, [debouncedUpdateURL]);
 
   // Handle selection changes (both nodes and edges)
   const onSelectionChange = useCallback((params: OnSelectionChangeParams) => {
@@ -161,6 +360,15 @@ export default function DigitalTwinCanvas({
     setSelectedElement(null);
   }, [setNodes, setEdges]);
 
+  // Don't render until hydrated to prevent hydration mismatches
+  if (!isHydrated) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-gray-500">Loading canvas...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen">
       <SimulationToolbar
@@ -188,7 +396,7 @@ export default function DigitalTwinCanvas({
           <ReactFlow
             nodes={nodes}
             edges={edges}
-            onNodesChange={onNodesChange}
+            onNodesChange={handleNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onSelectionChange={onSelectionChange}

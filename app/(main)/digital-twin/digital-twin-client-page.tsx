@@ -17,6 +17,7 @@ import {
 export default function DigitalTwinClientPage() {
   const [twinId, setTwinId] = useQueryState('twinId', parseAsString);
   const [view, setView] = useQueryState('view', parseAsString);
+  const [archParam] = useQueryState('arch', parseAsString);
   const [activeTwinData, setActiveTwinData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -24,24 +25,33 @@ export default function DigitalTwinClientPage() {
   useEffect(() => {
     if (twinId) {
       setIsLoading(true);
-      const data = localStorage.getItem(`supplyChain-${twinId}`);
-      if (data) {
-        try {
-          const parsedData = JSON.parse(data);
-          setActiveTwinData(parsedData);
-        } catch (error) {
-          console.error('Error parsing twin data:', error);
+      
+      // If there's an arch parameter, we'll let the canvas handle the state
+      // Only load from localStorage if there's no arch parameter
+      if (!archParam) {
+        const data = localStorage.getItem(`supplyChain-${twinId}`);
+        if (data) {
+          try {
+            const parsedData = JSON.parse(data);
+            setActiveTwinData(parsedData);
+          } catch (error) {
+            console.error('Error parsing twin data:', error);
+            setActiveTwinData(null);
+          }
+        } else {
           setActiveTwinData(null);
         }
       } else {
-        setActiveTwinData(null);
+        // When arch param exists, set minimal twin data to indicate we have a twin
+        // but let the canvas handle the actual node/edge state from the URL
+        setActiveTwinData({ hasArchData: true });
       }
       setIsLoading(false);
     } else {
       setActiveTwinData(null);
       setIsLoading(false);
     }
-  }, [twinId]);
+  }, [twinId, archParam]);
 
   const handleCreationCancel = () => {
     setView(null, { scroll: false });
@@ -95,13 +105,21 @@ export default function DigitalTwinClientPage() {
       );
     }
 
-    if (activeTwinData && activeTwinData.nodes && activeTwinData.edges) {
-      return (
-        <DigitalTwinCanvas
-          initialNodes={activeTwinData.nodes}
-          initialEdges={activeTwinData.edges}
-        />
-      );
+    if (activeTwinData) {
+      // If we have arch data in URL, let the canvas handle state entirely
+      if (activeTwinData.hasArchData) {
+        return <DigitalTwinCanvas />;
+      }
+      
+      // Otherwise, use the localStorage data if available
+      if (activeTwinData.nodes && activeTwinData.edges) {
+        return (
+          <DigitalTwinCanvas
+            initialNodes={activeTwinData.nodes}
+            initialEdges={activeTwinData.edges}
+          />
+        );
+      }
     }
 
     return (
