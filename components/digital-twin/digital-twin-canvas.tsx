@@ -213,50 +213,7 @@ export default function DigitalTwinCanvas() {
       });
   }, [nodes, edges, selectedSupplyChain, supplyChainName, description, userData]);
 
-  // Handle running a simulation
-  const handleRunSimulation = useCallback(() => {
-    setSimulationMode(true);
-    console.log('Running simulation with current graph');
-    // Here you would call your simulation backend and update nodes/edges
-    // with risk scores and visualization highlights
 
-    // Simulate updating risk scores (in a real app, this would come from backend)
-    setTimeout(() => {
-      setNodes(nodes => nodes.map(node => ({
-        ...node,
-        data: {
-          ...node.data,
-          riskScore: Math.random()
-        },
-        style: {
-          ...node.style,
-          background: Math.random() > 0.7 ? '#ff4d4f' : Math.random() > 0.4 ? '#faad14' : '#52c41a'
-        }
-      })));
-
-      setEdges(edges => edges.map(edge => ({
-        ...edge,
-        data: {
-          ...edge.data,
-          riskMultiplier: 1 + Math.random(),
-        },
-        animated: Math.random() > 0.5
-      })));
-    }, 1000);
-  }, [setNodes, setEdges]);
-
-  // Handle exporting the digital twin
-  const handleExport = useCallback(() => {
-    const exportData = JSON.stringify({ nodes, edges }, null, 2);
-    const blob = new Blob([exportData], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `supply-chain-${selectedSupplyChain}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  }, [nodes, edges, selectedSupplyChain]);
 
   // Handle clearing all nodes and edges
   const handleClearAllNodes = useCallback(() => {
@@ -271,8 +228,6 @@ export default function DigitalTwinCanvas() {
         selectedSupplyChain={selectedSupplyChain}
         setSelectedSupplyChain={setSelectedSupplyChain}
         onSave={handleSave}
-        onRun={handleRunSimulation}
-        onExport={handleExport}
         simulationMode={simulationMode}
         setSimulationMode={setSimulationMode}
         supplyChainName={supplyChainName}

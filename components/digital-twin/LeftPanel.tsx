@@ -1,166 +1,205 @@
 "use client"
 import { FC, useState } from 'react';
+import { ChevronDown, ChevronRight, ChevronLeft, Building2, Upload, Download, RotateCcw, Trash2, Play } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { NODE_TYPES, SUPPLY_CHAIN_TEMPLATES } from '@/constants/digital-twin';
 
 interface LeftPanelProps {
   onAddNode: (nodeType: string) => void;
-  onClearAllNodes: () => void; // Add this new prop
+  onClearAllNodes: () => void;
   simulationMode: boolean;
 }
 
 const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, simulationMode }) => {
   const [expandedSection, setExpandedSection] = useState<string | null>('nodes');
-  
-  const nodeTypes = [
-    { id: 'Supplier', icon: '🏭', description: 'Source of raw materials' },
-    { id: 'Factory', icon: '⚙️', description: 'Manufacturing facility' },
-    { id: 'Port', icon: '🚢', description: 'Maritime shipping point' },
-    { id: 'Warehouse', icon: '📦', description: 'Storage facility' },
-    { id: 'Distribution', icon: '🚚', description: 'Distribution center' }
-  ];
-  
-  const templates = [
-    { id: 'simple-chain', name: 'Simple Chain', nodes: 3 },
-    { id: 'hub-spoke', name: 'Hub and Spoke', nodes: 6 },
-    { id: 'network', name: 'Network Mesh', nodes: 8 }
-  ];
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        try {
-          const json = JSON.parse(content);
-          console.log('Imported JSON:', json);
-          // Here you would process the imported graph
-          alert('Graph imported successfully!');
-        } catch (err) {
-          alert('Error parsing JSON file');
-        }
-      };
-      reader.readAsText(file);
-    }
-  };
+
+  const SectionHeader = ({ 
+    title, 
+    isExpanded, 
+    onClick, 
+    icon: Icon 
+  }: { 
+    title: string; 
+    isExpanded: boolean; 
+    onClick: () => void;
+    icon?: any;
+  }) => (
+    <Button
+      variant="ghost"
+      className="w-full justify-between p-3 h-auto font-medium text-left hover:bg-gray-50"
+      onClick={onClick}
+    >
+      <div className="flex items-center gap-2">
+        {Icon && <Icon className="h-4 w-4" />}
+        <span>{title}</span>
+      </div>
+      {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+    </Button>
+  );
+
+  // Collapsed state - just show the toggle button
+  if (isCollapsed) {
+    return (
+      <div className="w-12 h-full border-r border-border bg-background/50 backdrop-blur-sm flex flex-col">
+        {/* Spacer to push content to center and button to bottom */}
+        <div className="flex-1">
+          {/* Vertical text when collapsed */}
+          <div className="h-full flex items-center justify-center">
+            <div className="transform -rotate-90 whitespace-nowrap text-xs text-muted-foreground font-medium">
+              Supply Chain Builder
+            </div>
+          </div>
+        </div>
+        
+        {/* Expand button fixed at bottom */}
+        <div className="mt-auto border-t border-border">
+          <button
+            onClick={() => setIsCollapsed(false)}
+            className="w-full p-4 hover:bg-muted transition-colors group flex items-center justify-center"
+            title="Expand Builder Panel"
+          >
+            <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-64 border-r border-gray-200 overflow-y-auto p-4">
-      <h2 className="text-lg font-semibold mb-4">Supply Chain Builder</h2>
-      
-      {/* Nodes Section */}
-      <div className="mb-4">
-        <button 
-          onClick={() => toggleSection('nodes')}
-          className="flex items-center justify-between w-full p-2 rounded shadow-sm"
-        >
-          <span className="font-medium">Add Nodes</span>
-          <span>{expandedSection === 'nodes' ? '▼' : '▶'}</span>
-        </button>
-        
-        {expandedSection === 'nodes' && (
-          <div className="mt-2 pl-2 space-y-2">
-            {nodeTypes.map(node => (
-              <button
-                key={node.id}
-                onClick={() => onAddNode(node.id)}
-                disabled={simulationMode}
-                className={`flex items-center p-2 w-full hover:bg-gray-200 rounded ${
-                  simulationMode ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                <span className="mr-2">{node.icon}</span>
-                <div className="text-left">
-                  <div className="text-sm font-medium">{node.id}</div>
-                  <div className="text-xs text-gray-500">{node.description}</div>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
+    <div className="w-80 border-r border-border bg-background flex flex-col h-full">
+      {/* Header */}
+      <div className="p-6 border-b border-border">
+        <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+          <Building2 className="h-5 w-5 text-primary" />
+          Supply Chain Builder
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Design and configure your supply chain network
+        </p>
       </div>
-      
-      {/* Templates Section */}
-      <div className="mb-4">
-        <button 
-          onClick={() => toggleSection('templates')}
-          className="flex items-center justify-between w-full p-2 rounded shadow-sm"
-        >
-          <span className="font-medium">Templates</span>
-          <span>{expandedSection === 'templates' ? '▼' : '▶'}</span>
-        </button>
-        
-        {expandedSection === 'templates' && (
-          <div className="mt-2 pl-2 space-y-2">
-            {templates.map(template => (
-              <button
-                key={template.id}
-                disabled={simulationMode}
-                className={`flex items-center p-2 w-full hover:bg-gray-200 rounded ${
-                  simulationMode ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                <div className="text-left">
-                  <div className="text-sm font-medium">{template.name}</div>
-                  <div className="text-xs text-gray-500">{template.nodes} nodes</div>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      
-      {/* Import/Export Section */}
-      <div className="mb-4">
-        <button 
-          onClick={() => toggleSection('import')}
-          className="flex items-center justify-between w-full p-2 rounded shadow-sm"
-        >
-          <span className="font-medium">Import/Export</span>
-          <span>{expandedSection === 'import' ? '▼' : '▶'}</span>
-        </button>
-        
-        {expandedSection === 'import' && (
-          <div className="mt-2 pl-2 space-y-2">
-            <label className={`flex items-center p-2 w-full rounded cursor-pointer ${
-              simulationMode ? 'opacity-50 cursor-not-allowed' : ''
-            }`}>
-              <span className="text-sm font-medium">Import JSON</span>
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleFileUpload}
-                disabled={simulationMode}
-                className="hidden"
+
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4 space-y-4">
+          
+          {/* Add Nodes Section */}
+          <Card>
+            <CardContent className="p-0">
+              <SectionHeader
+                title="Add Nodes"
+                isExpanded={expandedSection === 'nodes'}
+                onClick={() => toggleSection('nodes')}
+                icon={Building2}
               />
-            </label>
-          </div>
-        )}
+              
+              {expandedSection === 'nodes' && (
+                <div className="p-4 pt-0 space-y-2">
+                  {NODE_TYPES.map(node => {
+                    const IconComponent = node.icon;
+                    return (
+                      <Button
+                        key={node.id}
+                        variant="outline"
+                        onClick={() => onAddNode(node.id)}
+                        disabled={simulationMode}
+                        className={`w-full h-auto p-3 justify-start ${node.color} ${
+                          simulationMode ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg bg-white ${node.iconColor}`}>
+                            <IconComponent className="h-4 w-4" />
+                          </div>
+                          <div className="text-left">
+                            <div className="font-medium text-sm">{node.id}</div>
+                            <div className="text-xs text-muted-foreground">{node.description}</div>
+                          </div>
+                        </div>
+                      </Button>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
+          {/* Templates Section */}
+          <Card>
+            <CardContent className="p-0">
+              <SectionHeader
+                title="Templates"
+                isExpanded={expandedSection === 'templates'}
+                onClick={() => toggleSection('templates')}
+                icon={Play}
+              />
+              
+              {expandedSection === 'templates' && (
+                <div className="p-4 pt-0 space-y-2">
+                  {SUPPLY_CHAIN_TEMPLATES.map(template => (
+                    <Button
+                      key={template.id}
+                      variant="outline"
+                      disabled={simulationMode}
+                      className={`w-full h-auto p-3 justify-start hover:bg-muted ${
+                        simulationMode ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <div className="text-left">
+                          <div className="font-medium text-sm">{template.name}</div>
+                          <div className="text-xs text-muted-foreground">{template.description}</div>
+                        </div>
+                        <Badge variant="secondary" className="ml-2">
+                          {template.nodes}
+                        </Badge>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
+          {/* Import/Export Section */}
+         
+        </div>
       </div>
-      
-      {/* Bulk Actions */}
-      <div className="mt-auto pt-4 border-t border-gray-200">
-        <button
-          onClick={onClearAllNodes} // Add this onClick handler
-          disabled={simulationMode}
-          className={`w-full p-2 mb-2 bg-red-100 text-red-700 rounded hover:bg-red-200 ${
-            simulationMode ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-        >
-          Clear All Nodes
-        </button>
-        
-        <button
-          disabled={simulationMode}
-          className={`w-full p-2 text-blue-700 rounded hover:bg-blue-200 ${
-            simulationMode ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-        >
-          Reset to Default
-        </button>
+
+      {/* Actions Footer */}
+      <div className="p-4 border-t border-border bg-muted/30">
+        <div className="space-y-2">
+          <Button
+            variant="destructive"
+            onClick={onClearAllNodes}
+            disabled={simulationMode}
+            className={`w-full gap-2 ${
+              simulationMode ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+          >
+            <Trash2 className="h-4 w-4" />
+            Clear All Nodes
+          </Button>
+          
+          {/* Collapse button */}
+          <div className="flex justify-center pt-2">
+            <button
+              onClick={() => setIsCollapsed(true)}
+              className="flex items-center space-x-2 px-4 py-2 rounded-md hover:bg-muted/50 transition-colors group cursor-pointer bg-transparent border-none outline-none focus:outline-none focus:ring-2 focus:ring-primary/20"
+              title="Collapse Builder Panel"
+            >
+              <span className="text-xs text-muted-foreground group-hover:text-primary font-medium pointer-events-auto cursor-pointer select-none">Hide Panel</span>
+              <ChevronLeft className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors pointer-events-auto cursor-pointer" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

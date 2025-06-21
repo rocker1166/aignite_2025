@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { usePathname } from "next/navigation"
+import { useState, useEffect } from "react"
+import { usePathname, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import {
   BarChart3,
@@ -38,8 +38,20 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 
 export function AppSidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(false)
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  
+  // Check if we should auto-collapse based on URL params
+  const shouldAutoCollapse = pathname === "/digital-twin" && searchParams.get("twinId")
+  
+  const [isCollapsed, setIsCollapsed] = useState(false)
+
+  // Auto-collapse when twinId is present in digital-twin page
+  useEffect(() => {
+    if (shouldAutoCollapse) {
+      setIsCollapsed(true)
+    }
+  }, [shouldAutoCollapse])
 
   return (
     <div className={`flex ${isCollapsed ? "w-16" : "w-64"} transition-all duration-300`}>
@@ -123,39 +135,6 @@ export function AppSidebar() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-          {/* <SidebarSeparator />
-          <SidebarSeparator />
-          <SidebarGroup>
-            {!isCollapsed && <SidebarGroupLabel>Advanced Tools</SidebarGroupLabel>}
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname === "/advanced-tools"}>
-                    <Link href="/advanced-tools">
-                      <Truck className="h-4 w-4" />
-                      {!isCollapsed && <span>Supplier Discovery</span>}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link href="/advanced-tools?tab=esg">
-                      <Factory className="h-4 w-4" />
-                      {!isCollapsed && <span>ESG Analytics</span>}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link href="/advanced-tools?tab=blockchain">
-                      <PanelLeft className="h-4 w-4" />
-                      {!isCollapsed && <span>Blockchain Traceability</span>}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup> */}
         </SidebarContent>
         <SidebarFooter>
           <SidebarGroup>
