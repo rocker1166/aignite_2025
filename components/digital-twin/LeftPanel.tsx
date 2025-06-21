@@ -1,4 +1,3 @@
-// src/components/LeftPanel.tsx
 "use client"
 import { FC, useState } from 'react';
 
@@ -167,4 +166,4 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, simulationM
   );
 };
 
-export default LeftPanel;
+export default LeftPanel; 

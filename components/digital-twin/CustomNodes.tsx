@@ -1,4 +1,3 @@
-// src/components/CustomNodes.tsx
 import { memo } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 
@@ -145,4 +144,4 @@ export const nodeTypes = {
   portNode: PortNode,
   warehouseNode: WarehouseNode,
   distributionNode: DistributionNode
-};
+}; 

@@ -36,8 +36,10 @@ export const Stepper = forwardRef<HTMLDivElement, StepperProps>(
               <div className="flex-1 px-4">
                 <div
                   className={cn(
-                    'stepper-divider h-0.5 w-full transition-colors duration-200',
-                    activeStep > index ? 'bg-blue-500' : 'bg-neutral-300',
+                    'stepper-divider h-0.5 w-full rounded-full',
+                    activeStep > index
+                      ? 'bg-gradient-to-r from-sky-400 to-cyan-400'
+                      : 'bg-neutral-200 dark:bg-neutral-800',
                   )}
                 />
               </div>
@@ -93,7 +95,7 @@ const StepperStatusIconStyle: Record<
   },
   loading: {
     className: 'bg-blue-500 text-white',
-    render: <Loader2 className="w-4 h-4 animate-spin" />,
+    render: <div className="w-4 h-4" />,
   },
 };
 

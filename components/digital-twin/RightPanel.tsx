@@ -1,7 +1,7 @@
 import { FC, useState, useEffect, useRef } from 'react';
 import { Node, Edge } from 'reactflow';
 import { useTheme } from 'next-themes';
-import AddressAutocompleteMap from './ui/AutoComplete';
+import AddressAutocompleteMap from '../ui/AutoComplete';
 
 interface RightPanelProps {
   selectedElement: Node | Edge | null;
@@ -248,169 +248,124 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate }) => {
             initialLng={formValues.location?.lng || ''}
           />
 
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Location</label>
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                placeholder="Latitude"
-                value={formValues.location?.lat || 0}
-                onChange={(e) => handleInputChange('location', {
-                  ...formValues.location,
-                  lat: parseFloat(e.target.value)
-                })}
-                className="w-1/2 p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
-              />
-              <input
-                type="text"
-                placeholder="Longitude"
-                value={formValues.location?.lng || 0}
-                onChange={(e) => handleInputChange('location', {
-                  ...formValues.location,
-                  lng: parseFloat(e.target.value)
-                })}
-                className="w-1/2 p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
-              />
-            </div>
-          </div>
-
-          {/* Only show file upload for Warehouse or Distribution nodes */}
-          {(nodeType === 'Warehouse' || nodeType === 'Distribution') && (
-            <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Product Sheet</label>
-                {hasAttachedFile ? (
-                <div className="flex flex-col space-y-2">
-                <div className="overflow-hidden text-ellipsis whitespace-nowrap text-gray-700 dark:text-gray-200" title={formValues.attachedFile.name}>
-                  {formValues.attachedFile.name}
-                </div>
-                <button
-                type="button"
-                onClick={handleFileRemove}
-                className="px-2 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all duration-300"
-                >
-                Remove
-                </button>
-              </div>
-              ) : (
+          {/* File attachment section */}
+          <div className="mb-5 border-t border-gray-200 dark:border-gray-800/50 pt-5 mt-5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Attach Product Sheet
+            </label>
+            <div className="flex items-center space-x-3">
               <button
                 type="button"
                 onClick={triggerFileUpload}
-                className="px-5 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-300 shadow-[0_0_10px_rgba(59,130,246,0.4)] hover:shadow-[0_0_15px_rgba(59,130,246,0.6)] font-medium"
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                Upload Product Sheet
+                {hasAttachedFile ? 'Change File' : 'Upload File'}
               </button>
+              {hasAttachedFile && (
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  {formValues.attachedFile.name}
+                </div>
               )}
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
-              Upload an Excel file (.xlsx, .xls) or CSV file (.csv) containing product inventory details
-              </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Required columns: <span className="font-medium">Product ID, Name, Quantity, Price, Category, Weight (kg)</span>
-              </div>
-              <input
-              title='Upload File'
+            </div>
+            <input
               type="file"
               ref={fileInputRef}
               onChange={handleFileSelect}
-              className="hidden"
               accept=".xlsx,.xls,.csv"
-              />
-            </div>
-          )}
-        </>
-      );
-    } else {
-      // Edge form fields
-      return (
-        <>
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Transport Mode</label>
-            <select
-              title='Transport Mode'
-              value={formValues.mode || 'road'}
-              onChange={(e) => handleInputChange('mode', e.target.value)}
-              className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
-            >
-              <option value="road">Road</option>
-              <option value="rail">Rail</option>
-              <option value="sea">Sea</option>
-              <option value="air">Air</option>
-            </select>
-          </div>
-
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Cost per Unit</label>
-            <input
-              title='Cost per Unit'
-              type="number"
-              value={formValues.cost || 0}
-              onChange={(e) => handleInputChange('cost', parseInt(e.target.value))}
-              className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
+              className="hidden"
             />
-          </div>
-
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Transit Time (days)</label>
-            <input
-              title='Transit Time'
-              type="number"
-              value={formValues.transitTime || 0}
-              onChange={(e) => handleInputChange('transitTime', parseInt(e.target.value))}
-              className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
-            />
-          </div>
-
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Risk Multiplier</label>
-            <input
-              title='Risk Multiplier'
-              type="number"
-              min="1"
-              max="3"
-              step="0.1"
-              value={formValues.riskMultiplier || 1}
-              onChange={(e) => handleInputChange('riskMultiplier', parseFloat(e.target.value))}
-              className="w-full p-2.5 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all"
-            />
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
-              1.0 = standard risk, &gt;1.0 = higher risk
+            {hasAttachedFile && (
+              <button
+                type="button"
+                onClick={handleFileRemove}
+                className="mt-2 text-xs text-red-500 hover:text-red-700"
+              >
+                Remove
+              </button>
+            )}
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Upload an Excel sheet (.xlsx, .xls, .csv) with product data.
             </div>
           </div>
         </>
       );
     }
+
+    // Edge-specific fields
+    return (
+      <>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Transportation Mode</label>
+          <select
+            value={formValues.mode || 'road'}
+            onChange={(e) => handleInputChange('mode', e.target.value)}
+            className="w-full p-2 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200"
+          >
+            <option value="road">Road</option>
+            <option value="rail">Rail</option>
+            <option value="sea">Sea</option>
+            <option value="air">Air</option>
+          </select>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Cost</label>
+          <input
+            title='Cost'
+            type="number"
+            value={formValues.cost || 0}
+            onChange={(e) => handleInputChange('cost', parseInt(e.target.value))}
+            className="w-full p-2 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200"
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Transit Time (days)</label>
+          <input
+            title='Transit Time'
+            type="number"
+            value={formValues.transitTime || 0}
+            onChange={(e) => handleInputChange('transitTime', parseInt(e.target.value))}
+            className="w-full p-2 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200"
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Risk Multiplier</label>
+          <input
+            title='Risk Multiplier'
+            type="number"
+            step="0.1"
+            value={formValues.riskMultiplier || 1.0}
+            onChange={(e) => handleInputChange('riskMultiplier', parseFloat(e.target.value))}
+            className="w-full p-2 bg-white dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-200"
+          />
+        </div>
+      </>
+    );
   };
 
   return (
-    <div className="w-64 p-4 border-l border-gray-200 dark:border-gray-800/50 bg-white/90 dark:bg-black/30 backdrop-blur-sm overflow-y-auto shadow-lg">
-      <div className="flex items-center justify-between mb-5 border-b border-gray-200 dark:border-gray-800/50 pb-3">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          {isNode
-            ? `${formValues.label || 'Unnamed'}`
-            : `${selectedElement.source} → ${selectedElement.target}`
-          }
-        </h2>
-        <div className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-blue-600 dark:text-blue-400 font-semibold">
-          {isNode ? formValues.type || 'Node' : 'Edge'}
-        </div>
+    <div className={`w-80 p-4 border-l border-gray-200 dark:border-gray-800/30 bg-white/50 dark:bg-black/20 backdrop-blur-sm overflow-y-auto transition-all duration-300 ease-in-out`}>
+      <div className="mb-4">
+        <h3 className="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Properties</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Editing {isNode ? 'node' : 'edge'}: <span className="font-semibold text-blue-600 dark:text-blue-400">{formValues.label || selectedElement.id}</span>
+        </p>
       </div>
-
-      <form onSubmit={(e) => {
-        e.preventDefault();
-        handleSubmit();
-      }}>
+      <div className="space-y-4">
         {renderFormFields()}
-
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="px-5 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-300 shadow-[0_0_10px_rgba(59,130,246,0.4)] hover:shadow-[0_0_15px_rgba(59,130,246,0.6)] font-medium"
-          >
-            Update
-          </button>
-        </div>
-      </form>
+      </div>
+      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700/50">
+        <button
+          onClick={handleSubmit}
+          className="w-full p-2.5 text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-transform transform hover:scale-105 shadow-lg"
+        >
+          Apply Changes
+        </button>
+      </div>
     </div>
   );
 };
 
-export default RightPanel;
+export default RightPanel; 
