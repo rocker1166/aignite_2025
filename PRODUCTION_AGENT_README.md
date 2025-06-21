@@ -1,4 +1,4 @@
-# Production-Grade Supply Chain Intelligence Agent
+  # Production-Grade Supply Chain Intelligence Agent
 
 This document outlines the improvements made to transform the supply chain intelligence agent from a prototype to a production-grade solution.
 
