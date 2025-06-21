@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { ThemeToggle } from "./theme-toggle"
 
 interface HeaderProps {
   title: string
@@ -26,16 +25,7 @@ export function Header({ title }: HeaderProps) {
       <SidebarTrigger />
       <div className="font-semibold text-lg">{title}</div>
       <div className="ml-auto flex items-center gap-4">
-        <div className="relative hidden md:block">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search..."
-            className="w-64 pl-8 bg-background"
-          />
-        </div>
         
-        <ThemeToggle />
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
