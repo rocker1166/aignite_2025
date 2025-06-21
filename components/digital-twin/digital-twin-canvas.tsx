@@ -340,7 +340,7 @@ export default function DigitalTwinCanvas({
   }, [nodes, setNodes]);
 
   // Handle saving the current supply chain
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     // Create connections data with detailed information
     const connections = edges.map(edge => {
       const sourceNode = nodes.find(node => node.id === edge.source);
@@ -377,14 +377,14 @@ export default function DigitalTwinCanvas({
     };
 
     console.log('Saving supply chain:', supplyChainData);
-    insertSupplyChain(supplyChainData)
-      .then(() => {
-        toast.success('Supply chain saved successfully!');
-      })
-      .catch((error) => {
-        console.error('Error saving supply chain:', error);
-        toast.error('Failed to save supply chain.');
-      });
+    try {
+      await insertSupplyChain(supplyChainData);
+      toast.success('Supply chain saved successfully!');
+    } catch (error) {
+      console.error('Error saving supply chain:', error);
+      toast.error('Failed to save supply chain.');
+      throw error; // Re-throw to let the caller handle the error
+    }
   }, [nodes, edges, selectedSupplyChain, supplyChainName, description, userData]);
 
 
@@ -483,6 +483,7 @@ export default function DigitalTwinCanvas({
             setSelectedElement(updatedElement);
           }}
           onDelete={handleDeleteNode}
+          onSave={handleSave}
         />
       </div>
     </div>

@@ -1,33 +1,90 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useCallback, useRef } from 'react';
 import { Node, Edge } from 'reactflow';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Trash2, ChevronLeft, Clock, Check, AlertCircle } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import debounce from 'lodash.debounce';
 import NodeConfiguration from './NodeConfiguration';
 import EdgeConfiguration from './EdgeConfiguration';
+
+// Save status type
+type SaveStatus = 'saved' | 'unsaved' | 'saving';
 
 interface RightPanelProps {
   selectedElement: Node | Edge | null;
   onUpdate: (updatedElement: Node | Edge) => void;
-  onDelete?: (elementId: string) => void; // Add onDelete prop
-  nodes?: Node[]; // Add nodes prop to find source and target nodes
+  onDelete?: (elementId: string) => void;
+  nodes?: Node[];
+  onSave?: () => Promise<void>; // Add optional onSave prop for triggering parent save
 }
 
-const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, nodes = [] }) => {
+const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, nodes = [], onSave }) => {
   const [formValues, setFormValues] = useState<any>({});
   const [latitude, setLatitude] = useState('')
   const [longitude, setLongitude] = useState('')
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
+  
+  // Ref to track if we're currently saving
+  const isSaving = useRef(false);
+  
+  // Ref to track the last saved time to prevent rapid flickering
+  const lastSavedTime = useRef<number>(0);
+  const minimumDisplayTime = 1000; // Minimum time to show "saved" status (1 second)
 
   // Update form values when selected element changes
   useEffect(() => {
     if (selectedElement) {
       setFormValues(selectedElement.data || {});
+      setSaveStatus('saved'); // Reset status when switching elements
     } else {
       setFormValues({});
+      setSaveStatus('saved');
     }
   }, [selectedElement]);
+
+  // Debounced save function
+  const debouncedSave = useCallback(
+    debounce(async () => {
+      if (isSaving.current || !onSave) return;
+      
+      try {
+        isSaving.current = true;
+        setSaveStatus('saving');
+        await onSave();
+        
+        // Record the time when save completed
+        const currentTime = Date.now();
+        lastSavedTime.current = currentTime;
+        
+        // Show "saved" status with smooth transition
+        setSaveStatus('saved');
+        
+        // After minimum display time, if no new changes, keep showing saved
+        setTimeout(() => {
+          // Only reset if this was the last save operation and we haven't had new changes
+          if (lastSavedTime.current === currentTime && saveStatus === 'saved') {
+            // Keep showing saved status - don't flicker back and forth
+          }
+        }, minimumDisplayTime);
+        
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+        setSaveStatus('unsaved');
+      } finally {
+        isSaving.current = false;
+      }
+    }, 1500), // 1.5 second debounce
+    [onSave, saveStatus, minimumDisplayTime]
+  );
+
+  // Cleanup debounced function on unmount
+  useEffect(() => {
+    return () => {
+      debouncedSave.cancel();
+    };
+  }, [debouncedSave]);
 
   // Animation variants
   const panelVariants = {
@@ -87,6 +144,101 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, 
 
   // Determine if we're dealing with a node or edge
   const isNode = selectedElement && !('source' in selectedElement);
+
+  // Status indicator component
+  const SaveStatusIndicator = () => {
+    const getStatusConfig = () => {
+      switch (saveStatus) {
+        case 'unsaved':
+          return {
+            icon: AlertCircle,
+            text: 'Unsaved changes',
+            className: 'text-amber-600 dark:text-amber-400',
+            bgClassName: 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800'
+          };
+        case 'saving':
+          return {
+            icon: Clock,
+            text: 'Saving...',
+            className: 'text-blue-600 dark:text-blue-400',
+            bgClassName: 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
+          };
+        case 'saved':
+          return {
+            icon: Check,
+            text: 'All changes saved',
+            className: 'text-green-600 dark:text-green-400',
+            bgClassName: 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
+          };
+      }
+    };
+
+    const config = getStatusConfig();
+    const Icon = config.icon;
+
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={saveStatus} // Force re-render on status change for smooth transitions
+          className={`flex items-center space-x-2 px-3 py-2 rounded-lg border ${config.bgClassName}`}
+          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+          animate={{ 
+            opacity: 1, 
+            y: 0, 
+            scale: 1,
+            transition: {
+              duration: 0.4,
+              ease: [0.25, 0.46, 0.45, 0.94], // Custom easing for smoother animation
+              staggerChildren: 0.1
+            }
+          }}
+          exit={{ 
+            opacity: 0, 
+            y: -5, 
+            scale: 0.95,
+            transition: {
+              duration: 0.2,
+              ease: "easeOut"
+            }
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, rotate: -10 }}
+            animate={{ 
+              opacity: 1, 
+              rotate: 0,
+              transition: { duration: 0.3, delay: 0.1 }
+            }}
+          >
+            <motion.div
+              animate={saveStatus === 'saving' ? { rotate: 360 } : {}}
+              transition={saveStatus === 'saving' ? { 
+                duration: 1.5, 
+                repeat: Infinity, 
+                ease: "linear" 
+              } : { 
+                duration: 0.3, 
+                ease: "easeOut" 
+              }}
+            >
+              <Icon className={`h-4 w-4 ${config.className}`} />
+            </motion.div>
+          </motion.div>
+          <motion.span 
+            className={`text-sm font-medium ${config.className}`}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ 
+              opacity: 1, 
+              x: 0,
+              transition: { duration: 0.3, delay: 0.15 }
+            }}
+          >
+            {config.text}
+          </motion.span>
+        </motion.div>
+      </AnimatePresence>
+    );
+  };
 
   // Collapsed state - just show the toggle button and delete button if element is selected
   if (isCollapsed) {
@@ -299,7 +451,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, 
                     </svg>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    <span className="font-medium">Tip:</span> You can modify properties like capacity, costs, and upload product sheets for each node.
+                    <span className="font-medium">Tip:</span> Changes are automatically saved after you stop editing. No need to manually save!
                   </div>
                 </div>
               </div>
@@ -342,6 +494,12 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, 
     
     setFormValues(updatedFormValues);
     
+    // Only change to unsaved if we're not already in unsaved state
+    // This prevents rapid flickering between states
+    if (saveStatus !== 'unsaved') {
+      setSaveStatus('unsaved');
+    }
+    
     // Immediately update the React Flow node/edge data for real-time preview
     if (selectedElement) {
       const updatedElement = {
@@ -353,6 +511,9 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, 
       };
       onUpdate(updatedElement);
     }
+
+    // Trigger debounced save
+    debouncedSave();
   };
 
   const handleMapCoordinatesChange = (lat: string, lng: string, address?: string) => {
@@ -360,22 +521,33 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, 
     setLongitude(lng)
     // Also update the address field if provided
     if (address) {
-      setFormValues((prev: any) => ({
-        ...prev,
+      const updatedFormValues = {
+        ...formValues,
         address: address
-      }))
+      };
+      setFormValues(updatedFormValues);
+      
+      // Only change to unsaved if we're not already in unsaved state
+      if (saveStatus !== 'unsaved') {
+        setSaveStatus('unsaved');
+      }
+      
+      // Update the element immediately for real-time preview
+      if (selectedElement) {
+        const updatedElement = {
+          ...selectedElement,
+          data: {
+            ...selectedElement.data,
+            ...updatedFormValues
+          }
+        };
+        onUpdate(updatedElement);
+      }
+      
+      // Trigger debounced save
+      debouncedSave();
     }
   }
-
-  const handleSubmit = () => {
-    const updatedElement = {
-      ...selectedElement,
-      data: {
-        ...formValues
-      }
-    };
-    onUpdate(updatedElement);
-  };
 
   // Render the appropriate configuration component
   const renderConfiguration = () => {
@@ -413,31 +585,20 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, 
         initial={false}
         style={{ position: 'relative', zIndex: 40 }}
       >
-      {/* Header */}
+      {/* Header with Save Status */}
       <motion.div 
-        className="flex-shrink-0 p-6 border-b border-border bg-gradient-to-r from-card to-card/80"
+        className="flex-shrink-0 p-6 border-b border-border bg-gradient-to-r from-card to-card/80 space-y-3"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
       >
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-foreground">Properties</h3>
-          <div className="flex items-center space-x-2">
-            <motion.div 
-              className="w-2 h-2 bg-green-500 rounded-full"
-              animate={{ 
-                scale: [1, 1.2, 1],
-                opacity: [0.7, 1, 0.7]
-              }}
-              transition={{ 
-                duration: 1.5,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            />
-            <span className="text-xs text-muted-foreground">Live</span>
-          </div>
         </div>
+        
+        {/* Save Status Indicator */}
+        <SaveStatusIndicator />
+        
         <motion.p 
           className="text-sm text-muted-foreground"
           initial={{ opacity: 0 }}
@@ -516,22 +677,6 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, 
             </AlertDialog>
           </motion.div>
         )}
-
-        {/* Save Button */}
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            className="w-full"
-            size="lg"
-          >
-            <CheckCircle className="w-4 h-4 mr-2" />
-            Save Changes
-          </Button>
-        </motion.div>
         
         {/* Collapse Button */}
         <motion.button
