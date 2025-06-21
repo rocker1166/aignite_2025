@@ -32,7 +32,7 @@ export const TIER3_COMPLEX_TEMPLATE: Node[] = [
       location: { lat: 28.613, lng: 77.209 },
       address: 'New Delhi Processing, India'
     },
-    position: { x: 350, y: 120 },
+    position: { x: 400, y: 120 },
   },
   {
     id: 'sub-assembly-supplier-1',
@@ -47,7 +47,7 @@ export const TIER3_COMPLEX_TEMPLATE: Node[] = [
       location: { lat: 22.543, lng: 114.057 },
       address: 'Shenzhen Sub-Assembly, China'
     },
-    position: { x: 600, y: 160 },
+    position: { x: 700, y: 160 },
   },
   {
     id: 'final-assembly-2',
@@ -62,7 +62,7 @@ export const TIER3_COMPLEX_TEMPLATE: Node[] = [
       location: { lat: 37.774, lng: -122.419 },
       address: 'San Francisco Assembly, CA'
     },
-    position: { x: 850, y: 200 },
+    position: { x: 1000, y: 200 },
   },
   {
     id: 'quality-control-hub',
@@ -77,7 +77,7 @@ export const TIER3_COMPLEX_TEMPLATE: Node[] = [
       location: { lat: 33.748, lng: -84.387 },
       address: 'Atlanta QC Hub, GA'
     },
-    position: { x: 1100, y: 150 },
+    position: { x: 1300, y: 150 },
   },
   {
     id: 'global-distribution-2',
@@ -92,6 +92,6 @@ export const TIER3_COMPLEX_TEMPLATE: Node[] = [
       location: { lat: 25.761, lng: -80.191 },
       address: 'Miami Global Distribution, FL'
     },
-    position: { x: 1350, y: 220 },
+    position: { x: 1600, y: 220 },
   }
 ]; 

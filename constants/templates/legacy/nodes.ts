@@ -28,7 +28,7 @@ export const INITIAL_NODES: Node[] = [
       capacity: 5000,
       address: 'No. 101, Longhua District, Shenzhen, Guangdong, China'
     },
-    position: { x: 300, y: 250 },
+    position: { x: 350, y: 250 },
   },
   {
     id: 'port-1',
@@ -42,7 +42,7 @@ export const INITIAL_NODES: Node[] = [
       capacity: 100000,
       address: 'Yantian Port, Shenzhen, Guangdong, China'
     },
-    position: { x: 550, y: 150 },
+    position: { x: 650, y: 150 },
   },
   {
     id: 'warehouse-1',
@@ -56,7 +56,7 @@ export const INITIAL_NODES: Node[] = [
       capacity: 20000,
       address: '1234 E. Warehouse St, Los Angeles, CA 90001'
     },
-    position: { x: 800, y: 250 },
+    position: { x: 950, y: 250 },
   },
   {
     id: 'distribution-1',
@@ -70,6 +70,6 @@ export const INITIAL_NODES: Node[] = [
       capacity: 15000,
       address: '5678 S. Distribution Ave, Chicago, IL 60601'
     },
-    position: { x: 1050, y: 150 },
+    position: { x: 1250, y: 150 },
   }
 ]; 

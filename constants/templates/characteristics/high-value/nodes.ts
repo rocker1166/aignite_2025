@@ -47,7 +47,7 @@ export const HIGH_VALUE_GLOBAL_TEMPLATE: Node[] = [
       location: { lat: 35.047, lng: -106.061 },
       address: 'Albuquerque Air Cargo, NM'
     },
-    position: { x: 750, y: 120 },
+    position: { x: 800, y: 120 },
   },
   {
     id: 'premium-distribution-1',
@@ -62,6 +62,6 @@ export const HIGH_VALUE_GLOBAL_TEMPLATE: Node[] = [
       location: { lat: 40.748, lng: -73.985 },
       address: 'Manhattan Premium Service, NY'
     },
-    position: { x: 1000, y: 180 },
+    position: { x: 1100, y: 180 },
   }
 ]; 
