@@ -99,20 +99,7 @@ export const NODE_PROPERTY_SPECS: Record<NodeType, PropertySpec[]> = {
       showInfoIcon: true,
       infoText: 'Optional: Percentage of orders delivered on time.'
     },
-    // If this node is operated by an external partner, capture their details
-    {
-      key: 'belongsToExternal',  type: 'boolean', label: 'External Partner Node?',
-      showInfoIcon: true,
-      infoText: 'Toggle if this node belongs to another company or partner.'
-    },
-    {
-      key: 'externalBusinessName', type: 'string', label: 'External Business Name',
-      dependsOn: { key: 'belongsToExternal', value: true }
-    },
-    {
-      key: 'externalBusinessWebsite', type: 'string', label: 'External Business Website',
-      dependsOn: { key: 'belongsToExternal', value: true }
-    }
+
   ],
 
   factoryNode: [

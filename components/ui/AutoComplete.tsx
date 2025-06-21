@@ -48,14 +48,20 @@ export default function AddressAutocompleteMap({
     const selectedItemRef = useRef<HTMLLIElement>(null)
 
     const olaMaps = useMemo(() => {
+        const apiKey = process.env.NEXT_PUBLIC_OLA_MAPS_API_KEY
+        if (!apiKey) {
+            console.error('OlaMaps API key is not configured. Please set NEXT_PUBLIC_OLA_MAPS_API_KEY environment variable.')
+            setError('Map service is not configured. Please check your API key settings.')
+            return null
+        }
         return new OlaMaps({
-            apiKey: process.env.NEXT_PUBLIC_OLA_MAPS_API_KEY || '',
+            apiKey: apiKey,
         })
     }, [])
 
     useEffect(() => {
         const mapContainer = document.getElementById('map')
-        if (!mapContainer) return
+        if (!mapContainer || !olaMaps) return
 
         const myMap = olaMaps.init({
             style: "https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard-mr/style.json",
@@ -68,7 +74,20 @@ export default function AddressAutocompleteMap({
 
         return () => {
             if (myMap) {
-                myMap.remove()
+                try {
+                    // Remove marker first to avoid issues
+                    if (markerRef.current) {
+                        markerRef.current.remove()
+                        markerRef.current = null
+                    }
+                    // Remove map with error handling
+                    myMap.remove()
+                } catch (error) {
+                    // Silently handle AbortError and other cleanup errors
+                    if (error instanceof Error && error.name !== 'AbortError') {
+                        console.warn('Error during map cleanup:', error)
+                    }
+                }
             }
         }
     }, [olaMaps])
@@ -265,31 +284,33 @@ export default function AddressAutocompleteMap({
                 markerRef.current.remove()
             }
 
-            // Add a popup
-            const popup = olaMaps
-                .addPopup({ offset: [0, -30], anchor: 'bottom' })
-                .setHTML(`<div>${address}</div>`)
+            // Add a popup if olaMaps is available
+            if (olaMaps) {
+                const popup = olaMaps
+                    .addPopup({ offset: [0, -30], anchor: 'bottom' })
+                    .setHTML(`<div>${address}</div>`)
 
-            const marker = olaMaps
-                .addMarker({
-                    offset: [0, -15],
-                    anchor: 'bottom',
-                    color: 'red',
-                    draggable: true,
-                })
-                .setLngLat(coordinates)
-                .setPopup(popup)
-                .addTo(mapRef.current)
+                const marker = olaMaps
+                    .addMarker({
+                        offset: [0, -15],
+                        anchor: 'bottom',
+                        color: 'red',
+                        draggable: true,
+                    })
+                    .setLngLat(coordinates)
+                    .setPopup(popup)
+                    .addTo(mapRef.current)
 
-            markerRef.current = marker
+                markerRef.current = marker
 
-            // Update latitude and longitude fields
-            setLatitude(location.lat.toFixed(6))
-            setLongitude(location.lng.toFixed(6))
-            onCoordinatesChange(location.lat.toFixed(6), location.lng.toFixed(6), address)
+                // Update latitude and longitude fields
+                setLatitude(location.lat.toFixed(6))
+                setLongitude(location.lng.toFixed(6))
+                onCoordinatesChange(location.lat.toFixed(6), location.lng.toFixed(6), address)
 
-            // Add drag event listener
-            marker.on('drag', onDrag)
+                // Add drag event listener
+                marker.on('drag', onDrag)
+            }
         }
     }
 
