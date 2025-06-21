@@ -2,7 +2,7 @@ import { FC, useState, useEffect } from 'react';
 import { Node, Edge } from 'reactflow';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Trash2 } from 'lucide-react';
+import { CheckCircle, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import NodeConfiguration from './NodeConfiguration';
 import EdgeConfiguration from './EdgeConfiguration';
@@ -174,22 +174,12 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, 
             whileHover={{ backgroundColor: "hsl(var(--accent))" }}
             whileTap={{ scale: 0.95 }}
           >
-            <motion.svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors mx-auto" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
+            <motion.div
               variants={iconVariants}
               animate="collapsed"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M11 19l-7-7 7-7m8 14l-7-7 7-7" 
-              />
-            </motion.svg>
+              <ChevronLeft className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors mx-auto" />
+            </motion.div>
           </motion.button>
         </div>
       </motion.div>
@@ -332,22 +322,12 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, 
             whileTap={{ scale: 0.98 }}
           >
             <span className="text-xs text-muted-foreground group-hover:text-primary font-medium">Hide Panel</span>
-            <motion.svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
+            <motion.div
               variants={iconVariants}
               animate="expanded"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M13 5l7 7-7 7M5 5l7 7-7 7" 
-              />
-            </motion.svg>
+              <ChevronLeft className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            </motion.div>
           </motion.button>
         </motion.div>
       </motion.div>
@@ -375,9 +355,16 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, 
     }
   };
 
-  const handleMapCoordinatesChange = (lat: string, lng: string) => {
+  const handleMapCoordinatesChange = (lat: string, lng: string, address?: string) => {
     setLatitude(lat)
     setLongitude(lng)
+    // Also update the address field if provided
+    if (address) {
+      setFormValues((prev: any) => ({
+        ...prev,
+        address: address
+      }))
+    }
   }
 
   const handleSubmit = () => {
@@ -555,22 +542,12 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, 
           whileTap={{ scale: 0.98 }}
         >
           <span className="text-xs text-muted-foreground group-hover:text-primary font-medium">Hide Panel</span>
-          <motion.svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor"
-            variants={iconVariants}
-            animate="expanded"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2} 
-              d="M11 19l-7-7 7-7m8 14l-7-7 7-7" 
-            />
-          </motion.svg>
+                      <motion.div
+              variants={iconVariants}
+              animate="expanded"
+            >
+              <ChevronLeft className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            </motion.div>
         </motion.button>
       </motion.div>
     </motion.div>

@@ -18,7 +18,7 @@ interface NodeConfigurationProps {
   selectedNode: Node;
   formValues: any;
   onInputChange: (field: string, value: any) => void;
-  onMapCoordinatesChange: (lat: string, lng: string) => void;
+  onMapCoordinatesChange: (lat: string, lng: string, address?: string) => void;
 }
 
 const NodeConfiguration: FC<NodeConfigurationProps> = ({

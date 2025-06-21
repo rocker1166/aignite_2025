@@ -75,7 +75,6 @@
     "react-resizable-panels": "^2.1.7",
     "reactflow": "^11.11.4",
     "recharts": "^2.15.2",
-
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.5.5",
     "tailwind-variants": "^1.0.0",
@@ -86,6 +85,7 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@tailwindcss/line-clamp": "^0.4.4",
     "@types/d3": "^7.4.3",
     "@types/lodash": "^4.17.16",
     "@types/lodash.debounce": "^4.0.9",

@@ -34,14 +34,14 @@ export const TransportEdge = ({
   const getTransportInfo = () => {
     switch (data?.mode) {
       case 'sea': 
-        return { emoji: '🚢', text: 'Sea Transport', color: '#0ea5e9' };
+        return { emoji: '🚢', text: 'Sea', color: '#0ea5e9' };
       case 'air': 
-        return { emoji: '✈️', text: 'Air Transport', color: '#8b5cf6' };
+        return { emoji: '✈️', text: 'Air', color: '#8b5cf6' };
       case 'rail': 
-        return { emoji: '🚂', text: 'Rail Transport', color: '#f59e0b' };
+        return { emoji: '🚂', text: 'Rail', color: '#f59e0b' };
       case 'road': 
       default: 
-        return { emoji: '🚚', text: 'Road Transport', color: '#10b981' };
+        return { emoji: '🚚', text: 'Road', color: '#10b981' };
     }
   };
 
@@ -66,7 +66,7 @@ export const TransportEdge = ({
             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
             pointerEvents: 'all',
             backgroundColor: 'white',
-            padding: '6px 12px',
+            padding: selected ? '6px 12px' : '4px 8px',
             borderRadius: '8px',
             fontSize: '14px',
             fontWeight: 500,
@@ -80,7 +80,7 @@ export const TransportEdge = ({
           className="nodrag nopan"
         >
           <span style={{ fontSize: '16px' }}>{transportInfo.emoji}</span>
-          <span style={{ color: '#374151' }}>{transportInfo.text}</span>
+          {selected && <span style={{ color: '#374151' }}>{transportInfo.text}</span>}
           
           {selected && (
             <div style={{ 
