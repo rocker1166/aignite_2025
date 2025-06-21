@@ -21,35 +21,17 @@ import RightPanel from './RightPanel';
 import { nodeTypes } from "./CustomNodes";
 import { useUser } from '@/lib/stores/user';
 import insertSupplyChain from '@/utils/functions/insertSupplyChain';
-import { INITIAL_NODES } from '@/constants/digital-twin';
 
-const initialEdges: Edge[] = [
-  {
-    id: 'e1-2',
-    source: 'supplier-1',
-    target: 'factory-1',
-    data: {
-      mode: 'rail',
-      cost: 200,
-      transitTime: 5,
-      riskMultiplier: 1.2
-    }
-  },
-  {
-    id: 'e2-3',
-    source: 'factory-1',
-    target: 'port-1',
-    data: {
-      mode: 'road',
-      cost: 150,
-      transitTime: 2,
-      riskMultiplier: 1.0
-    }
-  }
-];
+interface DigitalTwinCanvasProps {
+  initialNodes?: Node[];
+  initialEdges?: Edge[];
+}
 
-export default function DigitalTwinCanvas() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(INITIAL_NODES);
+export default function DigitalTwinCanvas({ 
+  initialNodes = [], 
+  initialEdges = [] 
+}: DigitalTwinCanvasProps) {
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedElement, setSelectedElement] = useState<Node | Edge | null>(null);
   const [selectedSupplyChain, setSelectedSupplyChain] = useState("default-chain");
@@ -81,7 +63,12 @@ export default function DigitalTwinCanvas() {
         mode: 'road',
         cost: 100,
         transitTime: 1,
-        riskMultiplier: 1.0
+        riskMultiplier: 1.0,
+        // Initialize new dynamic fields
+        avgDelayDays: 0,
+        frequencyOfDisruptions: 0,
+        hasAltRoute: false,
+        passesThroughChokepoint: false
       }
     };
     setEdges((eds) => addEdge(newEdge, eds));
@@ -209,6 +196,7 @@ export default function DigitalTwinCanvas() {
 
         <RightPanel
           selectedElement={selectedElement}
+          nodes={nodes}
           onUpdate={(updatedElement) => {
             if ('source' in updatedElement) {
               // It's an edge

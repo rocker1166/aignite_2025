@@ -23,5 +23,27 @@ export const INITIAL_EDGES: Edge[] = [
       transitTime: 2,
       riskMultiplier: 1.0
     }
+  },
+  {
+    id: 'e3-4',
+    source: 'port-1',
+    target: 'warehouse-1',
+    data: {
+      mode: 'sea',
+      cost: 1000,
+      transitTime: 20,
+      riskMultiplier: 1.5
+    }
+  },
+  {
+    id: 'e4-5',
+    source: 'warehouse-1',
+    target: 'distribution-1',
+    data: {
+      mode: 'road',
+      cost: 500,
+      transitTime: 3,
+      riskMultiplier: 1.1
+    }
   }
 ]; 

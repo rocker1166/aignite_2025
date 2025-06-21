@@ -78,8 +78,8 @@ const StepperStatusIconStyle: Record<
   }
 > = {
   inactive: {
-    className: 'bg-neutral-300 text-neutral-600',
-    render: <div className="w-4 h-4" />,
+    className: 'bg-neutral-300',
+    render: <div className="w-2 h-2 bg-neutral-400 rounded-full" />,
   },
   failed: {
     className: 'bg-red-500 text-white',
@@ -94,8 +94,8 @@ const StepperStatusIconStyle: Record<
     render: <AlertTriangle className="w-4 h-4" />,
   },
   loading: {
-    className: 'bg-blue-500 text-white',
-    render: <div className="w-4 h-4" />,
+    className: 'bg-blue-400',
+    render: <div className="w-3 h-3 bg-blue-600 rounded-full" />,
   },
 };
 
