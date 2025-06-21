@@ -63,10 +63,10 @@ const EdgeConfiguration: FC<EdgeConfigurationProps> = ({
           onChange={(e) => onInputChange('mode', e.target.value)}
           className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-foreground focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 shadow-sm"
         >
-          <option value="road">Road</option>
-          <option value="rail">Rail</option>
-          <option value="sea">Sea</option>
-          <option value="air">Air</option>
+          <option value="road">🚚 Road Transport</option>
+          <option value="rail">🚂 Rail Transport</option>
+          <option value="sea">🚢 Sea Transport</option>
+          <option value="air">✈️ Air Transport</option>
         </select>
       </div>
 
@@ -87,17 +87,6 @@ const EdgeConfiguration: FC<EdgeConfigurationProps> = ({
           value={formValues.transitTime || 0}
           onChange={(e) => onInputChange('transitTime', parseInt(e.target.value))}
           placeholder="0"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-sm font-medium text-foreground">Risk Multiplier</Label>
-        <Input
-          type="number"
-          step="0.1"
-          value={formValues.riskMultiplier || 1.0}
-          onChange={(e) => onInputChange('riskMultiplier', parseFloat(e.target.value))}
-          placeholder="1.0"
         />
       </div>
 

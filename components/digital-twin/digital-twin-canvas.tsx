@@ -23,6 +23,7 @@ import SimulationToolbar from './SimulationToolbar';
 import LeftPanel from './LeftPanel';
 import RightPanel from './RightPanel';
 import { nodeTypes } from "./CustomNodes";
+import { edgeTypes } from "../CustomEdges";
 import { useUser } from '@/lib/stores/user';
 import insertSupplyChain from '@/utils/functions/insertSupplyChain';
 
@@ -80,7 +81,26 @@ export default function DigitalTwinCanvas({
   // Track if we're updating from URL to prevent infinite loops
   const isUpdatingFromURL = useRef(false);
 
-    // Hydrate state from URL on component mount
+    // Function to ensure edges have the correct type and data structure
+  const migrateEdges = (edges: Edge[]) => {
+    return edges.map(edge => ({
+      ...edge,
+      type: edge.type || 'transportEdge', // Ensure all edges use our custom type
+      data: {
+        mode: 'road',
+        cost: 100,
+        transitTime: 1,
+        riskMultiplier: 1.0,
+        avgDelayDays: 0,
+        frequencyOfDisruptions: 0,
+        hasAltRoute: false,
+        passesThroughChokepoint: false,
+        ...edge.data // Preserve existing data
+      }
+    }));
+  };
+
+  // Hydrate state from URL on component mount
   useEffect(() => {
     const hydrateFromURL = async () => {
       console.log('🔄 hydrateFromURL called - isHydrated:', isHydrated);
@@ -124,13 +144,15 @@ export default function DigitalTwinCanvas({
               console.log('📊 Nodes to set:', canvasData.nodes.length);
               console.log('🔗 Edges to set:', canvasData.edges.length);
               
+              const migratedEdges = migrateEdges(canvasData.edges);
+              
               setHydratedNodes(canvasData.nodes);
-              setHydratedEdges(canvasData.edges);
+              setHydratedEdges(migratedEdges);
               
               // Update React Flow state
               isUpdatingFromURL.current = true;
               setNodes(canvasData.nodes);
-              setEdges(canvasData.edges);
+              setEdges(migratedEdges);
               
               console.log('✅ State updated from URL');
               
@@ -153,18 +175,20 @@ export default function DigitalTwinCanvas({
             });
             // Fall back to initial props only if URL parsing fails
             console.log('🔄 Falling back to initial props');
+            const migratedInitialEdges = migrateEdges(initialEdges);
             setHydratedNodes(initialNodes);
-            setHydratedEdges(initialEdges);
+            setHydratedEdges(migratedInitialEdges);
             setNodes(initialNodes);
-            setEdges(initialEdges);
+            setEdges(migratedInitialEdges);
           }
         } else {
           // No URL param - use initial props
           console.log('📦 No URL parameter, using initial props - nodes:', initialNodes.length, 'edges:', initialEdges.length);
+          const migratedInitialEdges = migrateEdges(initialEdges);
           setHydratedNodes(initialNodes);
-          setHydratedEdges(initialEdges);
+          setHydratedEdges(migratedInitialEdges);
           setNodes(initialNodes);
-          setEdges(initialEdges);
+          setEdges(migratedInitialEdges);
         }
         setIsHydrated(true);
         console.log('✅ Hydration complete, isHydrated set to true');
@@ -197,6 +221,12 @@ export default function DigitalTwinCanvas({
         const jsonString = JSON.stringify(canvasData);
         console.log('JSON string length:', jsonString.length);
         
+        // Check if the JSON string is too large (URLs have limitations)
+        if (jsonString.length > 50000) {
+          console.warn('Canvas data too large for URL, skipping URL update');
+          return;
+        }
+        
         // Encode JSON directly to base64
         const base64String = btoa(jsonString)
           .replace(/\+/g, '-')
@@ -206,7 +236,12 @@ export default function DigitalTwinCanvas({
         console.log('Base64 string length:', base64String.length);
         console.log('Setting archParam to:', base64String.substring(0, 50) + '...');
         
-        setArchParam(base64String);
+        // Use replace instead of push to avoid adding to browser history
+        // This prevents unwanted page refreshes
+        setArchParam(base64String, { 
+          scroll: false,
+          shallow: true
+        });
       } catch (error) {
         console.error('Failed to update URL with canvas state:', error);
       }
@@ -264,6 +299,7 @@ export default function DigitalTwinCanvas({
     const newEdge = {
       ...connection,
       id: `e${connection.source}-${connection.target}`,
+      type: 'transportEdge', // Set the edge type to use our custom edge
       data: {
         mode: 'road',
         cost: 100,
@@ -360,6 +396,16 @@ export default function DigitalTwinCanvas({
     setSelectedElement(null);
   }, [setNodes, setEdges]);
 
+  // Handle deleting a single node
+  const handleDeleteNode = useCallback((nodeId: string) => {
+    // Remove the node
+    setNodes(nodes => nodes.filter(node => node.id !== nodeId));
+    // Remove all edges connected to this node
+    setEdges(edges => edges.filter(edge => edge.source !== nodeId && edge.target !== nodeId));
+    // Clear selection if the deleted node was selected
+    setSelectedElement(null);
+  }, [setNodes, setEdges]);
+
   // Don't render until hydrated to prevent hydration mismatches
   if (!isHydrated) {
     return (
@@ -401,7 +447,13 @@ export default function DigitalTwinCanvas({
             onConnect={onConnect}
             onSelectionChange={onSelectionChange}
             nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
             fitView
+            preventScrolling={false}
+            panOnDrag
+            zoomOnScroll
+            zoomOnPinch
+            zoomOnDoubleClick={false}
           >
             <Controls />
             <MiniMap />
@@ -430,6 +482,7 @@ export default function DigitalTwinCanvas({
             }
             setSelectedElement(updatedElement);
           }}
+          onDelete={handleDeleteNode}
         />
       </div>
     </div>

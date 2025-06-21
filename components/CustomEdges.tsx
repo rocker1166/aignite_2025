@@ -30,38 +30,22 @@ export const TransportEdge = ({
     targetPosition
   });
 
-  // Generate style based on transport mode
-  const getEdgeStyle = () => {
-    const baseStyle = {
-      strokeWidth: 2,
-      stroke: '#64748b'
-    };
-    
-    if (!data?.mode) return baseStyle;
-    
-    switch (data.mode) {
-      case 'sea':
-        return { ...baseStyle, stroke: '#3b82f6', strokeDasharray: '5,5' };
-      case 'air':
-        return { ...baseStyle, stroke: '#8b5cf6' };
-      case 'rail':
-        return { ...baseStyle, stroke: '#f59e0b', strokeDasharray: '10,2' };
-      case 'road':
-      default:
-        return baseStyle;
+  // Get emoji and text for transport mode
+  const getTransportInfo = () => {
+    switch (data?.mode) {
+      case 'sea': 
+        return { emoji: '🚢', text: 'Sea Transport', color: '#0ea5e9' };
+      case 'air': 
+        return { emoji: '✈️', text: 'Air Transport', color: '#8b5cf6' };
+      case 'rail': 
+        return { emoji: '🚂', text: 'Rail Transport', color: '#f59e0b' };
+      case 'road': 
+      default: 
+        return { emoji: '🚚', text: 'Road Transport', color: '#10b981' };
     }
   };
 
-  // Get icon for transport mode
-  const getTransportIcon = () => {
-    switch (data?.mode) {
-      case 'sea': return '🚢';
-      case 'air': return '✈️';
-      case 'rail': return '🚂';
-      case 'road': 
-      default: return '🚚';
-    }
-  };
+  const transportInfo = getTransportInfo();
 
   return (
     <>
@@ -69,7 +53,8 @@ export const TransportEdge = ({
         path={edgePath}
         id={id}
         style={{
-          ...getEdgeStyle(),
+          strokeWidth: 2,
+          stroke: '#64748b',
           ...style
         }}
       />
@@ -80,22 +65,35 @@ export const TransportEdge = ({
             position: 'absolute',
             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
             pointerEvents: 'all',
-            backgroundColor: selected ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.7)',
-            padding: '4px 8px',
-            borderRadius: '4px',
-            fontSize: 12,
+            backgroundColor: 'white',
+            padding: '6px 12px',
+            borderRadius: '8px',
+            fontSize: '14px',
             fontWeight: 500,
-            border: selected ? '1px solid #3b82f6' : '1px solid #e2e8f0',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            minWidth: 'max-content'
           }}
           className="nodrag nopan"
         >
-          <div>{getTransportIcon()} {data?.mode || 'road'}</div>
+          <span style={{ fontSize: '16px' }}>{transportInfo.emoji}</span>
+          <span style={{ color: '#374151' }}>{transportInfo.text}</span>
+          
           {selected && (
-            <>
-              <div>Cost: ${data?.cost || 0}</div>
-              <div>Time: {data?.transitTime || 0}d</div>
-              <div>Risk: x{data?.riskMultiplier?.toFixed(1) || "1.0"}</div>
-            </>
+            <div style={{ 
+              fontSize: '12px', 
+              color: '#6b7280',
+              marginLeft: '8px',
+              borderLeft: '1px solid #e2e8f0',
+              paddingLeft: '8px'
+            }}>
+              <div>💰 ${data?.cost || 0}</div>
+              <div>⏱️ {data?.transitTime || 0}d</div>
+              <div>⚠️ Risk: {data?.riskMultiplier?.toFixed(1) || "1.0"}x</div>
+            </div>
           )}
         </div>
       </EdgeLabelRenderer>

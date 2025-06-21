@@ -106,7 +106,7 @@ const NodeConfiguration: FC<NodeConfigurationProps> = ({
   };
 
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={300}>
       <div className="w-full space-y-4">
         {/* Node Type Header - Always visible at top */}
         <div className="bg-muted/30 border border-border rounded-lg p-4">
@@ -130,7 +130,13 @@ const NodeConfiguration: FC<NodeConfigurationProps> = ({
                   <Info className="w-4 h-4 text-muted-foreground" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="left" className="max-w-xs">
+              <TooltipContent 
+                side="top" 
+                sideOffset={8}
+                className="max-w-xs z-50"
+                avoidCollisions={true}
+                collisionPadding={16}
+              >
                 <p className="text-sm">
                   Node type cannot be changed after creation. To change the type, delete this node and create a new one.
                 </p>
@@ -147,16 +153,29 @@ const NodeConfiguration: FC<NodeConfigurationProps> = ({
         </AccordionTrigger>
         <AccordionContent className="space-y-4">
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-foreground">Label</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium text-foreground">Label</Label>
+              <span className="text-xs text-muted-foreground">
+                  {(formValues.label || '').length}/50
+              </span>
+            </div>
             <div className="p-0.5">
               <Input
                 type="text"
                 value={formValues.label || ''}
-                onChange={(e) => onInputChange('label', e.target.value)}
+                onChange={(e) => {
+                  if (e.target.value.length <= 50) {
+                    onInputChange('label', e.target.value);
+                  }
+                }}
                 placeholder="Enter label..."
+                maxLength={50}
                 className="px-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
               />
             </div>
+            <p className="text-xs text-muted-foreground">
+              Maximum 50 characters for the node label.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -182,7 +201,13 @@ const NodeConfiguration: FC<NodeConfigurationProps> = ({
                     <TooltipTrigger asChild>
                       <Info className="inline-block w-4 h-4 ml-2 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
+                    <TooltipContent 
+                      side="top" 
+                      sideOffset={8}
+                      className="max-w-xs z-50"
+                      avoidCollisions={true}
+                      collisionPadding={16}
+                    >
                       <p className="text-sm">
                         Toggle if this node depends on or is operated by an external company or partner.
                       </p>

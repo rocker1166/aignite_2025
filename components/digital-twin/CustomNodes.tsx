@@ -7,11 +7,10 @@ const baseNodeStyle = {
   borderRadius: '8px',
   width: '150px',
   boxShadow: '0 4px 6px rgba(40, 0, 10, 0.1)',
-  backgroundColor: 'white',
   border: '2px solid #e2e8f0'
 };
 
-// Node type specific colors with more distinct color schemes
+// Node type specific colors with more distinct color schemes (fallback colors)
 const nodeTypeColors = {
   supplier: 'bg-blue-100 border-blue-500 text-blue-800',
   factory: 'bg-purple-100 border-purple-500 text-purple-800',
@@ -34,14 +33,46 @@ const getSelectionClass = (selected: boolean) => {
     : 'transition-all duration-200';
 };
 
+// Helper to get node style with custom color or fallback
+const getNodeStyle = (data: any, nodeType: keyof typeof nodeTypeColors) => {
+  if (data.nodeColor) {
+    // Use custom color from node data
+    return {
+      ...baseNodeStyle,
+      backgroundColor: data.nodeColor,
+      color: getContrastColor(data.nodeColor), // Ensure text is readable
+    };
+  }
+  // Fallback to default styles with CSS classes
+  return baseNodeStyle;
+};
+
+// Helper to determine if text should be dark or light based on background color
+const getContrastColor = (hexColor: string): string => {
+  // Remove # if present
+  const hex = hexColor.replace('#', '');
+  
+  // Convert to RGB
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  
+  // Calculate brightness
+  const brightness = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+  
+  // Return black for light backgrounds, white for dark backgrounds
+  return brightness > 155 ? '#000000' : '#FFFFFF';
+};
+
 // Supplier Node
 export const SupplierNode = memo(({ data, isConnectable, selected }: NodeProps) => {
   const riskClass = getRiskClass(data.riskScore);
-  const typeClass = nodeTypeColors.supplier;
+  const typeClass = data.nodeColor ? '' : nodeTypeColors.supplier;
   const selectionClass = getSelectionClass(selected);
+  const nodeStyle = getNodeStyle(data, 'supplier');
 
   return (
-    <div style={baseNodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
+    <div style={nodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
       <Handle
         type="source"
         position={Position.Right}
@@ -56,11 +87,12 @@ export const SupplierNode = memo(({ data, isConnectable, selected }: NodeProps) 
 // Factory Node
 export const FactoryNode = memo(({ data, isConnectable, selected }: NodeProps) => {
   const riskClass = getRiskClass(data.riskScore);
-  const typeClass = nodeTypeColors.factory;
+  const typeClass = data.nodeColor ? '' : nodeTypeColors.factory;
   const selectionClass = getSelectionClass(selected);
+  const nodeStyle = getNodeStyle(data, 'factory');
 
   return (
-    <div style={baseNodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
+    <div style={nodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
       <Handle
         type="target"
         position={Position.Left}
@@ -80,11 +112,12 @@ export const FactoryNode = memo(({ data, isConnectable, selected }: NodeProps) =
 // Port Node
 export const PortNode = memo(({ data, isConnectable, selected }: NodeProps) => {
   const riskClass = getRiskClass(data.riskScore);
-  const typeClass = nodeTypeColors.port;
+  const typeClass = data.nodeColor ? '' : nodeTypeColors.port;
   const selectionClass = getSelectionClass(selected);
+  const nodeStyle = getNodeStyle(data, 'port');
   
   return (
-    <div style={baseNodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
+    <div style={nodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
       <Handle
         type="target"
         position={Position.Left}
@@ -104,11 +137,12 @@ export const PortNode = memo(({ data, isConnectable, selected }: NodeProps) => {
 // Warehouse Node
 export const WarehouseNode = memo(({ data, isConnectable, selected }: NodeProps) => {
   const riskClass = getRiskClass(data.riskScore);
-  const typeClass = nodeTypeColors.warehouse;
+  const typeClass = data.nodeColor ? '' : nodeTypeColors.warehouse;
   const selectionClass = getSelectionClass(selected);
+  const nodeStyle = getNodeStyle(data, 'warehouse');
   
   return (
-    <div style={baseNodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
+    <div style={nodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
       <Handle
         type="target"
         position={Position.Left}
@@ -128,11 +162,12 @@ export const WarehouseNode = memo(({ data, isConnectable, selected }: NodeProps)
 // Distribution Node
 export const DistributionNode = memo(({ data, isConnectable, selected }: NodeProps) => {
   const riskClass = getRiskClass(data.riskScore);
-  const typeClass = nodeTypeColors.distribution;
+  const typeClass = data.nodeColor ? '' : nodeTypeColors.distribution;
   const selectionClass = getSelectionClass(selected);
+  const nodeStyle = getNodeStyle(data, 'distribution');
   
   return (
-    <div style={baseNodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
+    <div style={nodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
       <Handle
         type="target"
         position={Position.Left}
