@@ -1,0 +1,112 @@
+import { Node } from 'reactflow';
+
+// Use when: industry = "Electronics & High Tech"
+// Characteristics: Global supply chains, Tier 3+ suppliers, High-value/low-volume, Air/Sea shipping
+// Typical risks: Political/regulatory, Supplier concentration, Cybersecurity
+export const ELECTRONICS_TEMPLATE: Node[] = [
+  {
+    id: 'chip-supplier-1',
+    type: 'supplierNode',
+    data: {
+      label: 'Semiconductor Supplier',
+      description: 'Tier 3 chip manufacturer in Taiwan',
+      type: 'Supplier',
+      capacity: 50000,
+      leadTime: 21,
+      riskScore: 0.6,
+      location: { lat: 25.032, lng: 121.565 },
+      address: 'Hsinchu Science Park, Taiwan'
+    },
+    position: { x: 100, y: 50 },
+  },
+  {
+    id: 'component-supplier-1',
+    type: 'supplierNode',
+    data: {
+      label: 'Component Supplier',
+      description: 'Tier 2 PCB and components supplier in Shenzhen',
+      type: 'Supplier',
+      capacity: 80000,
+      leadTime: 14,
+      riskScore: 0.4,
+      location: { lat: 22.543, lng: 114.057 },
+      address: 'Shenzhen Tech Hub, China'
+    },
+    position: { x: 300, y: 120 },
+  },
+  {
+    id: 'assembly-factory-1',
+    type: 'factoryNode',
+    data: {
+      label: 'Assembly Factory',
+      description: 'Tier 1 final assembly facility in Vietnam',
+      type: 'Factory',
+      capacity: 30000,
+      leadTime: 7,
+      riskScore: 0.3,
+      location: { lat: 10.823, lng: 106.629 },
+      address: 'Ho Chi Minh Industrial Zone, Vietnam'
+    },
+    position: { x: 500, y: 200 },
+  },
+  {
+    id: 'asia-port-1',
+    type: 'portNode',
+    data: {
+      label: 'Singapore Port',
+      description: 'Major Asian shipping hub',
+      type: 'Port',
+      capacity: 100000,
+      leadTime: 2,
+      riskScore: 0.2,
+      location: { lat: 1.290, lng: 103.851 },
+      address: 'Port of Singapore Authority, Singapore'
+    },
+    position: { x: 700, y: 150 },
+  },
+  {
+    id: 'us-port-1',
+    type: 'portNode',
+    data: {
+      label: 'Los Angeles Port',
+      description: 'US West Coast entry point',
+      type: 'Port',
+      capacity: 80000,
+      leadTime: 1,
+      riskScore: 0.3,
+      location: { lat: 33.739, lng: -118.262 },
+      address: 'Port of Los Angeles, CA'
+    },
+    position: { x: 900, y: 200 },
+  },
+  {
+    id: 'us-warehouse-1',
+    type: 'warehouseNode',
+    data: {
+      label: 'West Coast DC',
+      description: 'Primary distribution center',
+      type: 'Warehouse',
+      capacity: 40000,
+      leadTime: 3,
+      riskScore: 0.1,
+      location: { lat: 34.052, lng: -118.243 },
+      address: 'Los Angeles Distribution Center, CA'
+    },
+    position: { x: 1100, y: 120 },
+  },
+  {
+    id: 'retail-distribution-1',
+    type: 'distributionNode',
+    data: {
+      label: 'Retail Distribution',
+      description: 'Final mile to retail stores',
+      type: 'Distribution',
+      capacity: 20000,
+      leadTime: 2,
+      riskScore: 0.1,
+      location: { lat: 37.774, lng: -122.419 },
+      address: 'San Francisco Bay Area, CA'
+    },
+    position: { x: 1300, y: 200 },
+  }
+]; 

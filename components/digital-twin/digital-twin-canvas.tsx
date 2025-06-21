@@ -21,54 +21,7 @@ import RightPanel from './RightPanel';
 import { nodeTypes } from "./CustomNodes";
 import { useUser } from '@/lib/stores/user';
 import insertSupplyChain from '@/utils/functions/insertSupplyChain';
-
-const initialNodes: Node[] = [
-  {
-    id: 'supplier-1',
-    type: 'supplierNode',
-    data: {
-      label: 'Supplier A',
-      description: 'Primary supplier for raw materials based in Los Angeles.',
-      type: 'Supplier',
-      capacity: 1000,
-      leadTime: 14,
-      riskScore: 0.2,
-      location: { lat: 34.052, lng: -118.243 },
-      address: '123 Supplier St, Los Angeles, CA 90001'
-    },
-    position: { x: 250, y: 100 },
-  },
-  {
-    id: 'factory-1',
-    type: 'factoryNode',
-    data: {
-      label: 'Factory B',
-      description: 'Main assembly facility located in New York.',
-      type: 'Factory',
-      capacity: 800,
-      leadTime: 5,
-      riskScore: 0.1,
-      location: { lat: 40.712, lng: -74.006 },
-      address: '456 Factory Ave, New York, NY 10001'
-    },
-    position: { x: 450, y: 200 },
-  },
-  {
-    id: 'port-1',
-    type: 'portNode',
-    data: {
-      label: 'Port C',
-      description: 'Major shipping port in San Francisco.',
-      type: 'Port',
-      capacity: 5000,
-      leadTime: 3,
-      riskScore: 0.4,
-      location: { lat: 37.774, lng: -122.419 },
-      address: '789 Port Blvd, San Francisco, CA 94111'
-    },
-    position: { x: 650, y: 100 },
-  }
-];
+import { INITIAL_NODES } from '@/constants/digital-twin';
 
 const initialEdges: Edge[] = [
   {
@@ -96,7 +49,7 @@ const initialEdges: Edge[] = [
 ];
 
 export default function DigitalTwinCanvas() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState(INITIAL_NODES);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedElement, setSelectedElement] = useState<Node | Edge | null>(null);
   const [selectedSupplyChain, setSelectedSupplyChain] = useState("default-chain");
@@ -105,13 +58,6 @@ export default function DigitalTwinCanvas() {
   const [simulationMode, setSimulationMode] = useState(false);
   const { userData } = useUser();
   
-  console.log("userdata", userData)
-  console.log("company description", userData?.description)
-  console.log("company name", userData?.organisation_name)
-  console.log("company id", userData?.id)
-  console.log("industry", userData?.industry)
-  console.log("sub_industry", userData?.sub_industry)
-  console.log("location", userData?.location)
 
 
   // When a node is clicked, set it as the selected element for the right panel

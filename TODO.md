@@ -1,94 +1,122 @@
-# Project: Refactor Digital Twin Creation and Management Flow
+# Plan to Implement Dynamic Supply Chain Templates
 
-This document outlines the plan to refactor the digital twin feature. The goal is to introduce a dashboard for managing existing twins and a modal-based creation flow, using `nuqs` to manage all state within the URL query parameters.
-
----
-
-### Phase 1: Setup and Restructuring (Est. Time: 2-3 hours)
-
-**Objective:** Reorganize the project structure and set up `nuqs` to support the new single-page architecture.
-
--   [x] **Step 1.1: Install and Configure `nuqs`.** <!-- Completed: `nuqs` installed and `NuqsAdapter` added to root layout. -->
-    -   **Guidance:** This is a foundational step to enable URL state management.
-    -   **Action:** Run `pnpm add nuqs` in the terminal.
-    -   **Action:** Modify the root layout at `app/layout.tsx` to wrap the application with the `NuqsAdapter`. This makes `nuqs` hooks available throughout the app.
-    ```typescript:app/layout.tsx
-    // ... existing code ...
-    import { NuqsAdapter } from 'nuqs/adapters/next/app';
-
-    export default function RootLayout({ children }: { children: React.ReactNode }) {
-      return (
-        <html lang="en">
-          <body>
-            <NuqsAdapter>{children}</NuqsAdapter>
-          </body>
-        </html>
-      );
-    }
-    ```
-    -   **Risk:** Low. This is a standard setup procedure.
-
--   [x] **Step 1.2: Componentize the Supply Chain Form.** <!-- Completed: Form logic extracted into `components/digital-twin/creation-form.tsx`. The old `testing` directory can now be removed. -->
-    -   **Guidance:** We need to extract the multi-step form from the temporary `testing` page into a reusable component.
-    -   **Action:** Create a new directory: `components/digital-twin/`.
-    -   **Action:** Create `components/digital-twin/creation-form.tsx`. Move all logic (React Hook Form setup, Zod schema, stepper UI, and form fields) from `app/(main)/testing/page.tsx` into this new component.
-    -   **Action:** The component should accept `onSuccess(data)` and `onCancel()` as props to communicate with its parent.
-    -   **Action:** Once the logic is moved, delete the `app/(main)/testing/` directory.
-    -   **Risk:** Medium. State and props refactoring requires careful attention to detail.
-
--   [x] **Step 1.3: Create a Client-Side Wrapper for the Digital Twin Page.**
-    -   **Guidance:** This component will be the "brain" of the digital twin section, deciding what to show based on the URL.
-    -   **Context:** The current file at `app/(main)/digital-twin/page.tsx` is a monolithic client component containing all UI and logic for the React Flow canvas. The following steps will refactor this by creating a new client-side wrapper to manage state and rendering logic, which is a prerequisite for the changes in Step 1.4.
-    -   **Action:** Create a new file: `app/(main)/digital-twin/digital-twin-client-page.tsx`.
-    -   **Action:** Mark it as a client component with `'use client'` at the top. This component will use `nuqs` hooks to read URL params and will contain the core conditional rendering logic (dashboard vs. canvas).
-    -   **Risk:** Low. This structural change aligns with Next.js best practices.
-
--   [x] **Step 1.4: Refactor the Main Digital Twin Page.**
-    -   **Guidance:** The main page becomes a simple server component wrapper, which is optimal for performance and required for `nuqs` to work correctly.
-    -   **Action:** Replace the entire content of `app/(main)/digital-twin/page.tsx` with the following code.
-    ```typescript:app/(main)/digital-twin/page.tsx
-    import { Suspense } from 'react';
-    import DigitalTwinClientPage from './digital-twin-client-page';
-
-    export default function DigitalTwinPage() {
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <DigitalTwinClientPage />
-        </Suspense>
-      );
-    }
-    ```
-    -   **Reasoning:** The `<Suspense>` boundary is required for client components that use URL search parameters.
-    -   **Risk:** Low.
+**Objective:** Modify the digital twin creation process to dynamically generate an initial supply chain diagram based on user input from the creation form, instead of using a static template.
 
 ---
 
-### Phase 2: Building the Dashboard and Creation Flow (Est. Time: 4-5 hours)
+### Step 1: Create a Template Selection Utility
 
-**Objective:** Create the UI for viewing and creating digital twins.
+-   **Task:** Develop a function that takes the user's form submission data as input and returns the appropriate node and edge templates for the `reactflow` canvas.
+-   **Location:** Create a new file at `lib/template-selector.ts`.
+-   **Details:**
+    -   The function will import all available templates from `constants/templates/index.ts`.
+    -   It will contain logic to map form inputs (like `industry`, `productCharacteristics`, `supplierTiers`) to specific templates.
+    -   Define a priority for template selection: Industry > Product Characteristic > Supplier Tier > Geographic Operation.
+    -   The function should return an object `{ nodes: Node[], edges: Edge[] }`.
+    -   Include a default template (`INITIAL_NODES`, `INITIAL_EDGES` from the legacy folder) as a fallback if no specific match is found.
+-   **Testability:** This function can be unit-tested by passing mock form data and asserting that the correct templates are returned.
 
--   [x] **Step 2.1: Create the Dashboard Component.**
-    -   **Guidance:** This is the main view where users see their list of twins.
-    -   **Action:** Create `components/digital-twin/dashboard.tsx`.
-    -   **UI:** Use a flex container for the header with an `h1` ("My Digital Twins") and a shadcn/ui `<Button>` for "Create New Twin". Below, use a CSS grid (`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6`) to display the twin cards.
-    -   **Data:** For now, use a local `useState` with mock data for the list of twins. This component will manage the open state of the creation dialog.
-    -   **Risk:** Low.
+---
 
--   [x] **Step 2.2: Create the `DigitalTwinCard` Component.**
-    -   **Guidance:** Each card represents one digital twin.
-    -   **Action:** Create `components/digital-twin/digital-twin-card.tsx`.
-    -   **UI:** Use the shadcn/ui `<Card>` component.
-        -   `<CardHeader>`: Contains `<CardTitle>` for the twin's name and `<CardDescription>`.
-        -   `<CardContent>`: Contains a flex container with several `<Badge>` components for tags like industry, risk factors, etc.
-    -   **Action:** Wrap the entire card in a Next.js `<Link>` component pointing to the canvas view: `<Link href={\`/digital-twin?twinId=\${twin.id}\`}>`.
-    -   **Risk:** Low.
+### Step 2: Refactor Legacy Templates
 
--   [x] **Step 2.3: Implement the Creation Dialog with URL State.**
-    -   **Guidance:** The creation flow will live inside a dialog, and its state will be controlled by URL parameters for a robust user experience.
-    -   **Action (Dashboard):** In `dashboard.tsx`, the "Create New Twin" button will not open a dialog directly. Instead, it will use `nuqs` to set a URL parameter to start the creation flow. This will be handled in the main client page.
-    -   **Action (Form):** In `creation-form.tsx`, replace the stepper's `useState` with `useQueryState` from `nuqs`.
-        ```typescript:components/digital-twin/creation-form.tsx
-        import { useQueryState, parseAsInteger } from 'nuqs';
-        // ...
-        const [step, setStep] = useQueryState('step', parseAsInteger.withDefault(0));
+-   **Task:** Move the old static `INITIAL_NODES` and `initialEdges` into the new template structure for consistency and backward compatibility.
+-   **Files to Modify:**
+    -   `constants/digital-twin.tsx` (remove `INITIAL_NODES`)
+    -   `components/digital-twin/digital-twin-canvas.tsx` (remove `initialEdges` definition)
+    -   `constants/templates/index.ts` (export new legacy templates)
+-   **Files to Create:**
+    -   `constants/templates/legacy/nodes.ts`
+    -   `constants/templates/legacy/edges.ts`
+-   **Details:**
+    -   Move the content of `INITIAL_NODES` from `constants/digital-twin.tsx` to `constants/templates/legacy/nodes.ts`.
+    -   Move the content of `initialEdges` from `components/digital-twin/digital-twin-canvas.tsx` to `constants/templates/legacy/edges.ts` and export it as `INITIAL_EDGES`.
+    -   Update `constants/templates/index.ts` to export these new legacy templates.
+-   **Testability:** After refactoring, the application should still compile. The template selector from Step 1 will use these as a fallback.
+
+---
+
+### Step 3: Modify `DigitalTwinCanvas` to Accept Initial State via Props
+
+-   **Task:** Refactor `components/digital-twin/digital-twin-canvas.tsx` to be a controlled component that receives its initial nodes and edges from its parent.
+-   **Details:**
+    -   Add `initialNodes` and `initialEdges` to its props interface.
+    -   Change `useNodesState(INITIAL_NODES)` to `useNodesState(initialNodes || [])`.
+    -   Change `useEdgesState(initialEdges)` to `useEdgesState(initialEdges || [])`.
+    -   Remove the direct import of `INITIAL_NODES` and the local `initialEdges` constant.
+-   **Testability:** The canvas should render correctly when `initialNodes` and `initialEdges` are passed as props. It should render an empty canvas if no props are passed.
+
+---
+
+### Step 4: Integrate Template Selection into the Creation Flow
+
+-   **Task:** Update `app/(main)/digital-twin/digital-twin-client-page.tsx` to use the new template selector and pass the data to the canvas.
+-   **Details:**
+    -   Import the template selector function from `lib/template-selector.ts`.
+    -   In the `handleCreationSuccess` function:
+        1.  After receiving the form `data`, call the template selector: `const { nodes, edges } = selectTemplate(data);`.
+        2.  When storing data in `localStorage`, include the `nodes` and `edges`:
+            ```javascript
+            const twinData = { ...data, nodes, edges };
+            localStorage.setItem(`supplyChain-${twinId}`, JSON.stringify(twinData));
+            ```
+-   **Testability:** After creating a twin, inspect `localStorage` in the browser dev tools to confirm that the `supplyChain-{id}` item contains the `nodes` and `edges` arrays.
+
+---
+
+### Step 5: Pass Dynamic Data to the Canvas
+
+-   **Task:** Connect the data loaded from `localStorage` to the `DigitalTwinCanvas` component.
+-   **File:** `app/(main)/digital-twin/digital-twin-client-page.tsx`
+-   **Details:**
+    -   Create a state variable, e.g., `const [activeTwinData, setActiveTwinData] = useState(null);`.
+    -   Use a `useEffect` hook that runs when `twinId` changes. This hook should:
+        1.  Read the `supplyChain-{twinId}` item from `localStorage`.
+        2.  Parse the JSON data.
+        3.  Call `setActiveTwinData` with the parsed data.
+    -   Modify the render logic for the canvas:
+        ```jsx
+        if (twinId && activeTwinData) {
+            return <DigitalTwinCanvas initialNodes={activeTwinData.nodes} initialEdges={activeTwinData.edges} />;
+        }
         ```
+-   **Testability:** When a twin is created, the page should switch to the canvas view and display the correct, dynamically selected template based on the form input.
+
+### Step 5: Ensure Canvas Mounts with Correct Initial Data
+
+-   **Task**: Modify `app/(main)/digital-twin/digital-twin-client-page.tsx` to load the selected twin's data and pass it to the `DigitalTwinCanvas` upon mount. This prevents the canvas from ever displaying default/static data.
+-   **Details**:
+    1.  Introduce state to hold the active twin's data and a loading status: `const [activeTwinData, setActiveTwinData] = useState(null);` and `const [isLoading, setIsLoading] = useState(true);`.
+    2.  Use a `useEffect` hook that triggers whenever `twinId` (from `useQueryState`) changes.
+    3.  Inside the `useEffect`, fetch the corresponding `supplyChain-{twinId}` data from `localStorage`, parse it, and update the `activeTwinData` state. Manage the `isLoading` state.
+    4.  Modify the render logic to conditionally render a loading indicator, and then the `DigitalTwinCanvas` only after the data has been loaded. This ensures the canvas receives the correct `initialNodes` and `initialEdges` props on its first mount.
+    ```jsx
+    // In DigitalTwinClientPage
+
+    const [activeTwinData, setActiveTwinData] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+      if (twinId) {
+        setIsLoading(true);
+        const data = localStorage.getItem(`supplyChain-${twinId}`);
+        if (data) {
+          setActiveTwinData(JSON.parse(data));
+        }
+        setIsLoading(false);
+      } else {
+        setIsLoading(false);
+      }
+    }, [twinId]);
+
+    if (twinId) {
+      if (isLoading) {
+        return <p>Loading twin...</p>; // Or a spinner component
+      }
+      if (activeTwinData) {
+        return <DigitalTwinCanvas initialNodes={activeTwinData.nodes} initialEdges={activeTwinData.edges} />;
+      }
+      return <p>Twin not found.</p>; // Handle case where data isn't in localStorage
+    }
+    ```
+-   **Testability**: When a twin is selected (either by creation or by URL), the canvas should immediately render with the correct diagram without flashing any default state or requiring a page reload.

@@ -22,8 +22,18 @@ export default function DigitalTwinClientPage() {
 
   const handleCreationSuccess = (data: any) => {
     console.log('Supply chain created:', data);
+    
+    // Store the supply chain data in localStorage
+    const twinId = `twin-${Date.now()}`;
+    localStorage.setItem(`supplyChain-${twinId}`, JSON.stringify(data));
+    
+    // Store the list of twin IDs
+    const existingTwins = JSON.parse(localStorage.getItem('digitalTwins') || '[]');
+    const updatedTwins = [...existingTwins, { id: twinId, name: data.name || 'Unnamed Twin', createdAt: new Date().toISOString() }];
+    localStorage.setItem('digitalTwins', JSON.stringify(updatedTwins));
+    
     setView(null, { scroll: false });
-    setTwinId('dummy-twin-id');
+    setTwinId(twinId);
     // Here you would typically invalidate a query to refetch the twins list
   };
 

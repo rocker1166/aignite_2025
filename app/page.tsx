@@ -4,7 +4,6 @@ import { HeroGeometric } from "@/components/ui/hero-geometric"
 import { TimelineSteps } from "@/components/ui/timeline-steps"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { OrderState } from "@/components/ui/order-state"
 import { RouteAnimation } from "@/components/ui/route-animation"
 import { BentoCard } from "@/components/ui/bento-card"
 import { LandingHeader } from "@/components/landing-header"
@@ -25,38 +24,6 @@ import {
 import { motion } from "framer-motion"
 
 export default function Home() {
-  const supplyChainStates = [
-    {
-      status: "Risk Assessment",
-      icon: <Shield className="h-4 w-4" />,
-      description: "Identify vulnerabilities in your supply chain",
-      isActive: true,
-    },
-    {
-      status: "Diversification",
-      icon: <Globe className="h-4 w-4" />,
-      description: "Expand supplier network globally",
-      isActive: true,
-    },
-    {
-      status: "Inventory Optimization",
-      icon: <Package className="h-4 w-4" />,
-      description: "Balance stock levels for resilience",
-      isActive: false,
-    },
-    {
-      status: "Logistics Planning",
-      icon: <Truck className="h-4 w-4" />,
-      description: "Develop alternative transportation routes",
-      isActive: false,
-    },
-    {
-      status: "Continuous Monitoring",
-      icon: <BarChart3 className="h-4 w-4" />,
-      description: "Real-time visibility across your network",
-      isActive: false,
-    },
-  ]
 
   const globalRoutes: {
     from: string;

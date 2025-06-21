@@ -1,3 +1,5 @@
+
+// single select options
 export const INDUSTRIES = [
   { label: "Electronics & High Tech", value: "Electronics & High Tech" },
   { label: "Food & Beverage", value: "Food & Beverage" },
@@ -12,6 +14,7 @@ export const INDUSTRIES = [
   { label: "Other", value: "Other" },
 ] as const;
 
+// multi select options
 export const PRODUCT_CHARACTERISTICS = [
   { label: "Perishable / Cold-chain", value: "perishable" },
   { label: "High-value / Low-volume", value: "high_value" },
@@ -21,19 +24,22 @@ export const PRODUCT_CHARACTERISTICS = [
   { label: "Seasonal / Peak-driven", value: "seasonal" },
 ];
 
+// single select options
 export const SUPPLIER_TIERS = [
   { label: "Tier 1 only", value: "tier1" },
   { label: "Tier 1 + Tier 2", value: "tier1_2" },
   { label: "Three or more tiers", value: "tier3plus" },
 ] as const;
 
+// multi select options
 export const OPERATIONS_LOCATIONS = [
-  { label: "Domestic only", value: "domestic", exclusive: true },
+  { label: "Domestic only", value: "domestic", exclusive: true }, // when selected, the country field is required
   { label: "North America", value: "na" },
   { label: "Europe", value: "eu" },
   { label: "APAC", value: "apac" },
 ];
 
+// multi select options
 export const SHIPPING_METHODS = [
   { label: "Sea", value: "sea" },
   { label: "Air", value: "air" },
@@ -41,6 +47,7 @@ export const SHIPPING_METHODS = [
   { label: "Rail", value: "rail" },
 ];
 
+// multi select options
 export const RISK_FACTORS = [
   { label: "Political/regulatory (sanctions, customs delays)", value: "political" },
   { label: "Weather/disaster (typhoons, floods)", value: "weather" },
@@ -52,6 +59,7 @@ export const RISK_FACTORS = [
   { label: "Labor strikes/disputes", value: "labor" },
 ];
 
+// info text
 export const SUPPLIER_TIER_INFO = {
   title: "Supplier Tiers Explained:",
   description: "Tiers represent how far a supplier is from your company:",
@@ -62,11 +70,13 @@ export const SUPPLIER_TIER_INFO = {
   ]
 } as const;
 
+// single select options
 export const ANNUAL_VOLUME_TYPES = [
   { label: "Units", value: "units" },
   { label: "Currency", value: "currency" },
 ] as const;
 
+// array of objects with name and fields
 export const FORM_STEPS = [
   { 
     name: "Company & Products", 
@@ -81,3 +91,27 @@ export const FORM_STEPS = [
     fields: ["risks"] 
   },
 ] as const; 
+
+
+
+// example object when selected domestic only
+// {
+//   "industry": "Logistics & 3PL",
+//   "productCharacteristics": [
+//       "perishable"
+//   ],
+//   "supplierTiers": "tier1",
+//   "operationsLocation": [
+//       "domestic"
+//   ],
+//   "country": "IND",
+//   "currency": "ALL",
+//   "shippingMethods": [
+//       "air"
+//   ],
+//   "annualVolumeType": "units",
+//   "annualVolumeValue": 100000,
+//   "risks": [
+//       "supplier_concentration"
+//   ]
+// }
