@@ -32,7 +32,7 @@ export const ELECTRONICS_TEMPLATE: Node[] = [
       location: { lat: 22.543, lng: 114.057 },
       address: 'Shenzhen Tech Hub, China'
     },
-    position: { x: 300, y: 120 },
+    position: { x: 400, y: 120 },
   },
   {
     id: 'assembly-factory-1',
@@ -47,7 +47,7 @@ export const ELECTRONICS_TEMPLATE: Node[] = [
       location: { lat: 10.823, lng: 106.629 },
       address: 'Ho Chi Minh Industrial Zone, Vietnam'
     },
-    position: { x: 500, y: 200 },
+    position: { x: 700, y: 200 },
   },
   {
     id: 'asia-port-1',
@@ -62,7 +62,7 @@ export const ELECTRONICS_TEMPLATE: Node[] = [
       location: { lat: 1.290, lng: 103.851 },
       address: 'Port of Singapore Authority, Singapore'
     },
-    position: { x: 700, y: 150 },
+    position: { x: 1000, y: 150 },
   },
   {
     id: 'us-port-1',
@@ -77,7 +77,7 @@ export const ELECTRONICS_TEMPLATE: Node[] = [
       location: { lat: 33.739, lng: -118.262 },
       address: 'Port of Los Angeles, CA'
     },
-    position: { x: 900, y: 200 },
+    position: { x: 1300, y: 200 },
   },
   {
     id: 'us-warehouse-1',
@@ -92,7 +92,7 @@ export const ELECTRONICS_TEMPLATE: Node[] = [
       location: { lat: 34.052, lng: -118.243 },
       address: 'Los Angeles Distribution Center, CA'
     },
-    position: { x: 1100, y: 120 },
+    position: { x: 1600, y: 120 },
   },
   {
     id: 'retail-distribution-1',
@@ -107,6 +107,6 @@ export const ELECTRONICS_TEMPLATE: Node[] = [
       location: { lat: 37.774, lng: -122.419 },
       address: 'San Francisco Bay Area, CA'
     },
-    position: { x: 1300, y: 200 },
+    position: { x: 1900, y: 200 },
   }
 ]; 

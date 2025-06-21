@@ -32,7 +32,7 @@ export const ENERGY_BULK_TEMPLATE: Node[] = [
       location: { lat: 40.440, lng: -79.995 },
       address: 'Pittsburgh Rail Terminal, PA'
     },
-    position: { x: 400, y: 150 },
+    position: { x: 450, y: 150 },
   },
   {
     id: 'power-plant-1',
@@ -47,7 +47,7 @@ export const ENERGY_BULK_TEMPLATE: Node[] = [
       location: { lat: 41.881, lng: -87.623 },
       address: 'Chicago Power Plant, IL'
     },
-    position: { x: 700, y: 180 },
+    position: { x: 750, y: 180 },
   },
   {
     id: 'grid-distribution-1',
@@ -62,6 +62,6 @@ export const ENERGY_BULK_TEMPLATE: Node[] = [
       location: { lat: 41.878, lng: -87.629 },
       address: 'Midwest Grid Network, IL'
     },
-    position: { x: 950, y: 150 },
+    position: { x: 1050, y: 150 },
   }
 ]; 

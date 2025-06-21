@@ -32,7 +32,7 @@ export const DOMESTIC_REGIONAL_TEMPLATE: Node[] = [
       location: { lat: 39.961, lng: -82.998 },
       address: 'Columbus Manufacturing, OH'
     },
-    position: { x: 500, y: 150 },
+    position: { x: 600, y: 150 },
   },
   {
     id: 'regional-dc-1',
@@ -47,7 +47,7 @@ export const DOMESTIC_REGIONAL_TEMPLATE: Node[] = [
       location: { lat: 39.103, lng: -84.512 },
       address: 'Cincinnati Distribution, OH'
     },
-    position: { x: 800, y: 120 },
+    position: { x: 1000, y: 120 },
   },
   {
     id: 'local-distribution-1',
@@ -62,6 +62,6 @@ export const DOMESTIC_REGIONAL_TEMPLATE: Node[] = [
       location: { lat: 36.165, lng: -86.784 },
       address: 'Nashville Local Delivery, TN'
     },
-    position: { x: 1100, y: 180 },
+    position: { x: 1400, y: 180 },
   }
 ]; 

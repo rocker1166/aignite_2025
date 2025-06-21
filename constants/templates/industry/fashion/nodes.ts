@@ -32,7 +32,7 @@ export const FASHION_SEASONAL_TEMPLATE: Node[] = [
       location: { lat: 23.810, lng: 90.412 },
       address: 'Dhaka Textile Mills, Bangladesh'
     },
-    position: { x: 350, y: 120 },
+    position: { x: 400, y: 120 },
   },
   {
     id: 'garment-factory-1',
@@ -47,7 +47,7 @@ export const FASHION_SEASONAL_TEMPLATE: Node[] = [
       location: { lat: 10.823, lng: 106.629 },
       address: 'Ho Chi Minh Garment Factory, Vietnam'
     },
-    position: { x: 600, y: 160 },
+    position: { x: 700, y: 160 },
   },
   {
     id: 'shipping-port-1',
@@ -62,7 +62,7 @@ export const FASHION_SEASONAL_TEMPLATE: Node[] = [
       location: { lat: 10.762, lng: 106.682 },
       address: 'Saigon Port, Vietnam'
     },
-    position: { x: 850, y: 140 },
+    position: { x: 1000, y: 140 },
   },
   {
     id: 'seasonal-warehouse-1',
@@ -77,7 +77,7 @@ export const FASHION_SEASONAL_TEMPLATE: Node[] = [
       location: { lat: 33.942, lng: -118.408 },
       address: 'Los Angeles Fashion District, CA'
     },
-    position: { x: 1100, y: 100 },
+    position: { x: 1300, y: 100 },
   },
   {
     id: 'retail-distribution-2',
@@ -92,6 +92,6 @@ export const FASHION_SEASONAL_TEMPLATE: Node[] = [
       location: { lat: 40.748, lng: -73.985 },
       address: 'New York Fashion Week, NY'
     },
-    position: { x: 1350, y: 180 },
+    position: { x: 1600, y: 180 },
   }
 ]; 

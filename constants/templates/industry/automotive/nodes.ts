@@ -62,7 +62,7 @@ export const AUTOMOTIVE_JIT_TEMPLATE: Node[] = [
       location: { lat: 36.084, lng: -86.660 },
       address: 'Nashville Assembly Plant, TN'
     },
-    position: { x: 500, y: 200 },
+    position: { x: 600, y: 200 },
   },
   {
     id: 'staging-warehouse-1',
@@ -92,6 +92,6 @@ export const AUTOMOTIVE_JIT_TEMPLATE: Node[] = [
       location: { lat: 35.207, lng: -80.831 },
       address: 'Southeast Dealerships, NC'
     },
-    position: { x: 750, y: 200 },
+    position: { x: 850, y: 200 },
   }
 ]; 

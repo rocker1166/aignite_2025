@@ -49,7 +49,7 @@ export function LandingHeader() {
         </nav>
 
         <div className="flex items-center gap-4">
-          <ThemeToggle />
+          <ThemeToggle start="top-right" />
             <div>
               {userData ? (
                 <SignoutButton />

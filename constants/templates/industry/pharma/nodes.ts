@@ -47,7 +47,7 @@ export const PHARMA_REGULATED_TEMPLATE: Node[] = [
       location: { lat: 39.952, lng: -75.165 },
       address: 'Philadelphia QA Center, PA'
     },
-    position: { x: 750, y: 120 },
+    position: { x: 850, y: 120 },
   },
   {
     id: 'specialty-distribution-1',
@@ -62,6 +62,6 @@ export const PHARMA_REGULATED_TEMPLATE: Node[] = [
       location: { lat: 41.878, lng: -87.629 },
       address: 'Chicago Specialty Pharma, IL'
     },
-    position: { x: 1000, y: 180 },
+    position: { x: 1200, y: 180 },
   }
 ]; 

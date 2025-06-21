@@ -32,7 +32,7 @@ export const TIER1_SIMPLE_TEMPLATE: Node[] = [
       location: { lat: 41.878, lng: -87.629 },
       address: 'Chicago Assembly Plant, IL'
     },
-    position: { x: 500, y: 150 },
+    position: { x: 600, y: 150 },
   },
   {
     id: 'distribution-center-2',
@@ -47,6 +47,6 @@ export const TIER1_SIMPLE_TEMPLATE: Node[] = [
       location: { lat: 39.961, lng: -82.998 },
       address: 'Columbus Distribution, OH'
     },
-    position: { x: 800, y: 150 },
+    position: { x: 1000, y: 150 },
   }
 ]; 

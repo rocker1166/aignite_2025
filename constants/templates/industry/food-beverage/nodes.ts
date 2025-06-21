@@ -32,7 +32,7 @@ export const FOOD_BEVERAGE_COLD_CHAIN_TEMPLATE: Node[] = [
       location: { lat: 37.421, lng: -122.084 },
       address: 'Mountain View Processing, CA'
     },
-    position: { x: 400, y: 150 },
+    position: { x: 500, y: 150 },
   },
   {
     id: 'cold-warehouse-1',
@@ -47,7 +47,7 @@ export const FOOD_BEVERAGE_COLD_CHAIN_TEMPLATE: Node[] = [
       location: { lat: 37.774, lng: -122.419 },
       address: 'San Francisco Cold Storage, CA'
     },
-    position: { x: 650, y: 120 },
+    position: { x: 850, y: 120 },
   },
   {
     id: 'regional-distribution-1',
@@ -62,6 +62,6 @@ export const FOOD_BEVERAGE_COLD_CHAIN_TEMPLATE: Node[] = [
       location: { lat: 37.687, lng: -122.470 },
       address: 'Bay Area Distribution, CA'
     },
-    position: { x: 900, y: 180 },
+    position: { x: 1200, y: 180 },
   }
 ]; 
