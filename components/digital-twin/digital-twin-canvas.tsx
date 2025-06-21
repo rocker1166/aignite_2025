@@ -10,7 +10,8 @@ import ReactFlow, {
   addEdge,
   Node,
   Edge,
-  Connection
+  Connection,
+  OnSelectionChangeParams 
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { toast } from "sonner";
@@ -38,20 +39,25 @@ export default function DigitalTwinCanvas({
   const [supplyChainName, setSupplyChainName] = useState("Default Supply Chain");
   const [description, setDescription] = useState(""); // Add description state
   const [simulationMode, setSimulationMode] = useState(false);
+  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
   const { userData } = useUser();
   
 
 
-  // When a node is clicked, set it as the selected element for the right panel
-  const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
-    event.preventDefault();
-    setSelectedElement(node);
-  }, []);
-
-  // When an edge is clicked, set it as the selected element for the right panel
-  const onEdgeClick = useCallback((event: React.MouseEvent, edge: Edge) => {
-    event.preventDefault();
-    setSelectedElement(edge);
+  // Handle selection changes (both nodes and edges)
+  const onSelectionChange = useCallback((params: OnSelectionChangeParams) => {
+    const { nodes: selectedNodes, edges: selectedEdges } = params;
+    
+    if (selectedNodes.length > 0) {
+      setSelectedElement(selectedNodes[0]);
+      setIsLeftPanelCollapsed(true);
+    } else if (selectedEdges.length > 0) {
+      setSelectedElement(selectedEdges[0]);
+      setIsLeftPanelCollapsed(true);
+    } else {
+      // Nothing selected
+      setSelectedElement(null);
+    }
   }, []);
 
   // Handle new connections between nodes
@@ -174,6 +180,8 @@ export default function DigitalTwinCanvas({
           onAddNode={handleAddNode}
           onClearAllNodes={handleClearAllNodes}
           simulationMode={simulationMode}
+          isCollapsed={isLeftPanelCollapsed}
+          setIsCollapsed={setIsLeftPanelCollapsed}
         />
 
         <div className="flex-1 h-full border border-gray-200">
@@ -183,8 +191,7 @@ export default function DigitalTwinCanvas({
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
-            onNodeClick={onNodeClick}
-            onEdgeClick={onEdgeClick}
+            onSelectionChange={onSelectionChange}
             nodeTypes={nodeTypes}
             fitView
           >

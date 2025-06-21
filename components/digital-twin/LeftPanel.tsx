@@ -10,11 +10,12 @@ interface LeftPanelProps {
   onAddNode: (nodeType: string) => void;
   onClearAllNodes: () => void;
   simulationMode: boolean;
+  isCollapsed: boolean;
+  setIsCollapsed: (collapsed: boolean) => void;
 }
 
-const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, simulationMode }) => {
+const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, simulationMode, isCollapsed, setIsCollapsed }) => {
   const [expandedSection, setExpandedSection] = useState<string | null>('nodes');
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);

@@ -27,13 +27,21 @@ const getRiskClass = (riskScore: number) => {
   return '';
 };
 
+// Helper to generate selection class with glowing effect
+const getSelectionClass = (selected: boolean) => {
+  return selected 
+    ? 'ring-4 ring-blue-400 ring-opacity-80 shadow-lg shadow-blue-200 transform scale-105 transition-all duration-200' 
+    : 'transition-all duration-200';
+};
+
 // Supplier Node
-export const SupplierNode = memo(({ data, isConnectable }: NodeProps) => {
+export const SupplierNode = memo(({ data, isConnectable, selected }: NodeProps) => {
   const riskClass = getRiskClass(data.riskScore);
   const typeClass = nodeTypeColors.supplier;
+  const selectionClass = getSelectionClass(selected);
 
   return (
-    <div style={baseNodeStyle} className={`${typeClass} ${riskClass}`}>
+    <div style={baseNodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
       <Handle
         type="source"
         position={Position.Right}
@@ -46,12 +54,13 @@ export const SupplierNode = memo(({ data, isConnectable }: NodeProps) => {
 });
 
 // Factory Node
-export const FactoryNode = memo(({ data, isConnectable }: NodeProps) => {
+export const FactoryNode = memo(({ data, isConnectable, selected }: NodeProps) => {
   const riskClass = getRiskClass(data.riskScore);
   const typeClass = nodeTypeColors.factory;
+  const selectionClass = getSelectionClass(selected);
 
   return (
-    <div style={baseNodeStyle} className={`${typeClass} ${riskClass}`}>
+    <div style={baseNodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
       <Handle
         type="target"
         position={Position.Left}
@@ -69,12 +78,13 @@ export const FactoryNode = memo(({ data, isConnectable }: NodeProps) => {
 });
 
 // Port Node
-export const PortNode = memo(({ data, isConnectable }: NodeProps) => {
+export const PortNode = memo(({ data, isConnectable, selected }: NodeProps) => {
   const riskClass = getRiskClass(data.riskScore);
   const typeClass = nodeTypeColors.port;
+  const selectionClass = getSelectionClass(selected);
   
   return (
-    <div style={baseNodeStyle} className={`${typeClass} ${riskClass}`}>
+    <div style={baseNodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
       <Handle
         type="target"
         position={Position.Left}
@@ -92,12 +102,13 @@ export const PortNode = memo(({ data, isConnectable }: NodeProps) => {
 });
 
 // Warehouse Node
-export const WarehouseNode = memo(({ data, isConnectable }: NodeProps) => {
+export const WarehouseNode = memo(({ data, isConnectable, selected }: NodeProps) => {
   const riskClass = getRiskClass(data.riskScore);
   const typeClass = nodeTypeColors.warehouse;
+  const selectionClass = getSelectionClass(selected);
   
   return (
-    <div style={baseNodeStyle} className={`${typeClass} ${riskClass}`}>
+    <div style={baseNodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
       <Handle
         type="target"
         position={Position.Left}
@@ -115,12 +126,13 @@ export const WarehouseNode = memo(({ data, isConnectable }: NodeProps) => {
 });
 
 // Distribution Node
-export const DistributionNode = memo(({ data, isConnectable }: NodeProps) => {
+export const DistributionNode = memo(({ data, isConnectable, selected }: NodeProps) => {
   const riskClass = getRiskClass(data.riskScore);
   const typeClass = nodeTypeColors.distribution;
+  const selectionClass = getSelectionClass(selected);
   
   return (
-    <div style={baseNodeStyle} className={`${typeClass} ${riskClass}`}>
+    <div style={baseNodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
       <Handle
         type="target"
         position={Position.Left}
