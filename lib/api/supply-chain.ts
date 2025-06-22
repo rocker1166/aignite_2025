@@ -173,6 +173,33 @@ export async function getCompleteSupplyChain(supplyChainId: string): Promise<{
 }
 
 /**
+ * Get user supply chains from super-worker edge function
+ */
+export async function getUserSupplyChains(userId: string) {
+  try {
+    const { data, error } = await supabaseClient.functions.invoke('super-worker', {
+      body: {
+        user_id: userId,
+      },
+    });
+
+    if (error) {
+      console.error('Super-worker edge function error:', error);
+      throw new Error(error.message || 'Failed to fetch user supply chains');
+    }
+
+    if (!data) {
+      throw new Error('No data returned from super-worker edge function');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching user supply chains:', error);
+    throw error;
+  }
+}
+
+/**
  * Save supply chain data to the database via edge function
  */
 export async function saveSupplyChainToDatabase(supplyChainData: {

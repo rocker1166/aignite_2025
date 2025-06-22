@@ -29,6 +29,7 @@ import { edgeTypes } from "./CustomEdges";
 import { useUser } from '@/lib/stores/user';
 import { saveSupplyChainToDatabase } from '@/lib/api/supply-chain';
 import { validateSupplyChain, ValidationIssue } from '@/lib/validation/supply-chain-validator';
+import { useRouter } from 'next/navigation';
 
 
 interface DigitalTwinCanvasProps {
@@ -36,43 +37,43 @@ interface DigitalTwinCanvasProps {
   initialEdges?: Edge[];
 }
 
-export default function DigitalTwinCanvas({ 
-  initialNodes = [], 
-  initialEdges = [] 
+export default function DigitalTwinCanvas({
+  initialNodes = [],
+  initialEdges = []
 }: DigitalTwinCanvasProps) {
   // URL state management
   const [archParam, setArchParam] = useQueryState('arch', {
     defaultValue: '',
     shallow: false
   });
-  
+
   // Initialize with empty state - will be populated by hydration effect
   const [hydratedNodes, setHydratedNodes] = useState<Node[]>([]);
   const [hydratedEdges, setHydratedEdges] = useState<Edge[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
-  
+
   const [nodes, setNodes, onNodesChange] = useNodesState(hydratedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(hydratedEdges);
-  
+
   // Track if we need to force URL update
   const forceURLUpdate = useRef(false);
-  
+
   // Custom nodes change handler to force URL updates
   const handleNodesChange = useCallback((changes: any[]) => {
     console.log('Nodes changed:', changes);
     onNodesChange(changes);
-    
+
     // Check if any change involves position updates
-    const hasPositionChange = changes.some(change => 
+    const hasPositionChange = changes.some(change =>
       change.type === 'position' || change.type === 'dimensions'
     );
-    
+
     if (hasPositionChange) {
       console.log('Position change detected, forcing URL update');
       forceURLUpdate.current = true;
     }
   }, [onNodesChange]);
-  
+
   const [selectedElement, setSelectedElement] = useState<Node | Edge | null>(null);
   const [selectedSupplyChain, setSelectedSupplyChain] = useState("default-chain");
   const [supplyChainName, setSupplyChainName] = useState("Default Supply Chain");
@@ -80,19 +81,19 @@ export default function DigitalTwinCanvas({
   const [simulationMode, setSimulationMode] = useState(false);
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
   const { userData } = useUser();
-  
+  const router = useRouter();
   // Validation state
   const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([]);
   const [showValidationDialog, setShowValidationDialog] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  
+
   // React Flow instance ref for focusing elements
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
-  
+
   // Track if we're updating from URL to prevent infinite loops
   const isUpdatingFromURL = useRef(false);
 
-    // Function to ensure edges have the correct type and data structure
+  // Function to ensure edges have the correct type and data structure
   const migrateEdges = (edges: Edge[]) => {
     return edges.map(edge => ({
       ...edge,
@@ -118,29 +119,29 @@ export default function DigitalTwinCanvas({
       console.log('📦 archParam exists:', !!archParam, 'length:', archParam?.length);
       console.log('📦 initialNodes length:', initialNodes.length);
       console.log('📦 initialEdges length:', initialEdges.length);
-      
+
       if (!isHydrated) {
         if (archParam) {
           try {
             console.log('🎯 Starting URL hydration with archParam:', archParam.substring(0, 100) + '...');
-            
+
             // Decode the base64 URL parameter directly to JSON
             console.log('🔍 Step 1: Decoding base64 to JSON string');
-            
+
             // Add back padding if needed for base64
             const padding = '='.repeat((4 - (archParam.length % 4)) % 4);
             const paddedBase64 = archParam
               .replace(/-/g, '+')
               .replace(/_/g, '/') + padding;
-            
+
             const jsonString = atob(paddedBase64);
             console.log('✅ Base64 decoded, JSON string length:', jsonString.length);
             console.log('🔍 First 200 chars of JSON:', jsonString.substring(0, 200));
-            
+
             console.log('🔍 Step 2: Parsing JSON');
             const canvasData = JSON.parse(jsonString);
             console.log('✅ JSON parsed successfully');
-            
+
             console.log('🔍 Canvas data structure:', {
               hasNodes: !!canvasData.nodes,
               hasEdges: !!canvasData.edges,
@@ -149,24 +150,24 @@ export default function DigitalTwinCanvas({
               timestamp: canvasData.timestamp,
               keys: Object.keys(canvasData)
             });
-            
+
             if (canvasData.nodes && canvasData.edges) {
               console.log('🎯 Setting nodes and edges from URL data');
               console.log('📊 Nodes to set:', canvasData.nodes.length);
               console.log('🔗 Edges to set:', canvasData.edges.length);
-              
+
               const migratedEdges = migrateEdges(canvasData.edges);
-              
+
               setHydratedNodes(canvasData.nodes);
               setHydratedEdges(migratedEdges);
-              
+
               // Update React Flow state
               isUpdatingFromURL.current = true;
               setNodes(canvasData.nodes);
               setEdges(migratedEdges);
-              
+
               console.log('✅ State updated from URL');
-              
+
               // Reset flag after a short delay to ensure state updates are complete
               setTimeout(() => {
                 isUpdatingFromURL.current = false;
@@ -219,37 +220,37 @@ export default function DigitalTwinCanvas({
         nodesLength: currentNodes.length,
         edgesLength: currentEdges.length
       });
-      
+
       if (isUpdatingFromURL.current) return;
-      
+
       try {
         const canvasData = {
           nodes: currentNodes,
           edges: currentEdges,
           timestamp: Date.now()
         };
-        
+
         const jsonString = JSON.stringify(canvasData);
         console.log('JSON string length:', jsonString.length);
-        
+
         // Check if the JSON string is too large (URLs have limitations)
         if (jsonString.length > 50000) {
           console.warn('Canvas data too large for URL, skipping URL update');
           return;
         }
-        
+
         // Encode JSON directly to base64
         const base64String = btoa(jsonString)
           .replace(/\+/g, '-')
           .replace(/\//g, '_')
           .replace(/=/g, '');
-        
+
         console.log('Base64 string length:', base64String.length);
         console.log('Setting archParam to:', base64String.substring(0, 50) + '...');
-        
+
         // Use replace instead of push to avoid adding to browser history
         // This prevents unwanted page refreshes
-        setArchParam(base64String, { 
+        setArchParam(base64String, {
           scroll: false,
           shallow: true
         });
@@ -269,12 +270,12 @@ export default function DigitalTwinCanvas({
       isUpdatingFromURL: isUpdatingFromURL.current,
       forceUpdate: forceURLUpdate.current
     });
-    
+
     // Always update URL when hydrated and not currently updating from URL
     if (isHydrated && !isUpdatingFromURL.current) {
       console.log('Calling debouncedUpdateURL with nodes/edges');
       debouncedUpdateURL(nodes, edges);
-      
+
       // Reset force update flag
       if (forceURLUpdate.current) {
         forceURLUpdate.current = false;
@@ -292,7 +293,7 @@ export default function DigitalTwinCanvas({
   // Handle selection changes (both nodes and edges)
   const onSelectionChange = useCallback((params: OnSelectionChangeParams) => {
     const { nodes: selectedNodes, edges: selectedEdges } = params;
-    
+
     if (selectedNodes.length > 0) {
       setSelectedElement(selectedNodes[0]);
       setIsLeftPanelCollapsed(true);
@@ -353,11 +354,11 @@ export default function DigitalTwinCanvas({
   // Handle saving the current supply chain with validation
   const handleSave = useCallback(async () => {
     console.log('Starting save process with validation...');
-    
+
     // Run validation
     const issues = validateSupplyChain(nodes, edges);
     setValidationIssues(issues);
-    
+
     // If there are errors, show validation dialog and prevent save
     const errors = issues.filter(issue => issue.severity === 'error');
     if (errors.length > 0) {
@@ -365,7 +366,7 @@ export default function DigitalTwinCanvas({
       setShowValidationDialog(true);
       return;
     }
-    
+
     // If there are only warnings, show dialog with option to save
     const warnings = issues.filter(issue => issue.severity === 'warning');
     if (warnings.length > 0) {
@@ -373,7 +374,7 @@ export default function DigitalTwinCanvas({
       setShowValidationDialog(true);
       return;
     }
-    
+
     // No issues, proceed with save
     await performSave();
   }, [nodes, edges, selectedSupplyChain, supplyChainName, description, userData]);
@@ -400,15 +401,15 @@ export default function DigitalTwinCanvas({
 
       // Check for form data from URL parameters
       const urlParams = new URLSearchParams(window.location.search);
-      
+
       // Check for save dialog data from URL parameters (in case user came from validation dialog)
       const saveNameFromUrl = urlParams.get('saveName');
       const saveDescriptionFromUrl = urlParams.get('saveDescription');
-      
+
       // Use URL save parameters if they exist, otherwise fall back to current state
       const finalSupplyChainName = saveNameFromUrl || supplyChainName;
       const finalDescription = saveDescriptionFromUrl || description;
-      
+
       const formDataFromUrl = {
         industry: urlParams.get('industry'),
         customIndustry: urlParams.get('customIndustry'),
@@ -469,18 +470,19 @@ export default function DigitalTwinCanvas({
       };
 
       console.log('💾 Saving supply chain with complete data:', supplyChainData);
-      
+
       // Log specific form data if available
       if (supplyChainData.formData && Object.values(supplyChainData.formData).some(value => value !== null && value !== undefined && value !== '')) {
         console.log('📋 Original form data being saved:', supplyChainData.formData);
       } else {
         console.log('⚠️ No form data found in URL parameters or localStorage');
       }
-      
+
       await saveSupplyChainToDatabase(supplyChainData);
       toast.success('Supply chain saved successfully!');
+      router.push('/digital-twin');
       setShowValidationDialog(false); // Close validation dialog on success
-      
+
       // Clear save dialog URL parameters on successful save
       if (saveNameFromUrl || saveDescriptionFromUrl) {
         const newUrl = new URL(window.location.href);
@@ -504,10 +506,10 @@ export default function DigitalTwinCanvas({
       if (node && reactFlowInstance) {
         // Clear current selection
         setSelectedElement(null);
-        
+
         // Focus on the node
         reactFlowInstance.current?.setCenter(node.position.x + 100, node.position.y + 50, { zoom: 1.5 });
-        
+
         // Select the node after a brief delay to ensure it's visible
         setTimeout(() => {
           setSelectedElement(node);
@@ -518,18 +520,18 @@ export default function DigitalTwinCanvas({
       if (edge && reactFlowInstance) {
         const sourceNode = nodes.find(n => n.id === edge.source);
         const targetNode = nodes.find(n => n.id === edge.target);
-        
+
         if (sourceNode && targetNode) {
           // Clear current selection
           setSelectedElement(null);
-          
+
           // Calculate center point between source and target
           const centerX = (sourceNode.position.x + targetNode.position.x) / 2;
           const centerY = (sourceNode.position.y + targetNode.position.y) / 2;
-          
+
           // Focus on the edge center
           reactFlowInstance.current?.setCenter(centerX, centerY, { zoom: 1.5 });
-          
+
           // Select the edge after a brief delay
           setTimeout(() => {
             setSelectedElement(edge);
@@ -537,7 +539,7 @@ export default function DigitalTwinCanvas({
         }
       }
     }
-    
+
     // Close validation dialog when focusing on an element
     setShowValidationDialog(false);
   }, [nodes, edges, reactFlowInstance]);
