@@ -1,6 +1,6 @@
 import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import DynamicFormField from '@/components/digital-twin/DynamicFormField';
+import DynamicFormField from '@/components/digital-twin/forms/DynamicFormField';
 import { NODE_PROPERTY_SPECS, NODE_TYPE_MAP } from '@/constants/digital-twin';
 import { NodeType } from '@/lib/types/digital-twin';
 

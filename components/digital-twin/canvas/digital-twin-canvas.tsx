@@ -20,12 +20,12 @@ import { useQueryState } from 'nuqs';
 
 import debounce from 'lodash.debounce';
 
-import SimulationToolbar from './SimulationToolbar';
-import LeftPanel from './LeftPanel';
-import RightPanel from './RightPanel';
-import ValidationDialog from './ValidationDialog';
+import SimulationToolbar from '../layout/SimulationToolbar';
+import LeftPanel from '../layout/LeftPanel';
+import RightPanel from '../layout/RightPanel';
+import ValidationDialog from '../forms/ValidationDialog';
 import { nodeTypes } from "./CustomNodes";
-import { edgeTypes } from "../CustomEdges";
+import { edgeTypes } from "./CustomEdges";
 import { useUser } from '@/lib/stores/user';
 import insertSupplyChain from '@/utils/functions/insertSupplyChain';
 import { validateSupplyChain, ValidationIssue } from '@/lib/validation/supply-chain-validator';
@@ -398,6 +398,46 @@ export default function DigitalTwinCanvas({
         };
       });
 
+      // Check for form data from URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const formDataFromUrl = {
+        industry: urlParams.get('industry'),
+        customIndustry: urlParams.get('customIndustry'),
+        productCharacteristics: urlParams.get('productCharacteristics')?.split(',') || [],
+        supplierTiers: urlParams.get('supplierTiers'),
+        operationsLocation: urlParams.get('operationsLocation')?.split(',') || [],
+        country: urlParams.get('country'),
+        currency: urlParams.get('currency'),
+        shippingMethods: urlParams.get('shippingMethods')?.split(',') || [],
+        annualVolumeType: urlParams.get('annualVolumeType'),
+        annualVolumeValue: urlParams.get('annualVolumeValue') ? parseInt(urlParams.get('annualVolumeValue')!) : null,
+        risks: urlParams.get('risks')?.split(',') || []
+      };
+
+      // Check for form data in localStorage
+      let formDataFromLocalStorage = null;
+      try {
+        const storedData = localStorage.getItem(`supplyChain-${selectedSupplyChain}`);
+        if (storedData) {
+          const parsedData = JSON.parse(storedData);
+          formDataFromLocalStorage = {
+            industry: parsedData.industry,
+            customIndustry: parsedData.customIndustry,
+            productCharacteristics: parsedData.productCharacteristics,
+            supplierTiers: parsedData.supplierTiers,
+            operationsLocation: parsedData.operationsLocation,
+            country: parsedData.country,
+            currency: parsedData.currency,
+            shippingMethods: parsedData.shippingMethods,
+            annualVolumeType: parsedData.annualVolumeType,
+            annualVolumeValue: parsedData.annualVolumeValue,
+            risks: parsedData.risks
+          };
+        }
+      } catch (error) {
+        console.error('Error parsing localStorage data:', error);
+      }
+
       const supplyChainData = {
         id: selectedSupplyChain,
         name: supplyChainName, // Include the supply chain name
@@ -406,6 +446,8 @@ export default function DigitalTwinCanvas({
         edges,
         connections,
         timestamp: new Date().toISOString(),
+        // Include form data if available
+        formData: formDataFromLocalStorage || formDataFromUrl,
         // Include organization data at the top level
         organisation: {
           id: userData?.id,
@@ -417,7 +459,15 @@ export default function DigitalTwinCanvas({
         }
       };
 
-      console.log('Saving supply chain:', supplyChainData);
+      console.log('💾 Saving supply chain with complete data:', supplyChainData);
+      
+      // Log specific form data if available
+      if (supplyChainData.formData && Object.values(supplyChainData.formData).some(value => value !== null && value !== undefined && value !== '')) {
+        console.log('📋 Original form data being saved:', supplyChainData.formData);
+      } else {
+        console.log('⚠️ No form data found in URL parameters or localStorage');
+      }
+      
       // await insertSupplyChain(supplyChainData);
       toast.success('Supply chain saved successfully!');
       setShowValidationDialog(false); // Close validation dialog on success

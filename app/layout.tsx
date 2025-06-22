@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@/components/theme"
 import SessionProvider from "@/lib/context/SessionProvider";
 import { Toaster } from "sonner";
 import { NuqsAdapter } from 'nuqs/adapters/next/app';

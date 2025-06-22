@@ -3,7 +3,7 @@ import { Edge } from 'reactflow';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { EDGE_PROPERTY_SPECS } from '@/constants/digital-twin';
-import DynamicFormField from '../DynamicFormField';
+import DynamicFormField from '@/components/digital-twin/forms/DynamicFormField';
 
 interface EdgeConfigurationProps {
   selectedEdge: Edge;

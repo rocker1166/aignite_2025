@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import DigitalTwinCard from '@/components/digital-twin/digital-twin-card';
+import DigitalTwinCard from '@/components/digital-twin/display/digital-twin-card';
 import { useQueryState, parseAsString } from 'nuqs';
 
 // Mock data for initial development

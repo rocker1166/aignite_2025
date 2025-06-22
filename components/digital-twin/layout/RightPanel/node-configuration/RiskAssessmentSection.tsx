@@ -1,6 +1,6 @@
 import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import DynamicFormField from '@/components/digital-twin/DynamicFormField';
+import DynamicFormField from '@/components/digital-twin/forms/DynamicFormField';
 import { COMMON_RISK_FIELDS } from '@/constants/digital-twin';
 
 interface RiskAssessmentSectionProps {

@@ -92,7 +92,6 @@ export const TransportEdge = ({
             }}>
               <div>💰 ${data?.cost || 0}</div>
               <div>⏱️ {data?.transitTime || 0}d</div>
-              <div>⚠️ Risk: {data?.riskMultiplier?.toFixed(1) || "1.0"}x</div>
             </div>
           )}
         </div>

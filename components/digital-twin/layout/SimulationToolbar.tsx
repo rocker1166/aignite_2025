@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from 'react';
-import SaveSupplyChainDialog from './SaveSupplyChainDialog';
+import SaveSupplyChainDialog from '../forms/SaveSupplyChainDialog';
 import FloatingSaveButton from './FloatingSaveButton';
 
 interface SimulationToolbarProps {
@@ -58,10 +58,6 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
     }
   };
 
-  // Handle blur event to update the selected supply chain
-  const handleBlur = () => {
-    setSelectedSupplyChain(inputValue);
-  };
 
   // Handle save button click - opens dialog
   const handleSaveClick = () => {

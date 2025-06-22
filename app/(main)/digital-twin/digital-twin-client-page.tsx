@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useQueryState, parseAsString } from 'nuqs';
-import DigitalTwinDashboard from '@/components/digital-twin/dashboard';
-import CreationForm from '@/components/digital-twin/creation-form';
-import DigitalTwinCanvas from '@/components/digital-twin/digital-twin-canvas';
-import DigitalTwinSkeleton from '@/components/digital-twin/DigitalTwinSkeleton';
+import { Header } from '@/components/header';
+import DigitalTwinDashboard from '@/components/digital-twin/display/dashboard';
+import CreationForm from '@/components/digital-twin/forms/creation-form';
+import DigitalTwinCanvas from '@/components/digital-twin/canvas/digital-twin-canvas';
+import DigitalTwinSkeleton from '@/components/digital-twin/display/DigitalTwinSkeleton';
 import { selectTemplate, getTemplateInfo } from '@/lib/template-selector';
 import {
   Dialog,
@@ -21,6 +22,9 @@ export default function DigitalTwinClientPage() {
   const [archParam] = useQueryState('arch', parseAsString);
   const [activeTwinData, setActiveTwinData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Determine if header should be shown (only when neither twinId nor arch are present)
+  const shouldShowHeader = !twinId && !archParam;
 
   // Load twin data when twinId changes
   useEffect(() => {
@@ -59,13 +63,26 @@ export default function DigitalTwinClientPage() {
   };
 
   const handleCreationSuccess = (data: any) => {
-    console.log('Supply chain created:', data);
+    console.log('🚀 Supply chain created with form data:', data);
+    console.log('📋 Form Data Details:', {
+      industry: data.industry,
+      customIndustry: data.customIndustry,
+      productCharacteristics: data.productCharacteristics,
+      supplierTiers: data.supplierTiers,
+      operationsLocation: data.operationsLocation,
+      country: data.country,
+      currency: data.currency,
+      shippingMethods: data.shippingMethods,
+      annualVolumeType: data.annualVolumeType,
+      annualVolumeValue: data.annualVolumeValue,
+      risks: data.risks
+    });
 
     // Select the appropriate template based on form data
     const { nodes, edges } = selectTemplate(data);
     const templateInfo = getTemplateInfo(data);
 
-    console.log(`Selected template: ${templateInfo.templateName} - ${templateInfo.reason}`);
+    console.log(`🎯 Selected template: ${templateInfo.templateName} - ${templateInfo.reason}`);
 
     // Store the supply chain data with template nodes and edges in localStorage
     const twinId = `twin-${Date.now()}`;
@@ -77,6 +94,7 @@ export default function DigitalTwinClientPage() {
       createdAt: new Date().toISOString()
     };
     localStorage.setItem(`supplyChain-${twinId}`, JSON.stringify(twinData));
+    console.log('💾 Supply chain data saved to localStorage:', twinData);
 
     // Store the list of twin IDs
     const existingTwins = JSON.parse(localStorage.getItem('digitalTwins') || '[]');
@@ -87,9 +105,13 @@ export default function DigitalTwinClientPage() {
       templateName: templateInfo.templateName
     }];
     localStorage.setItem('digitalTwins', JSON.stringify(updatedTwins));
+    console.log('📝 Updated twins list:', updatedTwins);
+
+    console.log('🔗 Form data is also stored in URL parameters via form component');
 
     setView(null, { scroll: false });
     setTwinId(twinId);
+    
     // Here you would typically invalidate a query to refetch the twins list
   };
 
@@ -134,7 +156,10 @@ export default function DigitalTwinClientPage() {
   // The dashboard is always rendered, and the dialog is overlaid on top.
   return (
     <>
-      <DigitalTwinDashboard />
+      {shouldShowHeader && <Header title="Digital Twin" />}
+      <main className={shouldShowHeader ? "flex-1 overflow-auto" : ""}>
+        <DigitalTwinDashboard />
+      </main>
       <Dialog
         open={view === 'create'}
         onOpenChange={(isOpen) => !isOpen && setView(null, { scroll: false })}

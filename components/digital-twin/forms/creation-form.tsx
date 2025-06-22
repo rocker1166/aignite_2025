@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQueryState, parseAsInteger } from 'nuqs';
+import { useQueryState, parseAsInteger, parseAsString, parseAsArrayOf } from 'nuqs';
 
 import { Button } from "@/components/ui/button";
 import { Stepper, StepperItem, StepperStatusIcon, StepperTitle } from "@/components/ui/stepper";
@@ -29,15 +29,33 @@ export default function CreationForm({ onSuccess, onCancel }: CreationFormProps)
   const [step, setStep] = useQueryState('step', parseAsInteger.withDefault(0));
   const [showCountryDialog, setShowCountryDialog] = useState(false);
   
+  // URL state for form data
+  const [industryParam, setIndustryParam] = useQueryState('industry', parseAsString);
+  const [customIndustryParam, setCustomIndustryParam] = useQueryState('customIndustry', parseAsString);
+  const [productCharacteristicsParam, setProductCharacteristicsParam] = useQueryState('productCharacteristics', parseAsArrayOf(parseAsString));
+  const [supplierTiersParam, setSupplierTiersParam] = useQueryState('supplierTiers', parseAsString);
+  const [operationsLocationParam, setOperationsLocationParam] = useQueryState('operationsLocation', parseAsArrayOf(parseAsString));
+  const [countryParam, setCountryParam] = useQueryState('country', parseAsString);
+  const [currencyParam, setCurrencyParam] = useQueryState('currency', parseAsString);
+  const [shippingMethodsParam, setShippingMethodsParam] = useQueryState('shippingMethods', parseAsArrayOf(parseAsString));
+  const [annualVolumeTypeParam, setAnnualVolumeTypeParam] = useQueryState('annualVolumeType', parseAsString);
+  const [annualVolumeValueParam, setAnnualVolumeValueParam] = useQueryState('annualVolumeValue', parseAsInteger);
+  const [risksParam, setRisksParam] = useQueryState('risks', parseAsArrayOf(parseAsString));
+  
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-        productCharacteristics: [],
-        operationsLocation: [],
-        shippingMethods: [],
-        risks: [],
-        annualVolumeType: "units",
-        annualVolumeValue: 0,
+        productCharacteristics: productCharacteristicsParam || [],
+        operationsLocation: operationsLocationParam || [],
+        shippingMethods: shippingMethodsParam || [],
+        risks: risksParam || [],
+        annualVolumeType: (annualVolumeTypeParam as "units" | "currency") || "units",
+        annualVolumeValue: annualVolumeValueParam || 0,
+        industry: industryParam || "",
+        customIndustry: customIndustryParam || "",
+        supplierTiers: supplierTiersParam || "",
+        country: countryParam || "",
+        currency: currencyParam || "",
     }
   });
 
@@ -79,6 +97,21 @@ export default function CreationForm({ onSuccess, onCancel }: CreationFormProps)
   };
   
   const onSubmit = (data: FormData) => {
+    // Store all form data in URL parameters
+    setIndustryParam(data.industry);
+    setCustomIndustryParam(data.customIndustry || null);
+    setProductCharacteristicsParam(data.productCharacteristics);
+    setSupplierTiersParam(data.supplierTiers);
+    setOperationsLocationParam(data.operationsLocation);
+    setCountryParam(data.country || null);
+    setCurrencyParam(data.currency);
+    setShippingMethodsParam(data.shippingMethods);
+    setAnnualVolumeTypeParam(data.annualVolumeType);
+    setAnnualVolumeValueParam(data.annualVolumeValue);
+    setRisksParam(data.risks);
+    
+    console.log('Form data stored in URL parameters:', data);
+    
     onSuccess(data);
   };
 

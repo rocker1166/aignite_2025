@@ -841,6 +841,9 @@ function validateEdge(edge: Edge, sourceNode?: Node, targetNode?: Node): Validat
   // Check for logical transport mode issues
   issues.push(...validateTransportMode(edge, sourceNode, targetNode));
   
+  // Check for risk and disruption field validations
+  issues.push(...validateEdgeRiskFields(edge, sourceNode, targetNode));
+  
   return issues;
 }
 
@@ -894,6 +897,108 @@ function validateTransportMode(edge: Edge, sourceNode?: Node, targetNode?: Node)
         suggestion: 'Consider \'Road\' or \'Rail\' for domestic connections instead of \'Sea\' or \'Air\'.'
       });
     }
+  }
+  
+  return issues;
+}
+
+function validateEdgeRiskFields(edge: Edge, sourceNode?: Node, targetNode?: Node): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  
+  // Validate avgDelayDays - should be non-negative if present
+  if (edge.data.avgDelayDays !== undefined) {
+    if (typeof edge.data.avgDelayDays !== 'number' || edge.data.avgDelayDays < 0) {
+      issues.push({
+        id: `invalid-avg-delay-${edge.id}`,
+        elementId: edge.id,
+        elementType: 'edge',
+        severity: 'error',
+        message: `Average historical delay must be a non-negative number.`,
+        suggestion: 'Enter a valid number of days (0 or greater) for the average delay.'
+      });
+    }
+  }
+  
+  // Validate frequencyOfDisruptions - should be non-negative if present
+  if (edge.data.frequencyOfDisruptions !== undefined) {
+    if (typeof edge.data.frequencyOfDisruptions !== 'number' || edge.data.frequencyOfDisruptions < 0) {
+      issues.push({
+        id: `invalid-disruption-frequency-${edge.id}`,
+        elementId: edge.id,
+        elementType: 'edge',
+        severity: 'error',
+        message: `Disruption frequency must be a non-negative number.`,
+        suggestion: 'Enter a valid number (0 or greater) for disruptions per year.'
+      });
+    }
+  }
+  
+  // Validate alternative route details dependency
+  if (edge.data.hasAltRoute === true) {
+    if (!edge.data.altRouteDetails || typeof edge.data.altRouteDetails !== 'string' || edge.data.altRouteDetails.trim() === '') {
+      issues.push({
+        id: `missing-alt-route-details-${edge.id}`,
+        elementId: edge.id,
+        elementType: 'edge',
+        severity: 'warning',
+        message: `Alternative route options are enabled but no details provided.`,
+        suggestion: 'Describe the alternative routes available, or disable alternative route options if none exist.'
+      });
+    }
+  }
+  
+  // Validate chokepoint details dependency
+  if (edge.data.passesThroughChokepoint === true) {
+    if (!edge.data.chokepointNames || (Array.isArray(edge.data.chokepointNames) && edge.data.chokepointNames.length === 0)) {
+      issues.push({
+        id: `missing-chokepoint-names-${edge.id}`,
+        elementId: edge.id,
+        elementType: 'edge',
+        severity: 'warning',
+        message: `Route passes through chokepoints but none are specified.`,
+        suggestion: 'Select the specific global chokepoints this route passes through, or disable chokepoint option if none apply.'
+      });
+    }
+  }
+  
+  // Validate chokepoint names for international routes only
+  if (edge.data.chokepointNames && Array.isArray(edge.data.chokepointNames) && edge.data.chokepointNames.length > 0) {
+    if (sourceNode?.data?.country && targetNode?.data?.country && sourceNode.data.country === targetNode.data.country) {
+      issues.push({
+        id: `chokepoint-domestic-route-${edge.id}`,
+        elementId: edge.id,
+        elementType: 'edge',
+        severity: 'warning',
+        message: `Global chokepoints selected for a domestic route.`,
+        suggestion: 'Global chokepoints typically apply to international routes. Verify if this is correct for a domestic connection.'
+      });
+    }
+  }
+  
+  // Warn about high disruption frequency without alternative routes
+  if (edge.data.frequencyOfDisruptions !== undefined && edge.data.frequencyOfDisruptions > 3) {
+    if (edge.data.hasAltRoute !== true) {
+      issues.push({
+        id: `high-disruption-no-alt-${edge.id}`,
+        elementId: edge.id,
+        elementType: 'edge',
+        severity: 'warning',
+        message: `High disruption frequency (${edge.data.frequencyOfDisruptions}/year) without alternative routes.`,
+        suggestion: 'Consider identifying alternative routes for this high-risk connection to improve supply chain resilience.'
+      });
+    }
+  }
+  
+  // Warn about chokepoint exposure without alternative routes
+  if (edge.data.passesThroughChokepoint === true && edge.data.hasAltRoute !== true) {
+    issues.push({
+      id: `chokepoint-no-alt-${edge.id}`,
+      elementId: edge.id,
+      elementType: 'edge',
+      severity: 'warning',
+      message: `Route passes through global chokepoints without alternative routes.`,
+      suggestion: 'Consider identifying alternative routes to reduce dependency on chokepoints and improve supply chain resilience.'
+    });
   }
   
   return issues;
