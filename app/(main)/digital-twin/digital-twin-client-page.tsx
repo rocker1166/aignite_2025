@@ -8,6 +8,7 @@ import CreationForm from '@/components/digital-twin/forms/creation-form';
 import DigitalTwinCanvas from '@/components/digital-twin/canvas/digital-twin-canvas';
 import DigitalTwinSkeleton from '@/components/digital-twin/display/DigitalTwinSkeleton';
 import { selectTemplate, getTemplateInfo } from '@/lib/template-selector';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,9 @@ export default function DigitalTwinClientPage() {
       // If there's an arch parameter, we'll let the canvas handle the state
       // Only load from localStorage if there's no arch parameter
       if (!archParam) {
+        // Note: Since we've moved to database storage, localStorage is now primarily
+        // used for temporary data. In the future, this should be replaced with
+        // a proper API call to fetch twin data from the database.
         const data = localStorage.getItem(`supplyChain-${twinId}`);
         if (data) {
           try {
@@ -44,6 +48,8 @@ export default function DigitalTwinClientPage() {
             setActiveTwinData(null);
           }
         } else {
+          // TODO: Replace with API call to fetch twin data from database
+          console.log('No localStorage data found for twin:', twinId);
           setActiveTwinData(null);
         }
       } else {
@@ -84,8 +90,10 @@ export default function DigitalTwinClientPage() {
 
     console.log(`🎯 Selected template: ${templateInfo.templateName} - ${templateInfo.reason}`);
 
-    // Store the supply chain data with template nodes and edges in localStorage
+    // Create dummy twin ID with current date
     const twinId = `twin-${Date.now()}`;
+    
+    // Store the template data temporarily for the canvas to use
     const twinData = {
       ...data,
       nodes,
@@ -93,26 +101,21 @@ export default function DigitalTwinClientPage() {
       templateInfo,
       createdAt: new Date().toISOString()
     };
-    localStorage.setItem(`supplyChain-${twinId}`, JSON.stringify(twinData));
-    console.log('💾 Supply chain data saved to localStorage:', twinData);
-
-    // Store the list of twin IDs
-    const existingTwins = JSON.parse(localStorage.getItem('digitalTwins') || '[]');
-    const updatedTwins = [...existingTwins, {
-      id: twinId,
-      name: data.name || 'Unnamed Twin',
-      createdAt: new Date().toISOString(),
-      templateName: templateInfo.templateName
-    }];
-    localStorage.setItem('digitalTwins', JSON.stringify(updatedTwins));
-    console.log('📝 Updated twins list:', updatedTwins);
-
-    console.log('🔗 Form data is also stored in URL parameters via form component');
-
-    setView(null, { scroll: false });
-    setTwinId(twinId);
     
-    // Here you would typically invalidate a query to refetch the twins list
+    // Store in localStorage temporarily for the canvas to access
+    localStorage.setItem(`supplyChain-${twinId}`, JSON.stringify(twinData));
+    
+    console.log('✅ Digital twin created with dummy ID:', twinId);
+    console.log('💾 Template data stored temporarily:', twinData);
+    
+    // Show success toast
+    toast.success('Digital twin created successfully!');
+    
+    // Close the dialog
+    setView(null, { scroll: false });
+    
+    // Set the twin ID to show the canvas
+    setTwinId(twinId);
   };
 
   // If a twinId is present, we would show the canvas/details view.
@@ -164,10 +167,12 @@ export default function DigitalTwinClientPage() {
         open={view === 'create'}
         onOpenChange={(isOpen) => !isOpen && setView(null, { scroll: false })}
       >
-        <DialogContent className="sm:max-w-[800px] p-0" hideCloseIcon={true}>
-          <DialogHeader className="p-6 pb-2">
-            <DialogTitle className="text-2xl font-bold">Create a New Digital Twin</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="sm:max-w-2xl p-0" hideCloseIcon={true}>
+          <DialogHeader className="p-6 pb-4">
+            <DialogTitle className="text-xl font-bold text-slate-900 dark:text-slate-100">
+              Create a New Digital Twin
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-500 dark:text-slate-400">
               Fill out the steps below to build your supply chain model.
             </DialogDescription>
           </DialogHeader>

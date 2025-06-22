@@ -89,15 +89,39 @@ export const NODE_TYPES = [
 // Master list of node-specific form fields, with UI hints (optional flags, info icons, conditional logic)
 export const NODE_PROPERTY_SPECS: Record<NodeType, PropertySpec[]> = {
   supplierNode: [
-    { key: 'supplierTier',       type: 'enum',   options: ['tier1', 'tier2', 'tier3+'], label: 'Supplier Tier' },
-    { key: 'supplyCapacity',     type: 'number', label: 'Annual Supply Capacity' },
-    { key: 'materialType',       type: 'string', label: 'Material / Component Type' },
-    { key: 'minOrderQty',        type: 'number', label: 'Min. Order Qty' },
+    { 
+      key: 'supplierTier',       
+      type: 'enum',   
+      options: ['tier1', 'tier2', 'tier3+'], 
+      label: 'Supplier Tier',
+      defaultValue: 0
+    },
+    { 
+      key: 'supplyCapacity',     
+      type: 'number', 
+      label: 'Annual Supply Capacity',
+      defaultValue: 0
+    },
+    { 
+      key: 'materialType',       
+      type: 'string', 
+      label: 'Material / Component Type',
+      defaultValue: 0
+    },
+    { 
+      key: 'minOrderQty',        
+      type: 'number', 
+      label: 'Min. Order Qty',
+      defaultValue: 1
+    },
     {
-      key: 'reliabilityPct',     type: 'number', label: 'On‑time Reliability (%)',
+      key: 'reliabilityPct',     
+      type: 'number', 
+      label: 'On‑time Reliability (%)',
       optional: true,
       showInfoIcon: true,
-      infoText: 'Optional: Percentage of orders delivered on time.'
+      infoText: 'Optional: Percentage of orders delivered on time.',
+      defaultValue: 100
     },
 
   ],

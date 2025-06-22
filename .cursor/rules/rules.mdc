@@ -1,7 +1,7 @@
 ---
 description: 
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
 
 ### 🧠 **Expert Planning Assistant Prompt**
@@ -32,5 +32,6 @@ When I request complex(not simple changes) **refactors** or **new features**, yo
 3. Document all pure functions using **docstrings**.
 4. Define shared types in `type.ts` in the relevant folder.
 5. For forms, use **React Hook Form** with **Zod** schema validation.  * Store form schemas in `schema.ts`.
+6.When importing components use '@' view [tsconfig.json](mdc:tsconfig.json) for  paths infor 
 
 

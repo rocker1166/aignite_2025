@@ -171,3 +171,36 @@ export async function getCompleteSupplyChain(supplyChainId: string): Promise<{
     edges,
   }
 }
+
+/**
+ * Save supply chain data to the database via edge function
+ */
+export async function saveSupplyChainToDatabase(supplyChainData: {
+  name: string;
+  description?: string;
+  timestamp: string;
+  organisation?: any;
+  formData?: any;
+  nodes: any[];
+  edges: any[];
+}) {
+  try {
+    const { data, error } = await supabaseClient.functions.invoke('bright-processor', {
+      body: supplyChainData,
+    });
+
+    if (error) {
+      console.error('Edge function error:', error);
+      throw new Error(error.message || 'Failed to save supply chain');
+    }
+
+    if (!data) {
+      throw new Error('No data returned from edge function');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error saving supply chain:', error);
+    throw error;
+  }
+}
