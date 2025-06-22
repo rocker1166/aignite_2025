@@ -67,17 +67,42 @@ const ScenarioOutputSchema = z.object({
   urgency: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).describe('Response urgency level')
 });
 
-const ScenariosOutputSchema = z.array(ScenarioOutputSchema).min(3).max(10);
+const ScenariosOutputSchema = z.array(ScenarioOutputSchema).min(3).max(5); // Reduced from 10 to 5
 
-// Request schema
+// Request schema with optimized defaults
 const ScenarioRequestSchema = z.object({
   supplyChainId: z.string().min(1),
   customPrompt: z.string().optional(),
-  scenarioCount: z.number().min(3).max(10).default(5),
+  scenarioCount: z.number().min(3).max(5).default(3), // Reduced from 10 to 5 max
   timeHorizon: z.number().min(30).max(365).default(90),
   focusType: z.enum(['ALL', 'HIGH_RISK', 'RANDOM', 'CRITICAL_NODES']).default('ALL'),
-  includeHistorical: z.boolean().default(true)
+  includeHistorical: z.boolean().default(true),
+  forceRefresh: z.boolean().default(false) // Add this field
 });
+
+// ─────────────────────────────────────────────────────────
+// 🚀 Performance Optimization Utilities
+// ─────────────────────────────────────────────────────────
+
+interface PerformanceTimer {
+  start: number;
+  checkpoint: (label: string) => void;
+  total: () => number;
+}
+
+function createPerformanceTimer(): PerformanceTimer {
+  const start = Date.now();
+  const checkpoints: { [key: string]: number } = {};
+  
+  return {
+    start,
+    checkpoint: (label: string) => {
+      checkpoints[label] = Date.now() - start;
+      console.log(`⚡ ${label}: ${checkpoints[label]}ms`);
+    },
+    total: () => Date.now() - start
+  };
+}
 
 // ─────────────────────────────────────────────────────────
 // 🎯 Production Scenario Generator Agent
@@ -112,228 +137,330 @@ class ProductionScenarioAgent {
     } catch (error) {
       console.error('Cache storage error:', error);
     }
-  }
-  private async fetchIntelligenceContext(supplyChainId: string): Promise<any> {
+  }  private async fetchIntelligenceContext(supplyChainId: string): Promise<any> {
     try {
-      // Try to get from Mem0 first using proper AI SDK method
-      if (process.env.MEM0_API_KEY) {        try {
-          const memories = await getMemories(
-            `supply chain intelligence scenarios for ${supplyChainId}`,
-            {
-              user_id: `supply-chain-${supplyChainId}`,
-              mem0ApiKey: process.env.MEM0_API_KEY,
-              org_id: process.env.MEM0_ORG_ID,
-              project_id: process.env.MEM0_PROJECT_ID
-            }
-          );
+      // Use Promise.race for faster response - first source wins
+      const intelligencePromises = [];
 
-          if (memories && memories.length > 0) {
-            // Find the most recent intelligence data
-            const intelMemories = memories.filter((m: any) => 
-              m.memory && (m.memory.includes('intelligence') || m.memory.includes('scenario'))
-            );
-            
-            if (intelMemories.length > 0) {
-              // Return the most recent intelligence context
-              return {
-                source: 'mem0',
-                data: intelMemories,
-                count: intelMemories.length
-              };
-            }
-          }
-        } catch (error) {
-          console.warn('Mem0 intelligence retrieval failed:', error);
+      // Add Mem0 promise if available
+      if (process.env.MEM0_API_KEY) {
+        intelligencePromises.push(
+          Promise.race([
+            getMemories(
+              `intelligence ${supplyChainId}`,
+              {
+                user_id: `supply-chain-${supplyChainId}`,
+                mem0ApiKey: process.env.MEM0_API_KEY,
+                org_id: process.env.MEM0_ORG_ID,
+                project_id: process.env.MEM0_PROJECT_ID
+              }
+            ).then(memories => ({
+              source: 'mem0',
+              data: memories?.slice(0, 3) || [], // Limit to 3 most relevant
+              count: memories?.length || 0
+            })),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Mem0 timeout')), 2000))
+          ])
+        );
+      }
+
+      // Add Supabase promise with timeout
+      intelligencePromises.push(
+        Promise.race([
+          supabaseServer
+            .from('supply_chain_intel')
+            .select('id, risk_level, intel_type, summary') // Only essential fields
+            .eq('supply_chain_id', supplyChainId)
+            .order('created_at', { ascending: false })
+            .limit(3) // Limit to 3 records for speed
+            .then(({ data }) => ({
+              source: 'supabase',
+              data: data || [],
+              count: data?.length || 0
+            })),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Supabase timeout')), 2000))
+        ])
+      );      // Return first successful result
+      const result = await Promise.any(intelligencePromises).catch(() => null);
+      
+      if (result && typeof result === 'object' && 'source' in result) {
+        const typedResult = result as any;
+        console.log(`Fast intel fetch: ${typedResult.count} records from ${typedResult.source} (2s max)`);
+        return result;
+      }
+
+      return { source: 'none', data: [], count: 0 };
+    } catch (error) {
+      console.warn('Intelligence context fetch timeout/error:', error);
+      return { source: 'none', data: [], count: 0 };
+    }
+  }  private async fetchSupplyChainStructure(supplyChainId: string): Promise<any> {
+    try {
+      // Parallel fetch with timeout for speed
+      const [chainResult, nodesResult] = await Promise.allSettled([
+        Promise.race([
+          supabaseServer
+            .from('supply_chains')
+            .select('supply_chain_id, name, description, nodes, edges') // Include nodes and edges JSONB
+            .eq('supply_chain_id', supplyChainId)
+            .single(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Chain timeout')), 3000))
+        ]),
+        Promise.race([
+          supabaseServer
+            .from('nodes')
+            .select('node_id, id, name, type, location, risk_level') // Only essential fields
+            .eq('supply_chain_id', supplyChainId)
+            .limit(50), // Limit nodes for faster processing
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Nodes timeout')), 3000))
+        ])
+      ]);
+
+      const chainData = chainResult.status === 'fulfilled' ? (chainResult.value as any)?.data : null;
+      const nodesData = nodesResult.status === 'fulfilled' ? (nodesResult.value as any)?.data : [];
+
+      if (!chainData) {
+        throw new Error(`Supply chain ${supplyChainId} not found`);
+      }
+
+      // Handle nodes from both sources: JSONB in supply_chains table AND nodes table
+      let allNodes = [];
+      
+      // 1. PRIORITIZE nodes from supply_chains.nodes JSONB column (primary source)
+      if (chainData.nodes && Array.isArray(chainData.nodes) && chainData.nodes.length > 0) {
+        const jsonbNodes = chainData.nodes.map((node: any) => ({
+          node_id: node.id, // Map 'id' to 'node_id'
+          id: node.id,
+          name: node.data?.label || node.data?.name || node.label || node.name || 'Unknown Node',
+          type: node.data?.type?.toLowerCase() || node.type?.toLowerCase() || 'unknown',
+          location: node.data?.address || node.data?.location || node.location || 'Unknown Location',
+          risk_level: node.data?.riskScore || node.riskScore || 0.3, // Default risk score
+          capacity: node.data?.capacity || node.capacity || 500,
+          leadTime: node.data?.leadTime || node.leadTime || 7,
+          description: node.data?.description || node.description || `${node.data?.type || node.type || 'Node'} in supply chain`
+        }));
+        allNodes = jsonbNodes;
+        console.log(`✅ Found ${jsonbNodes.length} nodes from supply_chains.nodes JSONB`);
+      }
+      
+      // 2. Merge/Append nodes from dedicated nodes table (secondary source)
+      if (nodesData && nodesData.length > 0) {        // Check for duplicates by node_id before merging
+        const existingIds = new Set(allNodes.map((n: any) => n.node_id || n.id));
+        const uniqueNodes = nodesData.filter((node: any) => !existingIds.has(node.node_id || node.id));
+        
+        if (uniqueNodes.length > 0) {
+          allNodes = [...allNodes, ...uniqueNodes];
+          console.log(`✅ Added ${uniqueNodes.length} unique nodes from nodes table`);
         }
       }
 
-      // Fallback to Supabase intelligence data
-      const { data: intelData, error } = await supabaseServer
-        .from('supply_chain_intel')
-        .select('*')
-        .eq('supply_chain_id', supplyChainId)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) {
-        console.error('Supabase intelligence fetch error:', error);
-        return null;
+      // 3. Ensure we have at least some nodes for scenario generation
+      if (allNodes.length === 0) {
+        console.warn(`⚠️ No nodes found for supply chain ${supplyChainId}. Creating fallback nodes.`);
+        // Create fallback nodes from chain metadata
+        allNodes = [
+          {
+            node_id: `fallback-${supplyChainId}-supplier`,
+            id: `fallback-${supplyChainId}-supplier`,
+            name: `${chainData.name || 'Supply Chain'} - Primary Supplier`,
+            type: 'supplier',
+            location: 'Unknown Location',
+            risk_level: 0.3,
+            capacity: 1000,
+            leadTime: 7,
+            description: `Primary supplier node for ${chainData.name || 'supply chain'}`
+          },
+          {
+            node_id: `fallback-${supplyChainId}-factory`,
+            id: `fallback-${supplyChainId}-factory`,
+            name: `${chainData.name || 'Supply Chain'} - Main Factory`,
+            type: 'factory',
+            location: 'Unknown Location',
+            risk_level: 0.2,
+            capacity: 800,
+            leadTime: 5,
+            description: `Main factory node for ${chainData.name || 'supply chain'}`
+          },
+          {
+            node_id: `fallback-${supplyChainId}-distribution`,
+            id: `fallback-${supplyChainId}-distribution`,
+            name: `${chainData.name || 'Supply Chain'} - Distribution Center`,
+            type: 'distribution',
+            location: 'Unknown Location',
+            risk_level: 0.25,
+            capacity: 1200,
+            leadTime: 3,
+            description: `Distribution center for ${chainData.name || 'supply chain'}`
+          }
+        ];
+        console.log(`🔧 Created ${allNodes.length} fallback nodes for scenario generation`);
       }
 
-      return {
-        source: 'supabase',
-        data: intelData || [],
-        count: intelData?.length || 0
-      };
-    } catch (error) {
-      console.error('Intelligence context fetch error:', error);
-      return null;
-    }
-  }
-
-  private async fetchSupplyChainStructure(supplyChainId: string): Promise<any> {
-    try {
-      const { data: chainData, error } = await supabaseServer
-        .from('supply_chains')
-        .select('*, nodes, edges')
-        .eq('supply_chain_id', supplyChainId)
-        .single();
-
-      if (error) {
-        console.error('Supply chain fetch error:', error);
-        return null;
-      }
-
-      // Also fetch detailed node information
-      const { data: nodesData } = await supabaseServer
-        .from('nodes')
-        .select('*')
-        .eq('supply_chain_id', supplyChainId);
-
-      const { data: edgesData } = await supabaseServer
-        .from('edges')
-        .select('*')
-        .eq('supply_chain_id', supplyChainId);
+      console.log(`🚀 Fast chain fetch: ${allNodes.length} total nodes (3s max)`);
+      console.log(`📊 Node types: ${allNodes.map((n: any) => n.type).join(', ')}`);
 
       return {
         ...chainData,
-        detailedNodes: nodesData || [],
-        detailedEdges: edgesData || []
+        detailedNodes: allNodes,
+        detailedEdges: chainData.edges || [] // Use JSONB edges or empty array
       };
     } catch (error) {
-      console.error('Supply chain structure fetch error:', error);
-      return null;
+      console.error('❌ Supply chain structure fetch error:', error);
+      throw error;
     }
-  }
-
-  private selectTargetNodes(
+  }  private selectTargetNodes(
     chainData: any, 
     intelData: any[], 
     focusType: string, 
-    count: number = 5
+    count: number = 3 // Reduced from 5 for speed
   ): string[] {
     const availableNodes = chainData.detailedNodes || chainData.nodes || [];
     
     if (!availableNodes.length) {
-      console.warn('No nodes available for selection');
-      return [];
+      console.warn('⚠️ No nodes available for selection - this should not happen after fallback creation');
+      return [`fallback-node-${chainData.supply_chain_id}-1`];
     }
+
+    console.log(`🎯 Available nodes for selection: ${availableNodes.length}`);
+    console.log(`🏷️ Node types: ${availableNodes.map((n: any) => n.type || 'unknown').join(', ')}`);
+
+    // Limit to max 3 nodes for faster processing
+    const maxNodes = Math.min(count, 3);
 
     switch (focusType) {
       case 'HIGH_RISK':
-        // Sort by risk level and take top nodes
         const riskSorted = availableNodes
-          .filter((n: any) => n.risk_level !== undefined)
-          .sort((a: any, b: any) => (b.risk_level || 0) - (a.risk_level || 0));
-        return riskSorted.slice(0, count).map((n: any) => n.node_id || n.id);
+          .filter((n: any) => n.risk_level !== undefined && n.risk_level !== null)
+          .sort((a: any, b: any) => (b.risk_level || 0) - (a.risk_level || 0))
+          .slice(0, maxNodes);
+        
+        // Always return nodes, fallback to any available if no risk data
+        const riskNodes = riskSorted.length ? riskSorted : availableNodes.slice(0, maxNodes);
+        console.log(`🎯 HIGH_RISK selection: ${riskNodes.length} nodes`);
+        return riskNodes.map((n: any) => n.node_id || n.id);
 
       case 'CRITICAL_NODES':
-        // Focus on critical infrastructure nodes
-        const criticalTypes = ['port', 'factory', 'warehouse', 'distribution_center'];
-        const criticalNodes = availableNodes.filter((n: any) => 
-          criticalTypes.includes(n.type?.toLowerCase())
-        );
-        const selected = sampleSize(criticalNodes, Math.min(count, criticalNodes.length));
-        return selected.map((n: any) => n.node_id || n.id);
+        const criticalTypes = ['port', 'factory', 'warehouse', 'supplier', 'distribution'];
+        const criticalNodes = availableNodes
+          .filter((n: any) => criticalTypes.includes(n.type?.toLowerCase()))
+          .slice(0, maxNodes);
+        
+        // Always return nodes, fallback to any available if no critical types found
+        const criticalSelected = criticalNodes.length ? criticalNodes : availableNodes.slice(0, maxNodes);
+        console.log(`🎯 CRITICAL_NODES selection: ${criticalSelected.length} nodes`);
+        return criticalSelected.map((n: any) => n.node_id || n.id);
 
       case 'RANDOM':
-        // Pure random selection
-        const randomSelected = sampleSize(availableNodes, Math.min(count, availableNodes.length));
+        const randomSelected = sampleSize(availableNodes, maxNodes);
+        console.log(`🎯 RANDOM selection: ${randomSelected.length} nodes`);
         return randomSelected.map((n: any) => n.node_id || n.id);
 
       case 'ALL':
       default:
-        // Mix: top-2 by risk + critical nodes + random
-        const riskNodes = availableNodes
-          .filter((n: any) => n.risk_level !== undefined)
-          .sort((a: any, b: any) => (b.risk_level || 0) - (a.risk_level || 0))
-          .slice(0, 2);
+        // Improved mix strategy with guaranteed fallbacks
+        const result = [];
+        
+        // 1. Try to get highest risk node
+        const riskNode = availableNodes
+          .filter((n: any) => n.risk_level !== undefined && n.risk_level !== null)
+          .sort((a: any, b: any) => (b.risk_level || 0) - (a.risk_level || 0))[0];
+        if (riskNode) result.push(riskNode);
 
-        const criticalNodesMix = availableNodes.filter((n: any) => 
-          ['port', 'factory', 'warehouse'].includes(n.type?.toLowerCase())
-        );
+        // 2. Try to get critical node
+        const criticalNode = availableNodes
+          .find((n: any) => ['port', 'factory', 'warehouse', 'supplier', 'distribution'].includes(n.type?.toLowerCase()));
+        if (criticalNode && !result.includes(criticalNode)) result.push(criticalNode);
 
+        // 3. Fill remaining slots with other nodes
+        const usedNodes = new Set(result.map((n: any) => n.node_id || n.id));
         const remainingNodes = availableNodes.filter((n: any) => 
-          !riskNodes.includes(n) && !criticalNodesMix.includes(n)
+          !usedNodes.has(n.node_id || n.id)
         );
+        
+        while (result.length < maxNodes && remainingNodes.length > 0) {
+          const randomIndex = Math.floor(Math.random() * remainingNodes.length);
+          result.push(remainingNodes.splice(randomIndex, 1)[0]);
+        }
 
-        const randomNodes = sampleSize(remainingNodes, Math.max(0, count - riskNodes.length - 1));
-        const criticalSample = sampleSize(criticalNodesMix, 1);
-
-        const finalSelection = [
-          ...riskNodes.map((n: any) => n.node_id || n.id),
-          ...criticalSample.map((n: any) => n.node_id || n.id),
-          ...randomNodes.map((n: any) => n.node_id || n.id)
-        ].slice(0, count);
-
-        return finalSelection;
+        // Ensure we have at least some nodes
+        const finalSelection = result.length ? result : availableNodes.slice(0, maxNodes);
+        console.log(`🎯 ALL (mixed) selection: ${finalSelection.length} nodes`);
+        return finalSelection.map((n: any) => n.node_id || n.id);
     }
-  }
-
-  private buildScenarioPrompt(
+  }  private buildScenarioPrompt(
     chainData: any,
     intelData: any[],
     selectedNodes: string[],
     customPrompt?: string,
-    scenarioCount: number = 5,
+    scenarioCount: number = 3, // Reduced default
     timeHorizon: number = 90
   ): string {
-    const basePrompt = customPrompt || `
-You are an expert supply chain risk analyst and scenario planning specialist. 
-Analyze the provided supply chain structure and intelligence data to generate ${scenarioCount} distinct, realistic disruption scenarios over the next ${timeHorizon} days.
+    // Simplified, focused prompt for faster AI generation
+    const basePrompt = customPrompt || `Generate ${scenarioCount} diverse supply chain disruption scenarios for the next ${timeHorizon} days. Focus on realistic, actionable scenarios with varied severity levels.`;
 
-REQUIREMENTS:
-- Generate diverse scenario types (natural disasters, geopolitical events, cyber attacks, etc.)
-- Ensure scenarios are realistic and based on current intelligence
-- Vary severity levels (mix of low, medium, high, critical impacts)
-- Include specific mitigation strategies for each scenario
-- Set appropriate Monte Carlo simulation parameters
-- Avoid major holiday blackout periods when possible
-- Focus on the selected high-risk and critical nodes
-`;
+    // Build node context - handle both real and fallback nodes
+    const nodeContext = selectedNodes.slice(0, 3).map(id => {
+      if (id.startsWith('fallback-')) {
+        // Extract node type from fallback ID and create meaningful context
+        const nodeType = id.includes('supplier') ? 'Supplier' : 
+                         id.includes('factory') ? 'Factory' : 
+                         id.includes('distribution') ? 'Distribution Center' : 'Node';
+        return `${nodeType} (${chainData.name || 'Supply Chain'})`;
+      }
+      
+      // Find real node data from both possible sources
+      const nodeData = chainData.detailedNodes?.find((n: any) => 
+        (n.node_id === id || n.id === id)
+      ) || chainData.nodes?.find((n: any) => 
+        (n.node_id === id || n.id === id)
+      );
+      
+      if (nodeData) {
+        const name = nodeData.name || nodeData.data?.label || nodeData.data?.name || 'Unknown Node';
+        const type = nodeData.type || nodeData.data?.type || 'unknown';
+        const location = nodeData.location || nodeData.data?.address || nodeData.data?.location || 'Unknown Location';
+        const riskLevel = nodeData.risk_level || nodeData.data?.riskScore || 0.3;
+        
+        return `${name} (${type}) at ${location} [Risk: ${(riskLevel * 100).toFixed(0)}%]`;
+      }
+      
+      return `Node ${id} (Unknown details)`;
+    }).join(', ');
 
-    const nodeDetails = chainData.detailedNodes?.filter((n: any) => 
-      selectedNodes.includes(n.node_id || n.id)    ) || [];
-
-    const relevantIntel = intelData.filter((intel: any) => 
-      selectedNodes.includes(intel.node_id)
-    );
+    // Build intelligence context (limited for speed)
+    const intelContext = intelData.slice(0, 2).map((intel: any) => {
+      if (intel.summary) return intel.summary;
+      if (intel.content) return intel.content.substring(0, 200) + '...';
+      if (intel.memory) return intel.memory;
+      return 'Intelligence data available';
+    }).join('; ');
 
     return `
 ${basePrompt}
 
-SUPPLY CHAIN OVERVIEW:
-Name: ${chainData.name}
-Description: ${chainData.description || 'N/A'}
-Total Nodes: ${chainData.detailedNodes?.length || 0}
-Total Edges: ${chainData.detailedEdges?.length || 0}
+CHAIN: ${chainData.name || 'Supply Chain'}
+DESCRIPTION: ${chainData.description || 'Supply chain disruption analysis'}
+TARGET NODES: ${nodeContext}
+RECENT INTEL: ${intelContext || 'No specific intelligence available'}
 
-SELECTED TARGET NODES (${selectedNodes.length}):
-${JSON.stringify(nodeDetails, null, 2)}
+Generate exactly ${scenarioCount} realistic scenarios with:
+- Varied types (natural disaster, cyber attack, geopolitical event, supply shortage, demand surge, etc.)
+- Different severity levels (0-100) - include both moderate (30-60) and high (70-90) scenarios
+- Realistic timeframes (1-365 days) - mix of short-term (1-30) and longer disruptions
+- Specific affected nodes from the targets above
+- Monte Carlo simulation runs: 1000-50000 (vary based on complexity)
+- Quantified impact estimates (cost in USD, time delays in hours, quality %, customer satisfaction %)
+- Practical mitigation strategies for each scenario
+- Probability scores (0-1) and urgency levels (LOW/MEDIUM/HIGH/CRITICAL)
+- Use current date as reference: ${new Date().toISOString().split('T')[0]}
 
-RECENT INTELLIGENCE DATA:
-${JSON.stringify(relevantIntel, null, 2)}
-
-SCENARIO GENERATION GUIDELINES:
-1. Each scenario must target one of the selected nodes as the primary impact point
-2. Consider cascade effects through connected nodes
-3. Base scenarios on real-world intelligence patterns
-4. Vary disruption types across scenarios
-5. Include both short-term (1-7 days) and medium-term (1-12 weeks) scenarios
-6. Set Monte Carlo runs between 10,000-50,000 based on complexity
-7. Use appropriate statistical distributions (normal for most, lognormal for extreme events)
-8. Enable cascade modeling for interconnected disruptions
-9. Include realistic mitigation strategies based on node capabilities
-10. Assign probability scores based on current risk indicators
-
-OUTPUT FORMAT:
-Generate exactly ${scenarioCount} scenarios as a JSON array matching the provided schema.
-Each scenario should be unique, actionable, and grounded in the provided data.
+Keep descriptions detailed but actionable. Focus on realistic business impacts.
+Each scenario should target one of the specified nodes as the primary disruption point.
+Ensure scenarios are diverse in type, impact, and mitigation approaches.
 `;
   }
-
   public async generateScenarios(request: any): Promise<any> {
-    const startTime = Date.now();
+    const timer = createPerformanceTimer();
 
     try {
       // Validate request
@@ -344,80 +471,108 @@ Each scenario should be unique, actionable, and grounded in the provided data.
         scenarioCount, 
         timeHorizon, 
         focusType,
-        includeHistorical 
+        includeHistorical,
+        forceRefresh
       } = validatedRequest;
+      timer.checkpoint('Request validation');
 
-      // Check for cached results first
-      if (!request.forceRefresh) {
+      // Check for cached results first (super fast path)
+      if (!forceRefresh) {
         const cached = await this.getCachedScenarios(supplyChainId);
         if (cached) {
+          timer.checkpoint('Cache hit');
           return {
             success: true,
             scenarios: cached.scenarios,
             fromCache: true,
             generatedAt: cached.generatedAt,
-            processingTime: Date.now() - startTime
+            processingTime: timer.total(),
+            metadata: cached.metadata
           };
         }
-      }      // Fetch intelligence context
-      const intelData = await this.fetchIntelligenceContext(supplyChainId);
+      }
+      timer.checkpoint('Cache check');
+
+      // Fetch data in parallel for speed
+      const [intelData, chainData] = await Promise.allSettled([
+        this.fetchIntelligenceContext(supplyChainId),
+        this.fetchSupplyChainStructure(supplyChainId)
+      ]);
+      timer.checkpoint('Data fetching');
+
+      // Handle intelligence data
       let actualIntelData: any[] = [];
-      
-      if (intelData) {
-        // Handle different data structures from Mem0 vs Supabase
-        if (intelData.source === 'mem0' && Array.isArray(intelData.data)) {
-          actualIntelData = intelData.data;
-        } else if (intelData.source === 'supabase' && Array.isArray(intelData.data)) {
-          actualIntelData = intelData.data;
-        } else if (Array.isArray(intelData)) {
-          actualIntelData = intelData;
+      if (intelData.status === 'fulfilled' && intelData.value) {
+        const intel = intelData.value;
+        if (intel.source === 'mem0' && Array.isArray(intel.data)) {
+          actualIntelData = intel.data.slice(0, 2); // Limit for speed
+        } else if (intel.source === 'supabase' && Array.isArray(intel.data)) {
+          actualIntelData = intel.data.slice(0, 2); // Limit for speed
         }
-        
-        console.log(`Found ${actualIntelData.length} intelligence records from ${intelData.source || 'unknown'} source`);
-      } else {
-        console.warn(`No intelligence data found for chain ${supplyChainId}, proceeding with limited context`);
+        console.log(`Found ${actualIntelData.length} intel records from ${intel.source || 'unknown'}`);
       }
 
-      // Fetch supply chain structure
-      const chainData = await this.fetchSupplyChainStructure(supplyChainId);
-      if (!chainData) {
-        throw new Error(`Supply chain ${supplyChainId} not found`);
-      }      // Select target nodes for scenario generation
+      // Handle chain data
+      if (chainData.status !== 'fulfilled' || !chainData.value) {
+        throw new Error(`Supply chain ${supplyChainId} not found or fetch failed`);
+      }
+      const chain = chainData.value;
+      timer.checkpoint('Data processing');      // Select target nodes for scenario generation (reduced count for speed)
       const selectedNodes = this.selectTargetNodes(
-        chainData, 
+        chain, 
         actualIntelData, 
         focusType, 
-        Math.min(scenarioCount + 2, 10) // Select a few extra for variety
+        Math.min(scenarioCount, 3) // Max 3 nodes for faster processing
       );
 
-      if (!selectedNodes.length) {
-        throw new Error('No suitable nodes found for scenario generation');
-      }
+      console.log(`🎯 Node selection result: ${selectedNodes.length} nodes selected`);
+      console.log(`📋 Selected node IDs: ${selectedNodes.join(', ')}`);
 
-      // Build comprehensive prompt
+      if (!selectedNodes.length) {
+        console.error('❌ CRITICAL ERROR: No suitable nodes found for scenario generation');
+        console.error('📊 Chain data:', {
+          name: chain.name,
+          supply_chain_id: chain.supply_chain_id,
+          detailedNodesCount: chain.detailedNodes?.length || 0,
+          nodesCount: chain.nodes?.length || 0,
+          detailedNodes: chain.detailedNodes?.slice(0, 3) || [],
+          nodes: chain.nodes?.slice(0, 3) || []
+        });
+        throw new Error(`No suitable nodes found for scenario generation. Supply chain ${supplyChainId} appears to have no processable node data.`);
+      }
+      timer.checkpoint('Node selection');
+
+      // Build simplified prompt for faster AI generation
       const prompt = this.buildScenarioPrompt(
-        chainData,
+        chain,
         actualIntelData,
         selectedNodes,
         customPrompt,
         scenarioCount,
         timeHorizon
       );
+      timer.checkpoint('Prompt building');
 
-      // Generate scenarios using AI
-      console.log(`Generating ${scenarioCount} scenarios for chain ${supplyChainId}...`);
+      // Generate scenarios using faster model configuration
+      console.log(`🚀 Fast generating ${scenarioCount} scenarios...`);
       
       const { object: scenarios } = await generateObject({
-        model: google('gemini-1.5-pro'),
+        model: google('gemini-1.5-flash'), // Use Flash model for speed
         schema: ScenariosOutputSchema,
         prompt,
+        temperature: 0.7, // Slightly reduce creativity for speed
+        maxTokens: 2000, // Limit response size for speed
       });
+      timer.checkpoint('AI generation');
 
-      // Validate and enhance generated scenarios
-      const enhancedScenarios = this.enhanceScenarios(scenarios, chainData, selectedNodes);
+      // Minimal enhancement for speed
+      const enhancedScenarios = this.enhanceScenarios(scenarios, chain, selectedNodes);
+      timer.checkpoint('Scenario enhancement');
 
-      // Store in memory for future reference
-      await this.storeScenarios(supplyChainId, enhancedScenarios);
+      // Background storage (don't wait for it)
+      this.storeScenarios(supplyChainId, enhancedScenarios).catch(err => 
+        console.warn('Background storage failed:', err)
+      );
 
       // Cache results
       const result = {
@@ -426,116 +581,64 @@ Each scenario should be unique, actionable, and grounded in the provided data.
           supplyChainId,
           selectedNodes,
           intelSourcesUsed: actualIntelData.length,
-          intelSource: intelData?.source || 'none',
+          intelSource: intelData.status === 'fulfilled' && intelData.value ? (intelData.value as any).source : 'none',
           focusType,
           timeHorizon,
           scenarioCount: enhancedScenarios.length
         }
       };
 
-      await this.cacheScenarios(supplyChainId, result);
+      // Background caching (don't wait for it)
+      this.cacheScenarios(supplyChainId, result).catch(err => 
+        console.warn('Background caching failed:', err)
+      );
+      timer.checkpoint('Final processing');
+
+      console.log(`✅ Scenario generation completed in ${timer.total()}ms`);
 
       return {
         success: true,
         ...result,
         fromCache: false,
-        processingTime: Date.now() - startTime
+        processingTime: timer.total()
       };
 
     } catch (error) {
       console.error('Scenario generation error:', error);
+      console.log(`❌ Failed after ${timer.total()}ms`);
       throw error;
     }
   }
-
   private enhanceScenarios(scenarios: any[], chainData: any, selectedNodes: string[]): any[] {
     return scenarios.map((scenario, index) => {
-      // Ensure we have a valid affected node
+      // Minimal enhancement for speed
+      
+      // Ensure valid affected node
       if (!selectedNodes.includes(scenario.affectedNode)) {
         scenario.affectedNode = selectedNodes[index % selectedNodes.length];
       }
 
       // Generate deterministic random seed
-      scenario.randomSeed = `scenario-${chainData.supply_chain_id}-${Date.now()}-${index}`;
+      scenario.randomSeed = `scenario-${chainData.supply_chain_id || chainData.id}-${Date.now()}-${index}`;
 
-      // Set realistic dates
+      // Quick date calculation
       const startDate = new Date();
-      startDate.setDate(startDate.getDate() + Math.floor(Math.random() * 30)); // Start within 30 days
+      startDate.setDate(startDate.getDate() + Math.floor(Math.random() * 14)); // Start within 14 days
       scenario.startDate = startDate.toISOString();
 
       const endDate = new Date(startDate);
-      endDate.setDate(endDate.getDate() + scenario.disruptionDuration);
+      endDate.setDate(endDate.getDate() + Math.min(scenario.disruptionDuration, 30)); // Cap at 30 days
       scenario.endDate = endDate.toISOString();
 
-      // Ensure Monte Carlo parameters are realistic
-      if (scenario.monteCarloRuns < 1000) scenario.monteCarloRuns = 10000;
-      if (scenario.monteCarloRuns > 50000) scenario.monteCarloRuns = 50000;
-
-      // Add node context to description
-      const affectedNodeData = chainData.detailedNodes?.find((n: any) => 
-        (n.node_id || n.id) === scenario.affectedNode
-      );
-      
-      if (affectedNodeData) {
-        scenario.description += ` The affected node (${affectedNodeData.name}) is a ${affectedNodeData.type} located in ${affectedNodeData.location}.`;
-      }
+      // Optimize Monte Carlo parameters
+      scenario.monteCarloRuns = Math.min(Math.max(scenario.monteCarloRuns, 10000), 25000);
 
       return scenario;
     });
-  }
-  private async storeScenarios(supplyChainId: string, scenarios: any[]): Promise<void> {
+  }  private async storeScenarios(supplyChainId: string, scenarios: any[]): Promise<void> {
+    // Background storage - don't block main response
     try {
-      // Store in Mem0 for agent memory using proper AI SDK method
-      if (process.env.MEM0_API_KEY) {
-        // Create memory messages for the scenario batch
-        const memoryMessages = [
-          {
-            role: 'user' as const,
-            content: [
-              {
-                type: 'text' as const,
-                text: `Generated ${scenarios.length} supply chain disruption scenarios for supply chain ${supplyChainId}. Scenarios include: ${scenarios.map(s => s.scenarioName).join(', ')}`
-              }
-            ]
-          }
-        ];
-
-        // Add batch memory
-        await addMemories(memoryMessages, {
-          user_id: `supply-chain-${supplyChainId}`,
-          mem0ApiKey: process.env.MEM0_API_KEY,
-          org_id: process.env.MEM0_ORG_ID,
-          project_id: process.env.MEM0_PROJECT_ID,
-          agent_id: 'scenario-generator-agent',
-          app_id: 'intellisupply-agent'
-        });
-
-        // Store individual scenarios for easier retrieval
-        for (const scenario of scenarios) {
-          const scenarioMessage = [
-            {
-              role: 'user' as const,
-              content: [
-                {
-                  type: 'text' as const,
-                  text: `Scenario: ${scenario.scenarioName} - ${scenario.scenarioType} affecting ${scenario.affectedNode} with ${scenario.disruptionSeverity}% severity for ${scenario.disruptionDuration} days. Description: ${scenario.description}`
-                }
-              ]
-            }
-          ];
-
-          await addMemories(scenarioMessage, {
-            user_id: `supply-chain-${supplyChainId}`,
-            mem0ApiKey: process.env.MEM0_API_KEY,
-            org_id: process.env.MEM0_ORG_ID,
-            project_id: process.env.MEM0_PROJECT_ID,
-            agent_id: 'scenario-generator-agent',
-            app_id: 'intellisupply-agent'
-          });
-        }
-      }
-
-      // Store in Supabase for persistence
+      // Store in Supabase only (skip Mem0 for speed in background)
       const dbRecords = scenarios.map(scenario => ({
         supply_chain_id: supplyChainId,
         name: scenario.scenarioName,
@@ -551,11 +654,40 @@ Each scenario should be unique, actionable, and grounded in the provided data.
         .insert(dbRecords);
 
       if (error) {
-        console.error('Supabase scenario storage error:', error);
+        console.error('Background Supabase storage error:', error);
+      } else {
+        console.log(`Background stored ${scenarios.length} scenarios`);
+      }
+
+      // Store in Mem0 only if quick
+      if (process.env.MEM0_API_KEY && scenarios.length <= 3) {
+        const quickMemory = [
+          {
+            role: 'user' as const,
+            content: [
+              {
+                type: 'text' as const,
+                text: `Generated ${scenarios.length} scenarios: ${scenarios.map(s => s.scenarioName).join(', ')}`
+              }
+            ]
+          }
+        ];
+
+        await Promise.race([
+          addMemories(quickMemory, {
+            user_id: `supply-chain-${supplyChainId}`,
+            mem0ApiKey: process.env.MEM0_API_KEY,
+            org_id: process.env.MEM0_ORG_ID,
+            project_id: process.env.MEM0_PROJECT_ID,
+            agent_id: 'scenario-generator-agent',
+            app_id: 'intellisupply-agent'
+          }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Mem0 timeout')), 3000))
+        ]);
       }
 
     } catch (error) {
-      console.error('Scenario storage error:', error);
+      console.error('Background scenario storage error:', error);
     }
   }
 }
@@ -565,44 +697,50 @@ Each scenario should be unique, actionable, and grounded in the provided data.
 // ─────────────────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
-  const startTime = Date.now();
+  const timer = createPerformanceTimer();
 
   try {
     const body = await request.json();
+    timer.checkpoint('Request parsing');
     
     // Validate request body
     const validatedRequest = ScenarioRequestSchema.parse(body);
     const { supplyChainId } = validatedRequest;
+    timer.checkpoint('Request validation');
 
-    console.log(`Scenario generation request for chain: ${supplyChainId}`);
+    console.log(`🚀 Scenario generation request for chain: ${supplyChainId}`);
 
     // Create agent instance
     const agent = new ProductionScenarioAgent();
 
     // Generate scenarios
     const result = await agent.generateScenarios(validatedRequest);
+    timer.checkpoint('Scenario generation');
+
+    console.log(`✅ Total API response time: ${timer.total()}ms`);
 
     return NextResponse.json({
       ...result,
-      totalProcessingTime: Date.now() - startTime,
+      totalProcessingTime: timer.total(),
       timestamp: new Date().toISOString()
     });
 
   } catch (error) {
     console.error('Scenario API error:', error);
+    console.log(`❌ API failed after ${timer.total()}ms`);
     
     if (error instanceof z.ZodError) {
       return NextResponse.json({
         error: 'Invalid request parameters',
         details: error.errors,
-        processingTime: Date.now() - startTime
+        processingTime: timer.total()
       }, { status: 400 });
     }
 
     return NextResponse.json({
       error: 'Scenario generation failed',
       details: error instanceof Error ? error.message : 'Unknown error',
-      processingTime: Date.now() - startTime
+      processingTime: timer.total()
     }, { status: 500 });
   }
 }
