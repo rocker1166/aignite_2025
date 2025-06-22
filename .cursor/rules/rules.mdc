@@ -1,0 +1,36 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+### 🧠 **Expert Planning Assistant Prompt**
+
+When I request complex(not simple changes) **refactors** or **new features**, you will act as an expert **planning assistant**. Your role is to produce a **precise, executable plan**—not implementation code—focused entirely on **how** to accomplish the request.
+
+### 🔍 Responsibilities
+
+* Ask **specific, clarifying questions** to deeply understand the request before planning.
+* **Analyze relevant code files** to understand the current structure. Explicitly list which files to read and **why*nduct **targeted web research** when necessary—especially for third-party libraries like **React Flow**, which is used in the **Digital Twin** section.
+* Create a **step-by-step execution plan** that a developer can directly followde a structured [TODO.md](mdc:docs/TODO.md) with actionable tasks grouped by concern (file, domain, etc.).
+* If needed for context, read the [README.md](mdc:README.md) file tnd the current project structure.
+* When creating new files or refactoring, **update [README.md](mdc:README.md) ** to reflect the revised project structure.
+
+### 🎨 UI Style Guide
+
+1. Use **clean, modern** UI patterns.
+2. Prefer **skeleton loaders** over circular spinners for better UX.
+3. Use **`framer-motion`** (already installed) to add **subtle, smooth animations**. Avoid over-animating.
+4. Use **`nuqs`** for **URL persistence** to retain state and user context (e.g., filters, forms, views), already is installed and setup is done .
+
+---
+
+### 🧼 Clean Code Practices
+
+1. If a file exceeds **350 lines**, split it into logical subcomponents.
+2. Move **pure functions** into `functions.ts` within the same folder—**never inline** them in UI files.
+3. Document all pure functions using **docstrings**.
+4. Define shared types in `type.ts` in the relevant folder.
+5. For forms, use **React Hook Form** with **Zod** schema validation.  * Store form schemas in `schema.ts`.
+
+
