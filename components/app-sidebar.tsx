@@ -46,7 +46,7 @@ export function AppSidebar() {
   // Check if we should auto-collapse based on URL params
   const shouldAutoCollapse = pathname === "/digital-twin" && searchParams.get("twinId")
   
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(true)
 
   // Auto-collapse when twinId is present in digital-twin page
   useEffect(() => {

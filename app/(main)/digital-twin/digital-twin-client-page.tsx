@@ -5,6 +5,7 @@ import { useQueryState, parseAsString } from 'nuqs';
 import DigitalTwinDashboard from '@/components/digital-twin/dashboard';
 import CreationForm from '@/components/digital-twin/creation-form';
 import DigitalTwinCanvas from '@/components/digital-twin/digital-twin-canvas';
+import DigitalTwinSkeleton from '@/components/digital-twin/DigitalTwinSkeleton';
 import { selectTemplate, getTemplateInfo } from '@/lib/template-selector';
 import {
   Dialog,
@@ -95,14 +96,7 @@ export default function DigitalTwinClientPage() {
   // If a twinId is present, we would show the canvas/details view.
   if (twinId) {
     if (isLoading) {
-      return (
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-4 text-lg text-gray-600">Loading digital twin...</p>
-          </div>
-        </div>
-      );
+      return <DigitalTwinSkeleton />;
     }
 
     if (activeTwinData) {

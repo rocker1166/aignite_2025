@@ -103,28 +103,16 @@ export const NODE_PROPERTY_SPECS: Record<NodeType, PropertySpec[]> = {
   ],
 
   factoryNode: [
-    { key: 'productionCapacity', type: 'number', label: 'Max Output / period' },
     {
       key: 'cycleTime',          type: 'number', label: 'Cycle Time (days/unit)',
       showInfoIcon: true,
       infoText: 'Time taken to produce one unit from raw materials. '
     },
     {
-      key: 'shifts',             type: 'enum',   options: ['1', '2', '3'], label: 'Number of Shifts',
-      showInfoIcon: true,
-      infoText: 'Number of production shifts operating per day.'
-    },
-    {
       key: 'utilizationPct',     type: 'number', label: 'Avg. Utilization (%)',
       showInfoIcon: true,
       infoText: 'Average percentage of capacity actually used over a period.'
     },
-    {
-      key: 'yieldRate',          type: 'number', label: 'First‑pass Yield (%)',
-      optional: true,
-      showInfoIcon: true,
-      infoText: 'Optional: Percentage of good units produced without rework.'
-    }
   ],
 
   warehouseNode: [
@@ -140,17 +128,11 @@ export const NODE_PROPERTY_SPECS: Record<NodeType, PropertySpec[]> = {
       showInfoIcon: true,
       infoText: 'Cost charged per unit for handling and moves within the facility.'
     },
-    {
-      key: 'throughputCap',      type: 'number', label: 'Max Throughput (units/day)',
-      optional: true,
-      showInfoIcon: true,
-      infoText: 'Optional: Maximum volume of goods that can be processed each day.'
-    }
   ],
 
   distributionNode: [
     {
-      key: 'fleetSize',          type: 'number', label: 'Fleet Size (# vehicles)',
+      key: 'fleetSize',          type: 'number', label: 'Fleet Size (Number of vehicles)',
       showInfoIcon: true,
       infoText: 'Approximate number of vehicles or transport units available. You can enter an approximate value.'
     },
@@ -159,22 +141,27 @@ export const NODE_PROPERTY_SPECS: Record<NodeType, PropertySpec[]> = {
       showInfoIcon: true,
       infoText: 'Typical maximum distance a single delivery vehicle covers in one trip.'
     },
-    { key: 'serviceLevelPct',    type: 'number', label: 'Service Level (%)' },
-    { key: 'lastMileCap',        type: 'number', label: 'Last‑mile Cap (units/day)' }
   ],
 
   portNode: [
-    { key: 'annualThroughputTEU', type: 'number', label: 'Throughput (TEU/year)' },
-    { key: 'customsTimeDays',     type: 'number', label: 'Customs Delay (days)' },
-    { key: 'berthCount',          type: 'number', label: '# of Berths' },
-    { key: 'congestionIndex',     type: 'number', label: 'Congestion Score (0–1)' }
+    { 
+      key: 'annualThroughputTEU', 
+      type: 'number', 
+      label: 'Throughput (TEU/year)',  
+      showInfoIcon: true,
+      infoText: 'Approximate annual throughput in TEUs. You can enter an approximate value.'
+    },
+    { 
+      key: 'customsTimeDays',     
+      type: 'number', 
+      label: 'Customs Delay (days)', 
+      showInfoIcon: true,
+      infoText: 'Approximate time taken for customs clearance. You can enter an approximate value.' 
+    }
   ],
 
   retailerNode: [
     { key: 'demandRate',         type: 'number', label: 'Avg. Demand (units/day)' },
-    { key: 'shelfSpaceCap',      type: 'number', label: 'Shelf Space (units)' },
-    { key: 'reorderPoint',       type: 'number', label: 'Reorder Point (units)' },
-    { key: 'serviceLevelPct',    type: 'number', label: 'Service Level (%)' }
   ]
 };
 

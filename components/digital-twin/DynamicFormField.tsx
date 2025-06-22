@@ -83,8 +83,8 @@ const DynamicFormField: FC<DynamicFormFieldProps> = ({ spec, value, onChange, fo
               </Label>
             </div>
             <Switch
-              checked={value || false}
-              onCheckedChange={onChange}
+              checked={Boolean(value)}
+              onCheckedChange={(checked) => onChange(checked)}
             />
           </div>
         );

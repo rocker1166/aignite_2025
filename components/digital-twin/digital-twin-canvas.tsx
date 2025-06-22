@@ -11,7 +11,8 @@ import ReactFlow, {
   Node,
   Edge,
   Connection,
-  OnSelectionChangeParams 
+  OnSelectionChangeParams,
+  ReactFlowInstance
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { toast } from "sonner";
@@ -22,10 +23,12 @@ import debounce from 'lodash.debounce';
 import SimulationToolbar from './SimulationToolbar';
 import LeftPanel from './LeftPanel';
 import RightPanel from './RightPanel';
+import ValidationDialog from './ValidationDialog';
 import { nodeTypes } from "./CustomNodes";
 import { edgeTypes } from "../CustomEdges";
 import { useUser } from '@/lib/stores/user';
 import insertSupplyChain from '@/utils/functions/insertSupplyChain';
+import { validateSupplyChain, ValidationIssue } from '@/lib/validation/supply-chain-validator';
 
 
 interface DigitalTwinCanvasProps {
@@ -77,6 +80,14 @@ export default function DigitalTwinCanvas({
   const [simulationMode, setSimulationMode] = useState(false);
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
   const { userData } = useUser();
+  
+  // Validation state
+  const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([]);
+  const [showValidationDialog, setShowValidationDialog] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // React Flow instance ref for focusing elements
+  const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
   
   // Track if we're updating from URL to prevent infinite loops
   const isUpdatingFromURL = useRef(false);
@@ -339,53 +350,130 @@ export default function DigitalTwinCanvas({
     setSelectedElement(newNode);
   }, [nodes, setNodes]);
 
-  // Handle saving the current supply chain
+  // Handle saving the current supply chain with validation
   const handleSave = useCallback(async () => {
-    // Create connections data with detailed information
-    const connections = edges.map(edge => {
-      const sourceNode = nodes.find(node => node.id === edge.source);
-      const targetNode = nodes.find(node => node.id === edge.target);
-      return {
-        sourceId: edge.source,
-        targetId: edge.target,
-        sourceLabel: sourceNode?.data.label,
-        targetLabel: targetNode?.data.label,
-        mode: edge.data.mode,
-        cost: edge.data.cost,
-        transitTime: edge.data.transitTime,
-        riskMultiplier: edge.data.riskMultiplier
-      };
-    });
+    console.log('Starting save process with validation...');
+    
+    // Run validation
+    const issues = validateSupplyChain(nodes, edges);
+    setValidationIssues(issues);
+    
+    // If there are errors, show validation dialog and prevent save
+    const errors = issues.filter(issue => issue.severity === 'error');
+    if (errors.length > 0) {
+      console.log(`Found ${errors.length} validation errors, showing dialog`);
+      setShowValidationDialog(true);
+      return;
+    }
+    
+    // If there are only warnings, show dialog with option to save
+    const warnings = issues.filter(issue => issue.severity === 'warning');
+    if (warnings.length > 0) {
+      console.log(`Found ${warnings.length} validation warnings, showing dialog`);
+      setShowValidationDialog(true);
+      return;
+    }
+    
+    // No issues, proceed with save
+    await performSave();
+  }, [nodes, edges, selectedSupplyChain, supplyChainName, description, userData]);
 
-    const supplyChainData = {
-      id: selectedSupplyChain,
-      name: supplyChainName, // Include the supply chain name
-      description: description, // Include the description
-      nodes,
-      edges,
-      connections,
-      timestamp: new Date().toISOString(),
-      // Include organization data at the top level
-      organisation: {
-        id: userData?.id,
-        name: userData?.organisation_name,
-        description: userData?.description,
-        industry: userData?.industry,
-        sub_industry: userData?.sub_industry,
-        location: userData?.location
-      }
-    };
-
-    console.log('Saving supply chain:', supplyChainData);
+  // Actual save function (separated for reuse)
+  const performSave = useCallback(async () => {
+    setIsSaving(true);
     try {
-      await insertSupplyChain(supplyChainData);
+      // Create connections data with detailed information
+      const connections = edges.map(edge => {
+        const sourceNode = nodes.find(node => node.id === edge.source);
+        const targetNode = nodes.find(node => node.id === edge.target);
+        return {
+          sourceId: edge.source,
+          targetId: edge.target,
+          sourceLabel: sourceNode?.data.label,
+          targetLabel: targetNode?.data.label,
+          mode: edge.data.mode,
+          cost: edge.data.cost,
+          transitTime: edge.data.transitTime,
+          riskMultiplier: edge.data.riskMultiplier
+        };
+      });
+
+      const supplyChainData = {
+        id: selectedSupplyChain,
+        name: supplyChainName, // Include the supply chain name
+        description: description, // Include the description
+        nodes,
+        edges,
+        connections,
+        timestamp: new Date().toISOString(),
+        // Include organization data at the top level
+        organisation: {
+          id: userData?.id,
+          name: userData?.organisation_name,
+          description: userData?.description,
+          industry: userData?.industry,
+          sub_industry: userData?.sub_industry,
+          location: userData?.location
+        }
+      };
+
+      console.log('Saving supply chain:', supplyChainData);
+      // await insertSupplyChain(supplyChainData);
       toast.success('Supply chain saved successfully!');
+      setShowValidationDialog(false); // Close validation dialog on success
     } catch (error) {
       console.error('Error saving supply chain:', error);
       toast.error('Failed to save supply chain.');
       throw error; // Re-throw to let the caller handle the error
+    } finally {
+      setIsSaving(false);
     }
   }, [nodes, edges, selectedSupplyChain, supplyChainName, description, userData]);
+
+  // Function to focus on a specific element when user clicks "Focus" in validation dialog
+  const handleFocusElement = useCallback((elementId: string, elementType: 'node' | 'edge') => {
+    if (elementType === 'node') {
+      const node = nodes.find(n => n.id === elementId);
+      if (node && reactFlowInstance) {
+        // Clear current selection
+        setSelectedElement(null);
+        
+        // Focus on the node
+        reactFlowInstance.current?.setCenter(node.position.x + 100, node.position.y + 50, { zoom: 1.5 });
+        
+        // Select the node after a brief delay to ensure it's visible
+        setTimeout(() => {
+          setSelectedElement(node);
+        }, 300);
+      }
+    } else if (elementType === 'edge') {
+      const edge = edges.find(e => e.id === elementId);
+      if (edge && reactFlowInstance) {
+        const sourceNode = nodes.find(n => n.id === edge.source);
+        const targetNode = nodes.find(n => n.id === edge.target);
+        
+        if (sourceNode && targetNode) {
+          // Clear current selection
+          setSelectedElement(null);
+          
+          // Calculate center point between source and target
+          const centerX = (sourceNode.position.x + targetNode.position.x) / 2;
+          const centerY = (sourceNode.position.y + targetNode.position.y) / 2;
+          
+          // Focus on the edge center
+          reactFlowInstance.current?.setCenter(centerX, centerY, { zoom: 1.5 });
+          
+          // Select the edge after a brief delay
+          setTimeout(() => {
+            setSelectedElement(edge);
+          }, 300);
+        }
+      }
+    }
+    
+    // Close validation dialog when focusing on an element
+    setShowValidationDialog(false);
+  }, [nodes, edges, reactFlowInstance]);
 
 
 
@@ -446,6 +534,7 @@ export default function DigitalTwinCanvas({
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onSelectionChange={onSelectionChange}
+            onInit={(instance) => { reactFlowInstance.current = instance; }}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             fitView
@@ -486,6 +575,16 @@ export default function DigitalTwinCanvas({
           onSave={handleSave}
         />
       </div>
+
+      {/* Validation Dialog */}
+      <ValidationDialog
+        isOpen={showValidationDialog}
+        onClose={() => setShowValidationDialog(false)}
+        issues={validationIssues}
+        onFocusElement={handleFocusElement}
+        onSaveWithWarnings={performSave}
+        isLoading={isSaving}
+      />
     </div>
   );
 } 
