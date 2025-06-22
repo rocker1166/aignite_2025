@@ -27,7 +27,7 @@ import ValidationDialog from '../forms/ValidationDialog';
 import { nodeTypes } from "./CustomNodes";
 import { edgeTypes } from "./CustomEdges";
 import { useUser } from '@/lib/stores/user';
-import insertSupplyChain from '@/utils/functions/insertSupplyChain';
+import { saveSupplyChainToDatabase } from '@/lib/api/supply-chain';
 import { validateSupplyChain, ValidationIssue } from '@/lib/validation/supply-chain-validator';
 
 
@@ -400,6 +400,15 @@ export default function DigitalTwinCanvas({
 
       // Check for form data from URL parameters
       const urlParams = new URLSearchParams(window.location.search);
+      
+      // Check for save dialog data from URL parameters (in case user came from validation dialog)
+      const saveNameFromUrl = urlParams.get('saveName');
+      const saveDescriptionFromUrl = urlParams.get('saveDescription');
+      
+      // Use URL save parameters if they exist, otherwise fall back to current state
+      const finalSupplyChainName = saveNameFromUrl || supplyChainName;
+      const finalDescription = saveDescriptionFromUrl || description;
+      
       const formDataFromUrl = {
         industry: urlParams.get('industry'),
         customIndustry: urlParams.get('customIndustry'),
@@ -440,8 +449,8 @@ export default function DigitalTwinCanvas({
 
       const supplyChainData = {
         id: selectedSupplyChain,
-        name: supplyChainName, // Include the supply chain name
-        description: description, // Include the description
+        name: finalSupplyChainName, // Include the supply chain name (from URL params or current state)
+        description: finalDescription, // Include the description (from URL params or current state)
         nodes,
         edges,
         connections,
@@ -468,9 +477,17 @@ export default function DigitalTwinCanvas({
         console.log('⚠️ No form data found in URL parameters or localStorage');
       }
       
-      // await insertSupplyChain(supplyChainData);
+      await saveSupplyChainToDatabase(supplyChainData);
       toast.success('Supply chain saved successfully!');
       setShowValidationDialog(false); // Close validation dialog on success
+      
+      // Clear save dialog URL parameters on successful save
+      if (saveNameFromUrl || saveDescriptionFromUrl) {
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('saveName');
+        newUrl.searchParams.delete('saveDescription');
+        window.history.replaceState({}, '', newUrl.toString());
+      }
     } catch (error) {
       console.error('Error saving supply chain:', error);
       toast.error('Failed to save supply chain.');

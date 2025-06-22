@@ -184,6 +184,8 @@ export async function saveSupplyChainToDatabase(supplyChainData: {
   nodes: any[];
   edges: any[];
 }) {
+
+  console.log("supplyChainData", supplyChainData);
   try {
     const { data, error } = await supabaseClient.functions.invoke('bright-processor', {
       body: supplyChainData,
