@@ -32,7 +32,7 @@ const DynamicFormField: FC<DynamicFormFieldProps> = ({ spec, value, onChange, fo
               type="text"
               value={value || ''}
               onChange={(e) => onChange(e.target.value)}
-              className="w-full px-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 "
+              className="w-full px-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 shadow-md"
               placeholder={`Enter ${spec.label.toLowerCase()}...`}
             />
           </div>
@@ -45,7 +45,7 @@ const DynamicFormField: FC<DynamicFormFieldProps> = ({ spec, value, onChange, fo
               type="number"
               value={value || ''}
               onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-              className="w-full px-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
+              className="w-full px-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 shadow-md"
               placeholder="0"
             />
           </div>
@@ -57,7 +57,7 @@ const DynamicFormField: FC<DynamicFormFieldProps> = ({ spec, value, onChange, fo
             <Textarea
               value={value || ''}
               onChange={(e) => onChange(e.target.value)}
-              className="w-full px-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 resize-none"
+              className="w-full px-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 resize-none shadow-md"
               placeholder={`Enter ${spec.label.toLowerCase()}...`}
               rows={3}
             />
@@ -93,7 +93,7 @@ const DynamicFormField: FC<DynamicFormFieldProps> = ({ spec, value, onChange, fo
         return (
           <div className="p-0.5">
             <Select value={value || ''} onValueChange={onChange}>
-              <SelectTrigger className="w-full px-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0">
+              <SelectTrigger className="w-full px-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 shadow-md">
                 <SelectValue placeholder={`Select ${spec.label.toLowerCase()}`} />
               </SelectTrigger>
               <SelectContent>

@@ -38,7 +38,7 @@ const GeneralSection: React.FC<GeneralSectionProps> = ({ formValues, onInputChan
               }}
               placeholder="Enter label..."
               maxLength={50}
-              className="px-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
+              className="px-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 shadow-md"
             />
           </div>
           <p className="text-xs text-muted-foreground">
@@ -77,7 +77,7 @@ const GeneralSection: React.FC<GeneralSectionProps> = ({ formValues, onInputChan
               value={formValues.description || ''}
               onChange={(e) => onInputChange('description', e.target.value)}
               placeholder="Add a detailed description..."
-              className="resize-none px-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
+              className="resize-none px-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 shadow-md"
             />
           </div>
         </div>
@@ -123,7 +123,7 @@ const GeneralSection: React.FC<GeneralSectionProps> = ({ formValues, onInputChan
                     value={formValues.externalCompanyName || ''}
                     onChange={(e) => onInputChange('externalCompanyName', e.target.value)}
                     placeholder="Enter company name..."
-                    className="px-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
+                    className="px-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 shadow-md"
                   />
                 </div>
               </div>
@@ -150,7 +150,7 @@ const GeneralSection: React.FC<GeneralSectionProps> = ({ formValues, onInputChan
                     value={formValues.externalCompanyDescription || ''}
                     onChange={(e) => onInputChange('externalCompanyDescription', e.target.value)}
                     placeholder="Optional: Describe the external company's role and relationship..."
-                    className="resize-none px-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
+                    className="resize-none px-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 shadow-md"
                   />
                 </div>
               </div>

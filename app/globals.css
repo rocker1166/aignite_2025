@@ -145,3 +145,69 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.7);
 }
+
+/* React Flow Template Group Styling - Minimal Subflow Effect */
+.template-group {
+  background: rgba(0, 0, 0, 0.02) !important;
+  border: 1px dashed rgba(0, 0, 0, 0.1) !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease;
+}
+
+.template-group:hover {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border: 1px dashed rgba(0, 0, 0, 0.15) !important;
+}
+
+.template-group.selected {
+  background: rgba(59, 130, 246, 0.05) !important;
+  border: 1px dashed rgba(59, 130, 246, 0.3) !important;
+}
+
+/* Override React Flow default group styling with minimal boundaries */
+.react-flow__node-group {
+  background: rgba(0, 0, 0, 0.02) !important;
+  border: 1px dashed rgba(0, 0, 0, 0.1) !important;
+  border-radius: 8px !important;
+}
+
+.react-flow__node-group:hover {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border: 1px dashed rgba(0, 0, 0, 0.15) !important;
+}
+
+.react-flow__node-group.selected {
+  background: rgba(59, 130, 246, 0.05) !important;
+  border: 1px dashed rgba(59, 130, 246, 0.3) !important;
+}
+
+/* Dark mode support for template groups */
+.dark .template-group {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px dashed rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .template-group:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px dashed rgba(255, 255, 255, 0.15) !important;
+}
+
+.dark .template-group.selected {
+  background: rgba(59, 130, 246, 0.08) !important;
+  border: 1px dashed rgba(59, 130, 246, 0.4) !important;
+}
+
+.dark .react-flow__node-group {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px dashed rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .react-flow__node-group:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px dashed rgba(255, 255, 255, 0.15) !important;
+}
+
+.dark .react-flow__node-group.selected {
+  background: rgba(59, 130, 246, 0.08) !important;
+  border: 1px dashed rgba(59, 130, 246, 0.4) !important;
+}

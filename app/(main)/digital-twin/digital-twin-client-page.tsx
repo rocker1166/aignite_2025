@@ -102,14 +102,10 @@ export default function DigitalTwinClientPage() {
       createdAt: new Date().toISOString()
     };
     
-    // Store in localStorage temporarily for the canvas to access
-    localStorage.setItem(`supplyChain-${twinId}`, JSON.stringify(twinData));
     
     console.log('✅ Digital twin created with dummy ID:', twinId);
     console.log('💾 Template data stored temporarily:', twinData);
     
-    // Show success toast
-    toast.success('Digital twin created successfully!');
     
     // Close the dialog
     setView(null, { scroll: false });
@@ -168,7 +164,7 @@ export default function DigitalTwinClientPage() {
         onOpenChange={(isOpen) => !isOpen && setView(null, { scroll: false })}
       >
         <DialogContent className="sm:max-w-2xl p-0" hideCloseIcon={true}>
-          <DialogHeader className="p-6 pb-4">
+          <DialogHeader className="p-6 pb-0">
             <DialogTitle className="text-xl font-bold text-slate-900 dark:text-slate-100">
               Create a New Digital Twin
             </DialogTitle>

@@ -8,6 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import debounce from 'lodash.debounce';
 import NodeConfiguration from './NodeConfiguration';
 import EdgeConfiguration from './EdgeConfiguration';
+import TemplateGroupConfiguration from './TemplateGroupConfiguration';
 
 // Save status type
 type SaveStatus = 'saved' | 'unsaved' | 'saving';
@@ -16,11 +17,12 @@ interface RightPanelProps {
   selectedElement: Node | Edge | null;
   onUpdate: (updatedElement: Node | Edge) => void;
   onDelete?: (elementId: string) => void;
+  onUngroup?: (groupId: string) => void;
   nodes?: Node[];
   onSave?: () => Promise<void>; // Add optional onSave prop for triggering parent save
 }
 
-const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, nodes = [], onSave }) => {
+const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, onUngroup, nodes = [], onSave }) => {
   const [formValues, setFormValues] = useState<any>({});
   const [latitude, setLatitude] = useState('')
   const [longitude, setLongitude] = useState('')
@@ -553,15 +555,24 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, 
   // Render the appropriate configuration component
   const renderConfiguration = () => {
     if (isNode) {
+      const node = selectedElement as Node;
+      
+      // Handle template groups
+      if (node.type === 'group' && node.data.isTemplate) {
+        return <TemplateGroupConfiguration node={node} nodes={nodes} />;
+      }
+      
+      // Handle regular nodes
       return (
         <NodeConfiguration
-          selectedNode={selectedElement as Node}
+          selectedNode={node}
           formValues={formValues}
           onInputChange={handleInputChange}
           onMapCoordinatesChange={handleMapCoordinatesChange}
         />
       );
     } else {
+      // Handle edges
       const edge = selectedElement as Edge;
       const sourceNode = nodes.find(node => node.id === edge.source);
       const targetNode = nodes.find(node => node.id === edge.target);
@@ -640,8 +651,30 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, 
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.3 }}
       >
-        {/* Delete Button for Nodes */}
-        {isNode && onDelete && (
+        {/* Ungroup Button for Template Groups */}
+        {isNode && selectedElement.type === 'group' && selectedElement.data.isTemplate && onUngroup && (
+          <motion.div 
+            className="flex justify-center"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.4 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onUngroup(selectedElement.id)}
+              className="text-primary border-primary/20 hover:bg-primary/10 hover:border-primary/30"
+            >
+              <span className="mr-2">⚡</span>
+              Ungroup Template
+            </Button>
+          </motion.div>
+        )}
+
+        {/* Delete Button for Regular Nodes */}
+        {isNode && selectedElement.type !== 'group' && onDelete && (
           <motion.div 
             className="flex justify-center"
             initial={{ opacity: 0, y: 10 }}

@@ -30,6 +30,7 @@ import { useUser } from '@/lib/stores/user';
 import { saveSupplyChainToDatabase } from '@/lib/api/supply-chain';
 import { validateSupplyChain, ValidationIssue } from '@/lib/validation/supply-chain-validator';
 import { useRouter } from 'next/navigation';
+import { SUPPLY_CHAIN_TEMPLATES } from '@/constants/digital-twin';
 
 
 interface DigitalTwinCanvasProps {
@@ -351,6 +352,188 @@ export default function DigitalTwinCanvas({
     setSelectedElement(newNode);
   }, [nodes, setNodes]);
 
+  // Handle ungrouping a template (removing the group wrapper)
+  const handleUngroupTemplate = useCallback((groupId: string) => {
+    setNodes(currentNodes => {
+      const groupNode = currentNodes.find(node => node.id === groupId);
+      if (!groupNode || groupNode.type !== 'group') return currentNodes;
+
+      // Find all child nodes of this group
+      const childNodes = currentNodes.filter(node => node.parentId === groupId);
+      const otherNodes = currentNodes.filter(node => node.id !== groupId && node.parentId !== groupId);
+
+      // Remove parentId and extent from child nodes and adjust their positions
+      const ungroupedChildNodes = childNodes.map(node => ({
+        ...node,
+        parentId: undefined,
+        extent: undefined,
+        position: {
+          x: groupNode.position.x + node.position.x,
+          y: groupNode.position.y + node.position.y
+        }
+      }));
+
+      toast.success(`Ungrouped ${groupNode.data.label} template`);
+      
+      return [...otherNodes, ...ungroupedChildNodes];
+    });
+  }, [setNodes]);
+
+  // Handle double click on nodes (for ungrouping templates)
+  const onNodeDoubleClick = useCallback((event: React.MouseEvent, node: Node) => {
+    if (node.type === 'group' && node.data.isTemplate) {
+      handleUngroupTemplate(node.id);
+    }
+  }, [handleUngroupTemplate]);
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ungroup selected template group with 'U' key
+      if (event.key === 'u' || event.key === 'U') {
+        if (selectedElement && 'type' in selectedElement && selectedElement.type === 'group' && selectedElement.data.isTemplate) {
+          event.preventDefault();
+          handleUngroupTemplate(selectedElement.id);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedElement, handleUngroupTemplate]);
+
+  // Handle loading a template from the left panel
+  const handleLoadTemplate = useCallback((templateId: string) => {
+    const template = SUPPLY_CHAIN_TEMPLATES.find(t => t.id === templateId);
+    if (!template) {
+      toast.error('Template not found');
+      return;
+    }
+
+    // Clone the template data to avoid mutation
+    const templateNodes = JSON.parse(JSON.stringify(template.nodes_data));
+    const templateEdges = JSON.parse(JSON.stringify(template.edges_data));
+
+    // Generate unique IDs for template nodes to avoid conflicts
+    const timestamp = Date.now();
+    const nodeIdMap = new Map();
+
+    // Calculate offset position to avoid overlapping with existing nodes
+    const existingNodes = nodes;
+    let maxX = 0;
+    let maxY = 0;
+    
+    if (existingNodes.length > 0) {
+      maxX = Math.max(...existingNodes.map(node => node.position.x + 200)); // Add some padding
+      maxY = Math.max(...existingNodes.map(node => node.position.y));
+    }
+
+    // Calculate the bounds of the template nodes to create a proper group
+    const templateBounds = templateNodes.reduce((bounds: any, node: Node) => {
+      return {
+        minX: Math.min(bounds.minX, node.position.x),
+        minY: Math.min(bounds.minY, node.position.y),
+        maxX: Math.max(bounds.maxX, node.position.x + 200), // Assuming average node width
+        maxY: Math.max(bounds.maxY, node.position.y + 100)  // Assuming average node height
+      };
+    }, { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
+
+    // Create a group node that will contain all template nodes
+    const groupId = `template-group-${timestamp}`;
+    const groupWidth = templateBounds.maxX - templateBounds.minX + 40; // Add padding
+    const groupHeight = templateBounds.maxY - templateBounds.minY + 80; // Add padding for header
+    
+    const groupNode = {
+      id: groupId,
+      type: 'group',
+      data: {
+        label: template.name,
+        description: template.description,
+        templateId: template.id,
+        isTemplate: true
+      },
+      position: {
+        x: maxX + 100,
+        y: maxY > 0 ? maxY + 50 : 50
+      },
+      style: {
+        width: groupWidth,
+        height: groupHeight,
+        backgroundColor: 'rgba(59, 130, 246, 0.05)', // Light blue background
+        border: '2px solid rgba(59, 130, 246, 0.2)',
+        borderRadius: '12px',
+        padding: '20px'
+      },
+      className: 'template-group'
+    };
+
+    // Update template nodes with unique IDs and set them as children of the group
+    const updatedTemplateNodes = templateNodes.map((node: Node, index: number) => {
+      const originalId = node.id;
+      const newId = `${node.id}-${timestamp}-${index}`;
+      nodeIdMap.set(originalId, newId);
+
+      return {
+        ...node,
+        id: newId,
+        parentId: groupId, // Set the group as parent
+        position: {
+          // Position relative to the group (offset from template bounds min)
+          x: node.position.x - templateBounds.minX + 20, // 20px padding from group edge
+          y: node.position.y - templateBounds.minY + 40  // 40px padding for group header
+        },
+        extent: 'parent' as const, // Constrain movement within parent group
+        expandParent: true
+      };
+    });
+
+    // Update template edges with new node IDs
+    const updatedTemplateEdges = templateEdges.map((edge: Edge, index: number) => {
+      const newSourceId = nodeIdMap.get(edge.source) || edge.source;
+      const newTargetId = nodeIdMap.get(edge.target) || edge.target;
+      
+      return {
+        ...edge,
+        id: `${edge.id}-${timestamp}-${index}`,
+        source: newSourceId,
+        target: newTargetId
+      };
+    });
+
+    // Migrate edges to ensure proper structure
+    const migratedEdges = migrateEdges(updatedTemplateEdges);
+
+    // Add the group node first, then template nodes and edges
+    setNodes(currentNodes => [...currentNodes, groupNode, ...updatedTemplateNodes]);
+    setEdges(currentEdges => [...currentEdges, ...migratedEdges]);
+
+    // Auto-center the viewport on the newly added template
+    setTimeout(() => {
+      if (reactFlowInstance.current) {
+        const centerX = groupNode.position.x + groupWidth / 2;
+        const centerY = groupNode.position.y + groupHeight / 2;
+        
+        // Center the viewport on the new template with a nice zoom level
+        reactFlowInstance.current.setCenter(centerX, centerY, { 
+          zoom: 0.8,
+          duration: 800  // Smooth animation duration
+        });
+
+        // Add a subtle highlight effect by briefly selecting the group
+        setTimeout(() => {
+          setSelectedElement(groupNode);
+          
+          // Remove selection after a moment to not interfere with user
+          setTimeout(() => {
+            setSelectedElement(null);
+          }, 1500);
+        }, 400);
+      }
+    }, 100); // Small delay to ensure nodes are rendered
+
+    toast.success(`Added ${template.name} template as a group with ${template.nodes} nodes to canvas`);
+  }, [nodes, setNodes, setEdges]);
+
   // Handle saving the current supply chain with validation
   const handleSave = useCallback(async () => {
     console.log('Starting save process with validation...');
@@ -555,10 +738,45 @@ export default function DigitalTwinCanvas({
 
   // Handle deleting a single node
   const handleDeleteNode = useCallback((nodeId: string) => {
-    // Remove the node
-    setNodes(nodes => nodes.filter(node => node.id !== nodeId));
-    // Remove all edges connected to this node
-    setEdges(edges => edges.filter(edge => edge.source !== nodeId && edge.target !== nodeId));
+    setNodes(currentNodes => {
+      const nodeToDelete = currentNodes.find(node => node.id === nodeId);
+      
+      // If deleting a template group, we need to handle child nodes
+      if (nodeToDelete && nodeToDelete.type === 'group' && nodeToDelete.data?.isTemplate) {
+        // Find all child nodes of this group
+        const childNodes = currentNodes.filter(node => node.parentId === nodeId);
+        
+        // Remove the group node and all its child nodes
+        const remainingNodes = currentNodes.filter(node => 
+          node.id !== nodeId && node.parentId !== nodeId
+        );
+        
+        // Also remove edges that connect to any of the child nodes
+        setEdges(currentEdges => 
+          currentEdges.filter(edge => {
+            const isConnectedToGroup = edge.source === nodeId || edge.target === nodeId;
+            const isConnectedToChild = childNodes.some(child => 
+              edge.source === child.id || edge.target === child.id
+            );
+            return !isConnectedToGroup && !isConnectedToChild;
+          })
+        );
+        
+        toast.success(`Deleted ${nodeToDelete.data.label} template group and ${childNodes.length} child nodes`);
+        return remainingNodes;
+      } else {
+        // Regular node deletion
+        const filteredNodes = currentNodes.filter(node => node.id !== nodeId);
+        
+        // Remove all edges connected to this node
+        setEdges(currentEdges => 
+          currentEdges.filter(edge => edge.source !== nodeId && edge.target !== nodeId)
+        );
+        
+        return filteredNodes;
+      }
+    });
+    
     // Clear selection if the deleted node was selected
     setSelectedElement(null);
   }, [setNodes, setEdges]);
@@ -590,6 +808,7 @@ export default function DigitalTwinCanvas({
         <LeftPanel
           onAddNode={handleAddNode}
           onClearAllNodes={handleClearAllNodes}
+          onLoadTemplate={handleLoadTemplate}
           simulationMode={simulationMode}
           isCollapsed={isLeftPanelCollapsed}
           setIsCollapsed={setIsLeftPanelCollapsed}
@@ -612,6 +831,7 @@ export default function DigitalTwinCanvas({
             zoomOnScroll
             zoomOnPinch
             zoomOnDoubleClick={false}
+            onNodeDoubleClick={onNodeDoubleClick}
           >
             <Controls />
             <MiniMap />
@@ -641,6 +861,7 @@ export default function DigitalTwinCanvas({
             setSelectedElement(updatedElement);
           }}
           onDelete={handleDeleteNode}
+          onUngroup={handleUngroupTemplate}
           onSave={handleSave}
         />
       </div>

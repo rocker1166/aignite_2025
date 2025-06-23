@@ -1,23 +1,26 @@
 "use client"
 import { FC, useState } from 'react';
-import { ChevronDown, ChevronRight, ChevronLeft, Building2, Upload, Download, RotateCcw, Play } from 'lucide-react';
+import { ChevronDown, ChevronRight, ChevronLeft, Upload, Download, RotateCcw, Building2 } from 'lucide-react';
 import { DeleteIcon } from '@/components/icons';
+import { BlocksIcon } from '@/components/icons/blocks';
+import { LayoutPanelTopIcon } from '@/components/icons/layout-panel-top';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { NODE_TYPES, SUPPLY_CHAIN_TEMPLATES } from '@/constants/digital-twin';
 
 interface LeftPanelProps {
   onAddNode: (nodeType: string) => void;
   onClearAllNodes: () => void;
+  onLoadTemplate?: (templateId: string) => void;
   simulationMode: boolean;
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
 }
 
-const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, simulationMode, isCollapsed, setIsCollapsed }) => {
-  const [expandedSection, setExpandedSection] = useState<string | null>('nodes');
+const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, onLoadTemplate, simulationMode, isCollapsed, setIsCollapsed }) => {
+  const [expandedSection, setExpandedSection] = useState<string | null>('');
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
@@ -37,7 +40,7 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, simulationM
   }) => (
     <Button
       variant="ghost"
-      className="w-full justify-between p-3 h-auto font-medium text-left hover:bg-muted/50"
+      className={`  w-full justify-between p-3 h-auto font-medium text-left hover:bg-muted/50 ${isExpanded ? '' : 'shadow-md'}`}
       onClick={onClick}
     >
       <div className="flex items-center gap-2">
@@ -141,13 +144,13 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, simulationM
                       title="Add Nodes"
                       isExpanded={expandedSection === 'nodes'}
                       onClick={() => toggleSection('nodes')}
-                      icon={Building2}
+                      icon={BlocksIcon}
                     />
                     
                     <AnimatePresence>
                       {expandedSection === 'nodes' && (
                         <motion.div 
-                          className="p-4 pt-0 space-y-2"
+                          className="p-4 pt-0 space-y-2 shadow-md"
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
@@ -166,7 +169,7 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, simulationM
                                   variant="outline"
                                   onClick={() => onAddNode(node.id)}
                                   disabled={simulationMode}
-                                  className={`w-full h-auto p-3 justify-start ${node.color} dark:bg-card dark:hover:bg-muted/50 dark:border-border ${
+                                  className={`w-full h-auto p-3 justify-start ${node.color} dark:bg-card dark:hover:bg-muted/50 dark:border-border shadow-md ${
                                     simulationMode ? 'opacity-50 cursor-not-allowed' : ''
                                   }`}
                                 >
@@ -196,44 +199,109 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, simulationM
                       title="Templates"
                       isExpanded={expandedSection === 'templates'}
                       onClick={() => toggleSection('templates')}
-                      icon={Play}
+                      icon={LayoutPanelTopIcon}
                     />
                     
                     <AnimatePresence>
                       {expandedSection === 'templates' && (
                         <motion.div 
-                          className="p-4 pt-0 space-y-2"
+                          className="p-3 pt-0 space-y-1.5 shadow-md"
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.2 }}
                         >
-                          {SUPPLY_CHAIN_TEMPLATES.map((template, index) => (
-                            <motion.div
-                              key={template.id}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ duration: 0.2, delay: index * 0.05 }}
-                            >
-                              <Button
-                                variant="outline"
-                                disabled={simulationMode}
-                                className={`w-full h-auto p-3 justify-start hover:bg-muted ${
-                                  simulationMode ? 'opacity-50 cursor-not-allowed' : ''
-                                }`}
-                              >
-                                <div className="flex items-center justify-between w-full">
-                                  <div className="text-left">
-                                    <div className="font-medium text-sm">{template.name}</div>
-                                    <div className="text-xs text-muted-foreground">{template.description}</div>
+                          {/* Info about grouping */}
+                          <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
+                            <div className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">
+                              🔗 Template Grouping
+                            </div>
+                            <div className="text-xs text-blue-600 dark:text-blue-400">
+                              Templates load as grouped units that can be moved together. Double-click to ungroup individual nodes.
+                            </div>
+                          </div>
+
+                          {/* Category Grouping */}
+                          <TooltipProvider>
+                            {['Industry', 'Characteristics', 'Geographic', 'Complexity'].map((category) => {
+                              const categoryTemplates = SUPPLY_CHAIN_TEMPLATES.filter(template => template.category === category);
+                              if (categoryTemplates.length === 0) return null;
+                              
+                              return (
+                                <div key={category} className="space-y-1.5">
+                                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">
+                                    {category}
                                   </div>
-                                  <Badge variant="secondary" className="ml-2">
-                                    {template.nodes}
-                                  </Badge>
+                                  {categoryTemplates.map((template, index) => (
+                                    <motion.div
+                                      key={template.id}
+                                      initial={{ opacity: 0, x: -20 }}
+                                      animate={{ opacity: 1, x: 0 }}
+                                      transition={{ duration: 0.2, delay: index * 0.03 }}
+                                    >
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="outline"
+                                            onClick={() => onLoadTemplate?.(template.id)}
+                                            disabled={simulationMode || !onLoadTemplate}
+                                            className={`w-full h-auto p-2.5 justify-start hover:bg-muted/80 shadow-sm transition-all duration-200 ${
+                                              simulationMode ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md'
+                                            }`}
+                                          >
+                                            <div className="flex items-center w-full min-h-[40px]">
+                                              <div className="flex items-center space-x-2.5 flex-1 min-w-0">
+                                                <div className="text-base leading-none flex-shrink-0">
+                                                  {template.icon}
+                                                </div>
+                                                <div className="text-left flex-1 min-w-0">
+                                                  <div className="font-medium text-sm leading-tight dark:text-foreground truncate">
+                                                    {template.name}
+                                                  </div>
+                                                  <div className="text-xs text-muted-foreground leading-tight truncate">
+                                                    {template.description}
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="right" className="max-w-xs">
+                                          <div className="space-y-2">
+                                            <div className="font-semibold text-sm">{template.name}</div>
+                                            <div className="text-xs text-muted-foreground">{template.description}</div>
+                                            <div className="flex items-center justify-between text-xs">
+                                              <span className="text-muted-foreground">Nodes:</span>
+                                              <span className="font-medium">{template.nodes}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between text-xs">
+                                              <span className="text-muted-foreground">Complexity:</span>
+                                              <span className={`font-medium ${
+                                                template.complexity === 'High' ? 'text-red-600' :
+                                                template.complexity === 'Medium' ? 'text-yellow-600' : 'text-green-600'
+                                              }`}>
+                                                {template.complexity}
+                                              </span>
+                                            </div>
+                                            <div className="space-y-1">
+                                              <div className="text-xs text-muted-foreground">Features:</div>
+                                              <div className="flex flex-wrap gap-1">
+                                                {template.features.map((feature, idx) => (
+                                                  <span key={idx} className="inline-block px-1.5 py-0.5 bg-muted/60 text-xs rounded-sm">
+                                                    {feature}
+                                                  </span>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </motion.div>
+                                  ))}
                                 </div>
-                              </Button>
-                            </motion.div>
-                          ))}
+                              );
+                            })}
+                          </TooltipProvider>
                         </motion.div>
                       )}
                     </AnimatePresence>
