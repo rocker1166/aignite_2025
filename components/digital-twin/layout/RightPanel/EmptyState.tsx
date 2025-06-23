@@ -10,12 +10,13 @@ interface EmptyStateProps {
 const EmptyState: FC<EmptyStateProps> = ({ onCollapse }) => {
   return (
     <motion.div 
-      className="flex-1 p-8"
+      className="flex-1 flex flex-col"
       variants={contentVariants}
       animate="visible"
       initial="hidden"
     >
-      <div className="h-full flex flex-col items-center justify-center text-center space-y-8">
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col items-center justify-center text-center space-y-8 p-8">
         {/* Header */}
         <motion.div 
           className="space-y-3"
@@ -94,7 +95,7 @@ const EmptyState: FC<EmptyStateProps> = ({ onCollapse }) => {
           <p className="text-base font-medium text-foreground">
             Select an element to get started
           </p>
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-sm text-muted-foreground leading-tight">
             Click on any node or edge in the canvas to view and edit its properties, configuration, and details.
           </p>
         </motion.div>
@@ -121,9 +122,9 @@ const EmptyState: FC<EmptyStateProps> = ({ onCollapse }) => {
         </motion.div>
       </div>
       
-      {/* Collapse button at bottom */}
+      {/* Collapse button at bottom - now properly positioned */}
       <motion.div 
-        className="flex justify-center p-4 border-t border-border"
+        className="flex-shrink-0 flex justify-center p-4 border-t border-border/20 bg-background/50 backdrop-blur-sm"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.6 }}

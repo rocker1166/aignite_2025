@@ -317,13 +317,13 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, onLoadTempl
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.4 }}
             >
-              <div className="space-y-2">
+              <div className="space-y-2 ">
                 <Button
                   variant="destructive"
                   onClick={onClearAllNodes}
                   disabled={simulationMode}
-                  className={`w-full gap-2 ${
-                    simulationMode ? 'opacity-50 cursor-not-allowed' : ''
+                  className={`w-full gap-2 shadow-lg ${
+                    simulationMode ? 'opacity-50 cursor-not-allowed ' : ''
                   }`}
                 >
                   <DeleteIcon size={16} className="h-4 w-4" />

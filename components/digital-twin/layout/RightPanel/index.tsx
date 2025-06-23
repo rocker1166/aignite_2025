@@ -285,9 +285,9 @@ const RightPanel: FC<RightPanelProps> = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-destructive border-destructive/20 hover:bg-destructive/10 hover:border-destructive/30"
+                  className="text-destructive border-destructive/20 hover:bg-destructive/10 hover:border-destructive/30 shadow-md"
                 >
-                  <DeleteIcon size={12} className="w-3 h-3 mr-1" />
+                  <DeleteIcon size={12} className="w-3 h-3 mr-1 " />
                   Delete
                 </Button>
               </AlertDialogTrigger>
@@ -317,7 +317,7 @@ const RightPanel: FC<RightPanelProps> = ({
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <span className="text-xs text-muted-foreground group-hover:text-primary font-medium">Hide Panel</span>
+          <span className="text-xs text-muted-foreground group-hover:text-primary font-medium ">Hide Panel</span>
           <motion.div
             variants={iconVariants}
             animate="expanded"

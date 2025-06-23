@@ -1,103 +1,100 @@
-import { FC } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Check, AlertCircle } from 'lucide-react';
+import { FC, useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Check, Loader2 } from 'lucide-react';
 import { SaveStatus } from './types';
+import { TextShimmer } from '@/components/ui/text-shimmer';
 
 interface SaveStatusIndicatorProps {
   saveStatus: SaveStatus;
 }
 
 const SaveStatusIndicator: FC<SaveStatusIndicatorProps> = ({ saveStatus }) => {
+  const [displayStatus, setDisplayStatus] = useState<SaveStatus>(saveStatus);
+  const [isMinimumDuration, setIsMinimumDuration] = useState(false);
+
+  // Minimum saving duration of 1.5 seconds
+  const MINIMUM_SAVING_DURATION = 1500;
+
+  useEffect(() => {
+    if (saveStatus === 'saving') {
+      setDisplayStatus('saving');
+      setIsMinimumDuration(true);
+      
+      // Set minimum duration timer
+      const timer = setTimeout(() => {
+        setIsMinimumDuration(false);
+      }, MINIMUM_SAVING_DURATION);
+
+      return () => clearTimeout(timer);
+    } else if (saveStatus === 'saved' && !isMinimumDuration) {
+      // Only update to saved if minimum duration has passed
+      setDisplayStatus('saved');
+    } else if (saveStatus === 'unsaved') {
+      setDisplayStatus('unsaved');
+      setIsMinimumDuration(false);
+    }
+  }, [saveStatus, isMinimumDuration]);
+
+  // Update to saved after minimum duration if save completed
+  useEffect(() => {
+    if (!isMinimumDuration && saveStatus === 'saved' && displayStatus === 'saving') {
+      setDisplayStatus('saved');
+    }
+  }, [isMinimumDuration, saveStatus, displayStatus]);
+
   const getStatusConfig = () => {
-    switch (saveStatus) {
+    switch (displayStatus) {
       case 'unsaved':
         return {
-          icon: AlertCircle,
+          icon: <div className="h-3 w-3 rounded-full bg-amber-500 dark:bg-amber-400" />,
           text: 'Unsaved changes',
-          className: 'text-amber-600 dark:text-amber-400',
-          bgClassName: 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800'
+          className: 'text-amber-600 dark:text-amber-400'
         };
       case 'saving':
         return {
-          icon: Clock,
-          text: 'Saving...',
-          className: 'text-blue-600 dark:text-blue-400',
-          bgClassName: 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
+          icon: <Loader2 className="h-4 w-4 animate-spin text-blue-600 dark:text-blue-400" />,
+          text: <TextShimmer className="text-sm font-medium text-blue-600 dark:text-blue-400" duration={1.5}>Saving</TextShimmer>,
+          className: ''
         };
       case 'saved':
         return {
-          icon: Check,
-          text: 'All changes saved',
-          className: 'text-green-600 dark:text-green-400',
-          bgClassName: 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
+          icon: <Check className="h-4 w-4 text-green-600 dark:text-green-400" />,
+          text: 'Saved',
+          className: 'text-green-600 dark:text-green-400'
         };
     }
   };
 
   const config = getStatusConfig();
-  const Icon = config.icon;
 
   return (
-    <AnimatePresence mode="wait">
+    <motion.div
+      className="flex items-center space-x-2"
+      layout
+      transition={{
+        duration: 0.3,
+        ease: "easeInOut"
+      }}
+    >
       <motion.div
-        key={saveStatus} // Force re-render on status change for smooth transitions
-        className={`flex items-center space-x-2 px-3 py-2 rounded-lg border ${config.bgClassName}`}
-        initial={{ opacity: 0, y: -10, scale: 0.95 }}
-        animate={{ 
-          opacity: 1, 
-          y: 0, 
-          scale: 1,
-          transition: {
-            duration: 0.4,
-            ease: [0.25, 0.46, 0.45, 0.94], // Custom easing for smoother animation
-            staggerChildren: 0.1
-          }
-        }}
-        exit={{ 
-          opacity: 0, 
-          y: -5, 
-          scale: 0.95,
-          transition: {
-            duration: 0.2,
-            ease: "easeOut"
-          }
-        }}
+        layout
+        transition={{ duration: 0.2 }}
       >
-        <motion.div
-          initial={{ opacity: 0, rotate: -10 }}
-          animate={{ 
-            opacity: 1, 
-            rotate: 0,
-            transition: { duration: 0.3, delay: 0.1 }
-          }}
-        >
-          <motion.div
-            animate={saveStatus === 'saving' ? { rotate: 360 } : {}}
-            transition={saveStatus === 'saving' ? { 
-              duration: 1.5, 
-              repeat: Infinity, 
-              ease: "linear" 
-            } : { 
-              duration: 0.3, 
-              ease: "easeOut" 
-            }}
-          >
-            <Icon className={`h-4 w-4 ${config.className}`} />
-          </motion.div>
-        </motion.div>
+        {config.icon}
+      </motion.div>
+      
+      {typeof config.text === 'string' ? (
         <motion.span 
           className={`text-sm font-medium ${config.className}`}
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ 
-            opacity: 1, 
-            x: 0,
-            transition: { duration: 0.3, delay: 0.15 }
-          }}
+          layout
+          transition={{ duration: 0.2 }}
         >
           {config.text}
         </motion.span>
-      </motion.div>
-    </AnimatePresence>
+      ) : (
+        config.text
+      )}
+    </motion.div>
   );
 };
 
