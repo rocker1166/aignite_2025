@@ -1,6 +1,7 @@
 "use client"
 import { FC, useState } from 'react';
-import { ChevronDown, ChevronRight, ChevronLeft, Building2, Upload, Download, RotateCcw, Trash2, Play } from 'lucide-react';
+import { ChevronDown, ChevronRight, ChevronLeft, Building2, Upload, Download, RotateCcw, Play } from 'lucide-react';
+import { DeleteIcon } from '@/components/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -257,7 +258,7 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, simulationM
                     simulationMode ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <DeleteIcon size={16} className="h-4 w-4" />
                   Clear All Nodes
                 </Button>
                 

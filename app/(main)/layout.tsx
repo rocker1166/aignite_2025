@@ -1,13 +1,10 @@
 import type React from "react"
 import type { Metadata } from "next"
-// import { Inter } from "next/font/google"
 import "../globals.css"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { Toaster } from "@/components/ui/toaster"
 import AIChatOverlay from "@/components/ui/ai-chat-overlay"
-
-// const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Intellisupply",

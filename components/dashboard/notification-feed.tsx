@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { AlertTriangle, CheckCircle, Info, Bell, BellOff, X, ArrowRight } from "lucide-react"
+import { AlertTriangle, CheckCircle, Info, BellOff, X, ArrowRight } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { BellIcon } from "@/components/icons"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -201,7 +202,7 @@ export function NotificationFeed() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Bell className="h-5 w-5 text-blue-500" />
+            <BellIcon size={20} className="text-blue-500" />
             Notifications
             {unreadCount > 0 && (
               <Badge variant="destructive" className="ml-2 bg-red-500 hover:bg-red-600">

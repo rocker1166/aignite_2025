@@ -2,7 +2,8 @@ import { FC, useState, useEffect, useCallback, useRef } from 'react';
 import { Node, Edge } from 'reactflow';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Trash2, ChevronLeft, Clock, Check, AlertCircle } from 'lucide-react';
+import { ChevronLeft, Clock, Check, AlertCircle } from 'lucide-react';
+import { DeleteIcon } from '@/components/icons';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import debounce from 'lodash.debounce';
 import NodeConfiguration from './NodeConfiguration';
@@ -296,7 +297,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, 
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.1 }}
                 >
-                  <Trash2 className="h-5 w-5 text-muted-foreground group-hover:text-destructive transition-colors mx-auto" />
+                  <DeleteIcon size={20} className="h-5 w-5 text-muted-foreground group-hover:text-destructive transition-colors mx-auto" />
                 </motion.button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -656,7 +657,7 @@ const RightPanel: FC<RightPanelProps> = ({ selectedElement, onUpdate, onDelete, 
                   size="sm"
                   className="text-destructive border-destructive/20 hover:bg-destructive/10 hover:border-destructive/30"
                 >
-                  <Trash2 className="w-3 h-3 mr-1" />
+                  <DeleteIcon size={12} className="w-3 h-3 mr-1" />
                   Delete
                 </Button>
               </AlertDialogTrigger>

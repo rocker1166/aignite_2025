@@ -7,7 +7,8 @@ import { useQueryState, parseAsString } from 'nuqs';
 import { getUserSupplyChains } from '@/lib/api/supply-chain';
 import { useUser } from '@/lib/stores/user';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, Plus, RefreshCw } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import { RefreshCWIcon, PlusIcon } from '@/components/icons';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface SupplyChainData {
@@ -116,7 +117,7 @@ export default function DigitalTwinDashboard() {
   // Show loading skeleton while user is loading or supply chains are loading
   if (userLoading || loading) {
     return (
-      <div className="p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 min-h-screen">
+      <div className="p-4 sm:p-6 lg:p-8 bg-slate-50 dark:bg-slate-900 min-h-screen">
         <header className="flex items-center justify-between mb-8">
           <div className="space-y-2">
             <Skeleton className="h-9 w-64" />
@@ -130,7 +131,7 @@ export default function DigitalTwinDashboard() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="space-y-4 p-6 border rounded-lg bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
+              <div key={i} className="space-y-4 p-6 border rounded-lg bg-white dark:bg-gray-800 shadow-md">
                 <Skeleton className="h-6 w-3/4" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-2/3" />
@@ -149,10 +150,10 @@ export default function DigitalTwinDashboard() {
 
   if (error) {
     return (
-      <div className="p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 min-h-screen">
+      <div className="p-4 sm:p-6 lg:p-8 bg-slate-50 dark:bg-slate-900 min-h-screen">
         <header className="flex items-center justify-between mb-8">
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
               My Digital Twins
             </h1>
             <p className="text-muted-foreground">
@@ -164,12 +165,13 @@ export default function DigitalTwinDashboard() {
               variant="outline" 
               onClick={handleRefresh}
               disabled={refreshing}
+              className="shadow-md"
             >
-              <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <RefreshCWIcon className={`mr-2 ${refreshing ? 'animate-spin' : ''}`} size={16} />
               Retry
             </Button>
-            <Button onClick={() => setView('create')} className="bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700">
-              <Plus className="mr-2 h-4 w-4" />
+            <Button onClick={() => setView('create')} className="bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-shadow">
+              <PlusIcon size={16} className="mr-2" />
               Create New Twin
             </Button>
           </div>
@@ -183,10 +185,10 @@ export default function DigitalTwinDashboard() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8 bg-slate-50 dark:bg-slate-900 min-h-screen">
       <header className="flex items-center justify-between mb-8">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             My Digital Twins
           </h1>
           <p className="text-muted-foreground">
@@ -198,13 +200,13 @@ export default function DigitalTwinDashboard() {
             variant="outline" 
             onClick={handleRefresh}
             disabled={refreshing}
-            className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm"
+            className="shadow-md"
           >
-            <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCWIcon className={`mr-2 ${refreshing ? 'animate-spin' : ''}`} size={16} />
             Refresh
           </Button>
-          <Button onClick={() => setView('create')} className="bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700">
-            <Plus className="mr-2 h-4 w-4" />
+          <Button onClick={() => setView('create')} className="bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-shadow">
+            <PlusIcon size={16} className="mr-2" />
             Create New Twin
           </Button>
         </div>
@@ -223,8 +225,8 @@ export default function DigitalTwinDashboard() {
               <p className="text-muted-foreground mb-6">
                 Get started by creating your first supply chain digital twin
               </p>
-              <Button onClick={() => setView('create')} className="bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700">
-                <Plus className="mr-2 h-4 w-4" />
+              <Button onClick={() => setView('create')} className="bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-shadow">
+                <PlusIcon size={16} className="mr-2" />
                 Create Your First Twin
               </Button>
             </div>

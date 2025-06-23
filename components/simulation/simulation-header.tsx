@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, User } from "lucide-react"
+import { User } from "lucide-react"
 import Link from "next/link"
 import { motion, type Variants } from "framer-motion"
 import { SidebarTrigger } from "@/components/ui/sidebar"
@@ -64,18 +64,14 @@ const dropdownItem: Variants = {
   },
 }
 
-interface HeaderProps {
-  title: string
-}
-
-export function Header({ title }: HeaderProps) {
+export function SimulationHeader() {
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-6">
+    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-white dark:bg-gray-800 px-6 shadow-sm">
       <SidebarTrigger />
-      <div className="font-semibold text-lg">{title}</div>
+      <div className="font-semibold text-lg text-gray-900 dark:text-gray-100">Simulation & Scenario Generation</div>
+      
       <div className="ml-auto flex items-center gap-4">
-        
-        
+        {/* Notifications */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon" className="relative">
@@ -139,11 +135,12 @@ export function Header({ title }: HeaderProps) {
             </motion.div>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
               <Avatar className="h-8 w-8">
-                {/* <AvatarImage src="/placeholder-user.jpg" alt="User" /> */}
                 <AvatarFallback>SC</AvatarFallback>
               </Avatar>
               <span className="sr-only">User menu</span>
@@ -171,5 +168,5 @@ export function Header({ title }: HeaderProps) {
         </DropdownMenu>
       </div>
     </header>
-  );
-}
+  )
+} 
