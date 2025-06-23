@@ -255,7 +255,7 @@ export function ScenarioConfigurationForm() {
                     min={100}
                     max={50000}
                     step={100}
-                    className="h-10 text-base rounded-xl dark:bg-gray-800 dark:border-gray-700"
+                    className="h-10 shadow-md text-base rounded-xl dark:bg-gray-800 dark:border-gray-700"
                     value={scenarioData.monteCarloRuns || ''}
                     onChange={(e) => updateScenarioData({ monteCarloRuns: e.target.value ? Number(e.target.value) : 0 })}
                     placeholder="e.g., 1000"
@@ -274,7 +274,7 @@ export function ScenarioConfigurationForm() {
                     value={scenarioData.distributionType} 
                     onValueChange={(val) => updateScenarioData({ distributionType: val })}
                   >
-                    <SelectTrigger className="h-10 text-base rounded-xl dark:bg-gray-800 dark:border-gray-700">
+                    <SelectTrigger className="h-10 shadow-md text-base rounded-xl dark:bg-gray-800 dark:border-gray-700">
                       <SelectValue placeholder="Select distribution" />
                     </SelectTrigger>
                     <SelectContent>
@@ -301,7 +301,7 @@ export function ScenarioConfigurationForm() {
                     min={0}
                     max={100}
                     step={5}
-                    className="h-10 text-base rounded-xl dark:bg-gray-800 dark:border-gray-700"
+                    className="h-10 shadow-md text-base rounded-xl dark:bg-gray-800 dark:border-gray-700"
                     value={scenarioData.failureThreshold || ''}
                     onChange={(e) => updateScenarioData({ failureThreshold: e.target.value ? Number(e.target.value) : 0 })}
                     placeholder="e.g., 30"
@@ -322,7 +322,7 @@ export function ScenarioConfigurationForm() {
                     min={0}
                     max={200}
                     step={5}
-                    className="h-10 text-base rounded-xl dark:bg-gray-800 dark:border-gray-700"
+                    className="h-10 shadow-md text-base rounded-xl dark:bg-gray-800 dark:border-gray-700"
                     value={scenarioData.bufferPercent || ''}
                     onChange={(e) => updateScenarioData({ bufferPercent: e.target.value ? Number(e.target.value) : 0 })}
                     placeholder="e.g., 20"
@@ -345,7 +345,7 @@ export function ScenarioConfigurationForm() {
                     date={scenarioData.startDate ? new Date(scenarioData.startDate) : undefined}
                     onSelect={(date: Date | undefined) => updateScenarioData({ startDate: date ? date.toISOString().slice(0, 16) : '' })}
                     placeholder="Select start date and time"
-                    className="h-10 text-base w-full rounded-xl dark:bg-gray-800 dark:border-gray-700"
+                    className="h-10 shadow-md text-base w-full rounded-xl dark:bg-gray-800 dark:border-gray-700"
                     showTime={true}
                   />
                 </div>
@@ -363,7 +363,7 @@ export function ScenarioConfigurationForm() {
                     date={scenarioData.endDate ? new Date(scenarioData.endDate) : undefined}
                     onSelect={(date: Date | undefined) => updateScenarioData({ endDate: date ? date.toISOString().slice(0, 16) : '' })}
                     placeholder="Select end date and time"
-                    className="h-10 text-base w-full rounded-xl dark:bg-gray-800 dark:border-gray-700"
+                    className="h-10 shadow-md text-base w-full rounded-xl dark:bg-gray-800 dark:border-gray-700"
                     showTime={true}
                   />
                 </div>
@@ -377,7 +377,7 @@ export function ScenarioConfigurationForm() {
                     Random Seed
                   </LabelWithTooltip>
                   <Input
-                    className="h-10 text-base rounded-xl dark:bg-gray-800 dark:border-gray-700"
+                    className="h-10 shadow-md text-base rounded-xl dark:bg-gray-800 dark:border-gray-700"
                     placeholder="Enter seed (optional)"
                     value={scenarioData.randomSeed || ''}
                     onChange={(e) => updateScenarioData({ randomSeed: e.target.value })}

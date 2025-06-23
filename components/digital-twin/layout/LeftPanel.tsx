@@ -37,7 +37,7 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, simulationM
   }) => (
     <Button
       variant="ghost"
-      className="w-full justify-between p-3 h-auto font-medium text-left hover:bg-gray-50"
+      className="w-full justify-between p-3 h-auto font-medium text-left hover:bg-muted/50"
       onClick={onClick}
     >
       <div className="flex items-center gap-2">
@@ -166,16 +166,16 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, simulationM
                                   variant="outline"
                                   onClick={() => onAddNode(node.id)}
                                   disabled={simulationMode}
-                                  className={`w-full h-auto p-3 justify-start ${node.color} ${
+                                  className={`w-full h-auto p-3 justify-start ${node.color} dark:bg-card dark:hover:bg-muted/50 dark:border-border ${
                                     simulationMode ? 'opacity-50 cursor-not-allowed' : ''
                                   }`}
                                 >
                                   <div className="flex items-center gap-3">
-                                    <div className={`p-2 rounded-lg bg-white ${node.iconColor}`}>
-                                      <IconComponent className="h-4 w-4" />
+                                    <div className={`p-2 rounded-lg bg-white dark:bg-background ${node.iconColor} border dark:border-2 dark:border-background`}>
+                                      <IconComponent className="h-4 w-4 dark:text-white" />
                                     </div>
                                     <div className="text-left">
-                                      <div className="font-medium text-sm">{node.id}</div>
+                                      <div className="font-medium text-sm dark:text-foreground">{node.id}</div>
                                       <div className="text-xs text-muted-foreground">{node.description}</div>
                                     </div>
                                   </div>

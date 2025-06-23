@@ -115,307 +115,322 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
       : 0
 
   return (
-    <div className="bg-[#F7F9FC]">
-      {/* Header */}
-      <div className="bg-white p-6 border-b">
-        <div className="flex justify-between items-center">
-          <div>
-            <Button variant="ghost" size="sm" className="mb-2">
-              <ChevronLeft className="mr-1 h-4 w-4" /> Back to Scenario
-            </Button>
-            <h1 className="text-3xl font-bold text-[#1D3557]">Disruption Strategy Dashboard</h1>
-            <p className="text-[#4A4A4A] mt-1">Scenario: {scenarioId}</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      {/* Simplified Header */}
+      <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-b border-slate-200/60 dark:border-slate-700/60 shadow-sm rounded-xl">
+        <div className="px-6 py-6 ">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-1">Strategy Dashboard</h1>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">{scenarioId}</p>
+            </div>
+            <Badge variant="info" className="text-xs">
+              Updated: Apr 22, 2025 10:45 AM
+            </Badge>
           </div>
-          <div className="text-sm text-[#888]">Updated: Apr 22, 2025 10:45 AM</div>
         </div>
       </div>
 
-      <div className="container mx-auto p-6">
-        {/* Executive Summary Panel */}
-        <Card className="bg-[#F7F9FC] border mb-6">
-          <CardContent className="p-6">
+      <div className="px-0 py-4">
+        {/* Executive Summary Panel with better shadows */}
+        <Card className="bg-white dark:bg-slate-800 shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 mb-8">
+          <CardContent className="p-8">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Impact Overview</h2>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-              <div>
-                <p className="text-xs font-bold text-[#333]">Disruption Type</p>
-                <p className="text-lg">Port Closure</p>
+              <div className="text-center p-4 rounded-lg bg-slate-50 dark:bg-slate-700 shadow-lg hover:shadow-xl transition-shadow">
+                <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Disruption Type</p>
+                <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">Port Closure</p>
               </div>
-              <div>
-                <p className="text-xs font-bold text-[#333]">Projected Impact Cost</p>
-                <p className="text-xl font-semibold text-[#D62828]">$4.2 M (next 30 days)</p>
+              <div className="text-center p-4 rounded-lg bg-red-50 dark:bg-red-900/30 shadow-lg hover:shadow-xl transition-shadow">
+                <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Impact Cost</p>
+                <p className="text-lg font-bold text-red-600 dark:text-red-400">$4.2M</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">(next 30 days)</p>
               </div>
-              <div>
-                <p className="text-xs font-bold text-[#333]">Estimated Downtime</p>
-                <p className="text-lg">10 days</p>
+              <div className="text-center p-4 rounded-lg bg-orange-50 dark:bg-orange-900/30 shadow-lg hover:shadow-xl transition-shadow">
+                <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Downtime</p>
+                <p className="text-lg font-semibold text-orange-600 dark:text-orange-400">10 days</p>
               </div>
-              <div>
-                <p className="text-xs font-bold text-[#333]">Affected Volume</p>
-                <p className="text-lg">25,000 TEUs</p>
+              <div className="text-center p-4 rounded-lg bg-blue-50 dark:bg-blue-900/30 shadow-lg hover:shadow-xl transition-shadow">
+                <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Affected Volume</p>
+                <p className="text-lg font-semibold text-blue-600 dark:text-blue-400">25,000 TEUs</p>
               </div>
-              <div>
-                <p className="text-xs font-bold text-[#333]">Current Mitigation Spend</p>
-                <p className="text-lg">$350K</p>
+              <div className="text-center p-4 rounded-lg bg-green-50 dark:bg-green-900/30 shadow-lg hover:shadow-xl transition-shadow">
+                <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Current Mitigation</p>
+                <p className="text-lg font-semibold text-green-600 dark:text-green-400">$350K</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            {/* Controls Bar */}
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-              <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            {/* Simplified Controls */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-md border border-slate-200/60 dark:border-slate-700/60">
+              <div className="flex items-center gap-3">
                 <Select defaultValue="roi">
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-[160px] shadow-sm bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-900 dark:text-slate-100">
                     <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Filter by" />
+                    <SelectValue placeholder="Filter" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="roi">Highest ROI</SelectItem>
-                    <SelectItem value="cost">Lowest Cost</SelectItem>
-                    <SelectItem value="time">Fastest Implementation</SelectItem>
+                  <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+                    <SelectItem value="roi" className="text-slate-900 dark:text-slate-100">Highest ROI</SelectItem>
+                    <SelectItem value="cost" className="text-slate-900 dark:text-slate-100">Lowest Cost</SelectItem>
+                    <SelectItem value="time" className="text-slate-900 dark:text-slate-100">Fastest Implementation</SelectItem>
                   </SelectContent>
                 </Select>
-                <div className="relative w-full sm:w-auto">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input type="search" placeholder="Search strategies" className="pl-8 w-full sm:w-[200px]" />
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
+                  <Input type="search" placeholder="Search..." className="pl-9 w-[200px] shadow-sm bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="text-[#3366FF] w-full sm:w-auto">
-                <Download className="h-4 w-4 mr-2" /> Export Plan
+              <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-600">
+                <Download className="h-4 w-4 mr-2" /> Export
               </Button>
             </div>
 
-            {/* Strategy Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {/* Strategy Cards with enhanced shadows */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {strategies.map((strategy) => (
                 <Card
                   key={strategy.id}
                   className={`
-                    border hover:shadow-md transition-all
-                    ${selectedStrategies.includes(strategy.id) ? "border-[#3366FF] border-2 bg-[#F0F6FF]" : ""}
+                    border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1
+                    ${selectedStrategies.includes(strategy.id) 
+                      ? "ring-2 ring-blue-500 dark:ring-blue-400 bg-blue-50 dark:bg-blue-900/30" 
+                      : "bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700"
+                    }
                   `}
                 >
-                  <CardHeader className="pb-2">
+                  <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg text-[#1D3557]">{strategy.title}</CardTitle>
-                      {strategy.roi > 5 && <Badge className="bg-[#FFB703] text-white">Top ROI</Badge>}
+                      <CardTitle className="text-lg text-slate-900 dark:text-slate-100 leading-tight">{strategy.title}</CardTitle>
+                      {strategy.roi > 5 && (
+                        <Badge className="bg-amber-500 dark:bg-amber-600 text-white shadow-sm text-xs">Top ROI</Badge>
+                      )}
                     </div>
-                    <p className="text-sm text-[#4A4A4A] line-clamp-2">{strategy.description}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mt-2">{strategy.description}</p>
                   </CardHeader>
-                  <CardContent className="pb-2">
-                    <div className="flex gap-2 mb-3 flex-wrap">
-                      <span className="text-xs font-bold bg-[#F0F0F0] px-2 py-1 rounded-full">
-                        💰 Cost: {formatCurrency(strategy.cost)}
-                      </span>
-                      <span className="text-xs font-bold bg-[#F0F0F0] px-2 py-1 rounded-full">
-                        ↗️ ROI: {strategy.roi}×
-                      </span>
-                      <span className="text-xs font-bold bg-[#F0F0F0] px-2 py-1 rounded-full">
-                        ⏱ Time: {strategy.time} days
-                      </span>
+                  <CardContent className="pb-3">
+                    <div className="flex gap-2 mb-4 flex-wrap">
+                      <Badge variant="info" className="text-xs font-medium">
+                        💰 {formatCurrency(strategy.cost)}
+                      </Badge>
+                      <Badge variant="success" className="text-xs font-medium">
+                        ↗️ {strategy.roi}× ROI
+                      </Badge>
+                      <Badge variant="blue" className="text-xs font-medium">
+                        ⏱ {strategy.time} days
+                      </Badge>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-base font-semibold text-[#2A9D8F]">
-                        Projected Savings: {formatCurrency(strategy.savings)}
-                      </p>
-                      <p className="text-base font-semibold text-[#E76F51]">
-                        Impact Reduction: {strategy.impactReduction}%
-                      </p>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-slate-600 dark:text-slate-400">Savings:</span>
+                        <span className="font-semibold text-green-600 dark:text-green-400">{formatCurrency(strategy.savings)}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-slate-600 dark:text-slate-400">Impact Reduction:</span>
+                        <span className="font-semibold text-blue-600 dark:text-blue-400">{strategy.impactReduction}%</span>
+                      </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="flex gap-2 pt-2">
+                  <CardFooter className="flex gap-2 pt-0">
                     <Button
-                      className="flex-1 bg-[#3366FF] hover:bg-[#3366FF]/90"
+                      className="flex-1 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 text-white shadow-md hover:shadow-lg transition-all"
                       onClick={() => applySimulation(strategy.id)}
                       disabled={appliedStrategies.includes(strategy.id)}
                     >
-                      {appliedStrategies.includes(strategy.id) ? "Simulated" : "Apply Simulation"}
+                      {appliedStrategies.includes(strategy.id) ? "Simulated" : "Simulate"}
                     </Button>
                     <Button
                       variant="outline"
-                      className="flex-1 border-[#3366FF] text-[#3366FF]"
+                      className="flex-1 border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 shadow-sm hover:shadow-md transition-all"
                       onClick={() => toggleStrategy(strategy.id)}
                     >
-                      {selectedStrategies.includes(strategy.id) ? "Remove" : "Add to Plan"}
+                      {selectedStrategies.includes(strategy.id) ? "Remove" : "Add"}
                     </Button>
                   </CardFooter>
                 </Card>
               ))}
             </div>
 
-            {/* Numerical Data Table */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="text-lg">Strategy Comparison</CardTitle>
+            {/* Strategy Comparison Table with better styling */}
+            <Card className="bg-white dark:bg-slate-800 shadow-lg border-0">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Strategy Comparison</CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-[#1D3557]">Strategy Name</TableHead>
-                      <TableHead className="text-[#1D3557]">Cost</TableHead>
-                      <TableHead className="text-[#1D3557]">Savings</TableHead>
-                      <TableHead className="text-[#1D3557]">ROI</TableHead>
-                      <TableHead className="text-[#1D3557]">Time</TableHead>
-                      <TableHead className="text-[#1D3557]">Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {strategies.map((strategy, index) => (
-                      <TableRow key={strategy.id} className={index % 2 === 0 ? "bg-[#F9F9F9]" : ""}>
-                        <TableCell>{strategy.title}</TableCell>
-                        <TableCell>{formatCurrency(strategy.cost)}</TableCell>
-                        <TableCell>{formatCurrency(strategy.savings)}</TableCell>
-                        <TableCell>{strategy.roi}×</TableCell>
-                        <TableCell>{strategy.time} days</TableCell>
-                        <TableCell>
-                          {selectedStrategies.includes(strategy.id) && <span className="text-[#2A9D8F]">Added ✓</span>}
-                          {appliedStrategies.includes(strategy.id) && !selectedStrategies.includes(strategy.id) && (
-                            <span className="text-[#3366FF]">Applied 🔄</span>
-                          )}
-                          {!selectedStrategies.includes(strategy.id) && !appliedStrategies.includes(strategy.id) && (
-                            <span>—</span>
-                          )}
-                        </TableCell>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-slate-200 dark:border-slate-700">
+                        <TableHead className="text-slate-700 dark:text-slate-300 font-semibold">Strategy</TableHead>
+                        <TableHead className="text-slate-700 dark:text-slate-300 font-semibold">Cost</TableHead>
+                        <TableHead className="text-slate-700 dark:text-slate-300 font-semibold">Savings</TableHead>
+                        <TableHead className="text-slate-700 dark:text-slate-300 font-semibold">ROI</TableHead>
+                        <TableHead className="text-slate-700 dark:text-slate-300 font-semibold">Time</TableHead>
+                        <TableHead className="text-slate-700 dark:text-slate-300 font-semibold">Status</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {strategies.map((strategy, index) => (
+                        <TableRow 
+                          key={strategy.id} 
+                          className={`border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 ${
+                            index % 2 === 0 ? "bg-white dark:bg-slate-800" : "bg-slate-50/50 dark:bg-slate-700/50"
+                          }`}
+                        >
+                          <TableCell className="font-medium text-slate-900 dark:text-slate-100">{strategy.title}</TableCell>
+                          <TableCell className="text-slate-900 dark:text-slate-100">{formatCurrency(strategy.cost)}</TableCell>
+                          <TableCell className="text-green-600 dark:text-green-400 font-medium">{formatCurrency(strategy.savings)}</TableCell>
+                          <TableCell className="font-medium text-slate-900 dark:text-slate-100">{strategy.roi}×</TableCell>
+                          <TableCell className="text-slate-900 dark:text-slate-100">{strategy.time} days</TableCell>
+                          <TableCell>
+                            {selectedStrategies.includes(strategy.id) && (
+                              <span className="text-green-600 dark:text-green-400 font-medium">Added ✓</span>
+                            )}
+                            {appliedStrategies.includes(strategy.id) && !selectedStrategies.includes(strategy.id) && (
+                              <span className="text-blue-600 dark:text-blue-400 font-medium">Applied 🔄</span>
+                            )}
+                            {!selectedStrategies.includes(strategy.id) && !appliedStrategies.includes(strategy.id) && (
+                              <span className="text-slate-400 dark:text-slate-500">—</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Next Steps & Call-to-Action */}
-            <Card>
+            {/* Action Section */}
+            <Card className="bg-white dark:bg-slate-800 shadow-lg border-0">
               <CardHeader>
-                <CardTitle className="text-lg">Next Steps</CardTitle>
+                <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Finalize Strategy</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <Textarea placeholder="Add notes about your strategy plan (max 500 characters)" maxLength={500} />
-                  <div className="flex flex-col sm:flex-row justify-between gap-4">
-                    <Button variant="link" className="text-[#3366FF]">
-                      <ChevronLeft className="h-4 w-4 mr-1" /> Back to Scenario
+                  <Textarea 
+                    placeholder="Add notes about your strategy plan..." 
+                    className="shadow-sm resize-none bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500" 
+                    rows={3}
+                    maxLength={500} 
+                  />
+                  <div className="flex justify-end">
+                    <Button className="bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-600 text-white shadow-md hover:shadow-lg transition-all px-6">
+                      Finalize Plan
                     </Button>
-                    <Button className="bg-[#2A9D8F] hover:bg-[#2A9D8F]/90">Finalize Plan</Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Aggregated ROI Dashboard */}
+          {/* Enhanced Sidebar */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-6">
-              <CardHeader>
-                <CardTitle className="text-lg">Plan Summary</CardTitle>
+            <Card className="sticky top-6 bg-white dark:bg-slate-800 shadow-xl border-0">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Plan Summary</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <Card className="bg-[#F5F5F5] p-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">💰</span>
-                      <div>
-                        <p className="text-xs">Total Cost</p>
-                        <p className="text-base font-semibold">{formatCurrency(totalCost)}</p>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="text-center p-4 rounded-lg bg-slate-50 dark:bg-slate-700 shadow-lg hover:shadow-xl transition-shadow">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <span className="text-lg">💰</span>
+                      <div className="text-left">
+                        <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Total Cost</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{formatCurrency(totalCost)}</p>
                       </div>
                     </div>
-                  </Card>
-                  <Card className="bg-[#F5F5F5] p-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">📈</span>
-                      <div>
-                        <p className="text-xs">Total Savings</p>
-                        <p className="text-base font-semibold">{formatCurrency(totalSavings)}</p>
+                  </div>
+                  <div className="text-center p-4 rounded-lg bg-green-50 dark:bg-green-900/30 shadow-lg hover:shadow-xl transition-shadow">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <span className="text-lg">📈</span>
+                      <div className="text-left">
+                        <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Total Savings</p>
+                        <p className="text-sm font-bold text-green-600 dark:text-green-400">{formatCurrency(totalSavings)}</p>
                       </div>
                     </div>
-                  </Card>
-                  <Card className="bg-[#F5F5F5] p-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">🔄</span>
-                      <div>
-                        <p className="text-xs">Average ROI</p>
-                        <p className="text-base font-semibold">{averageROI.toFixed(1)}×</p>
+                  </div>
+                  <div className="text-center p-4 rounded-lg bg-blue-50 dark:bg-blue-900/30 shadow-lg hover:shadow-xl transition-shadow">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <span className="text-lg">🔄</span>
+                      <div className="text-left">
+                        <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Avg ROI</p>
+                        <p className="text-sm font-bold text-blue-600 dark:text-blue-400">{averageROI.toFixed(1)}×</p>
                       </div>
                     </div>
-                  </Card>
-                  <Card className="bg-[#F5F5F5] p-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">⏱</span>
-                      <div>
-                        <p className="text-xs">Avg. Implementation</p>
-                        <p className="text-base font-semibold">{averageTime.toFixed(1)} days</p>
+                  </div>
+                  <div className="text-center p-4 rounded-lg bg-orange-50 dark:bg-orange-900/30 shadow-lg hover:shadow-xl transition-shadow">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <span className="text-lg">⏱</span>
+                      <div className="text-left">
+                        <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Avg Time</p>
+                        <p className="text-sm font-bold text-orange-600 dark:text-orange-400">{averageTime.toFixed(1)} days</p>
                       </div>
                     </div>
-                  </Card>
+                  </div>
                 </div>
 
-                {/* ROI Chart */}
-                <div className="mb-6">
-                  <h3 className="text-sm font-semibold mb-2">ROI Over Time</h3>
-                  <div className="bg-white border rounded-md p-4 h-[200px] flex items-center justify-center">
-                    <div className="text-center text-muted-foreground">
-                      {selectedStrategies.length === 0 ? (
-                        <p>Add strategies to see ROI projection</p>
-                      ) : (
-                        <div className="relative w-full h-full">
-                          <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gray-300"></div>
-                          <div className="absolute left-0 bottom-0 h-full w-[1px] bg-gray-300"></div>
-
-                          {/* Cost line */}
-                          <div className="absolute bottom-[30px] left-[20px] w-[80%] h-[2px] bg-red-500"></div>
-
-                          {/* Savings line (curved upward) */}
-                          <div className="absolute bottom-[30px] left-[20px] w-[80%] h-[80px] border-t-2 border-green-500 rounded-t-full"></div>
-
-                          {/* Labels */}
-                          <div className="absolute bottom-[10px] left-0 text-[10px] text-gray-500">0</div>
-                          <div className="absolute bottom-[10px] right-0 text-[10px] text-gray-500">30 days</div>
-                          <div className="absolute bottom-0 left-[10px] text-[10px] text-gray-500 rotate-90 origin-top-left">
-                            $ (millions)
+                {/* Enhanced ROI Chart placeholder */}
+                <div>
+                  <h3 className="text-sm font-semibold mb-3 text-slate-900 dark:text-slate-100">ROI Projection</h3>
+                  <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-600 border border-slate-200 dark:border-slate-600 rounded-lg p-6 h-[200px] flex items-center justify-center shadow-lg shadow-inner">
+                    {selectedStrategies.length === 0 ? (
+                      <p className="text-slate-500 dark:text-slate-400 text-sm text-center">
+                        Select strategies to view<br />ROI projection
+                      </p>
+                    ) : (
+                      <div className="w-full h-full relative">
+                        {/* Simple visualization placeholder */}
+                        <div className="absolute bottom-2 left-2 w-full h-[1px] bg-slate-300 dark:bg-slate-500"></div>
+                        <div className="absolute left-2 bottom-2 h-full w-[1px] bg-slate-300 dark:bg-slate-500"></div>
+                        <div className="absolute bottom-4 left-4 w-[80%] h-[2px] bg-red-400 dark:bg-red-500 rounded"></div>
+                        <div className="absolute bottom-4 left-4 w-[80%] h-[60px] border-t-2 border-green-500 dark:border-green-400 rounded-t-full"></div>
+                        <div className="absolute top-2 right-2 space-y-1 text-xs">
+                          <div className="flex items-center gap-1">
+                            <div className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded"></div>
+                            <span className="text-slate-600 dark:text-slate-400">Savings</span>
                           </div>
-
-                          {/* Legend */}
-                          <div className="absolute top-0 right-0 flex flex-col gap-1 text-[10px]">
-                            <div className="flex items-center gap-1">
-                              <div className="w-2 h-2 bg-green-500"></div>
-                              <span>Savings</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <div className="w-2 h-2 bg-red-500"></div>
-                              <span>Cost</span>
-                            </div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-2 h-2 bg-red-400 dark:bg-red-500 rounded"></div>
+                            <span className="text-slate-600 dark:text-slate-400">Cost</span>
                           </div>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Selected Strategies */}
                 <div>
-                  <h3 className="text-sm font-semibold mb-2">Selected Strategies</h3>
+                  <h3 className="text-sm font-semibold mb-3 text-slate-900 dark:text-slate-100">Selected Strategies</h3>
                   {selectedStrategies.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No strategies selected yet</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700 p-3 rounded-lg text-center shadow-md">
+                      No strategies selected
+                    </p>
                   ) : (
-                    <ul className="space-y-2">
+                    <div className="space-y-2">
                       {selectedStrategies.map((id) => {
                         const strategy = strategies.find((s) => s.id === id)
                         return strategy ? (
-                          <li key={id} className="text-sm flex justify-between">
-                            <span>{strategy.title}</span>
-                            <span className="text-[#2A9D8F]">{formatCurrency(strategy.savings)}</span>
-                          </li>
+                          <div key={id} className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700 shadow-md hover:shadow-lg transition-shadow">
+                            <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{strategy.title}</span>
+                            <span className="text-sm font-bold text-green-600 dark:text-green-400">{formatCurrency(strategy.savings)}</span>
+                          </div>
                         ) : null
                       })}
-                    </ul>
+                    </div>
                   )}
                 </div>
 
-                <Separator className="my-4" />
+                <Separator className="my-4 border-slate-200 dark:border-slate-700" />
 
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold">Net Benefit:</span>
-                  <span className="font-bold text-lg text-[#2A9D8F]">{formatCurrency(totalSavings - totalCost)}</span>
+                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/30 dark:to-green-900/30 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-lg hover:shadow-xl transition-shadow">
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">Net Benefit:</span>
+                  <span className="font-bold text-xl text-emerald-600 dark:text-emerald-400">{formatCurrency(totalSavings - totalCost)}</span>
                 </div>
               </CardContent>
             </Card>

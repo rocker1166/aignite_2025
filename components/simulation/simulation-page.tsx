@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { toast } from 'sonner'
 import { Play, Sparkles } from "lucide-react"
 import { WorkflowIcon, HistoryIcon, RouteIcon, CalendarDaysIcon } from "@/components/icons"
+import { PlusIcon } from "@/components/icons/plus-icon"
 import { parseAsString, useQueryState } from "nuqs"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
@@ -116,6 +117,175 @@ function SimulationPageContent() {
   const handleAIScenarioSelect = (scenario: ScenarioData) => {
     updateScenarioData(scenario)
     toast.success(`Applied "${scenario.scenarioName}" to the builder`)
+  }
+
+  // Development helper function to fill dummy data
+  const fillDummyData = () => {
+    const dummyScenario: ScenarioData = {
+      scenarioName: "Dev Test - Supply Disruption",
+      scenarioType: "supply_disruption",
+      affectedNode: "supplier_1,warehouse_2", // String format, comma-separated
+      description: "Development test scenario with dummy data for quick testing",
+      disruptionSeverity: 0.75,
+      disruptionDuration: 14,
+      startDate: "2024-01-15",
+      endDate: "2024-01-29",
+      monteCarloRuns: 1000,
+      distributionType: "normal",
+      cascadeEnabled: true,
+      failureThreshold: 0.6,
+      bufferPercent: 0.15,
+      alternateRouting: true,
+      randomSeed: "42" // String format
+    }
+    
+    updateScenarioData(dummyScenario)
+    toast.success("✨ Dev mode: Form filled with dummy data!")
+  }
+
+  // Development helper function to jump directly to results with dummy data
+  const jumpToResults = async () => {
+    if (!selectedSupplyChainId) {
+      toast.error("Please select a supply chain first")
+      return
+    }
+
+    try {
+      // Fill dummy data first
+      fillDummyData()
+      
+      // Create a dummy simulation record
+      const dummySim: Partial<Simulation> = {
+        supply_chain_id: selectedSupplyChainId,
+        name: "Dev Test - Supply Disruption",
+        scenario_type: "supply_disruption",
+        parameters: {
+          severity: 0.75,
+          duration: 14,
+          affectedNode: "supplier_1,warehouse_2",
+          description: "Development test scenario with dummy data for quick testing"
+        },
+        status: "completed",
+        result_summary: {
+          costImpact: "$2.4M",
+          timeDelay: "18.3 days", 
+          inventoryImpact: "-58%",
+          recoveryTime: "42 days"
+        },
+        simulated_at: new Date().toISOString()
+      }
+
+      const created = await createSimulation(dummySim)
+      setCurrentSimulation(created)
+
+      // Set dummy impact data using the correct structure
+      setImpactData({
+        scenario: {
+          id: "dev-scenario-001",
+          name: "Dev Test - Supply Disruption",
+          type: "supply_disruption",
+          description: "Development test scenario with dummy data for quick testing",
+          supplyChain: selectedSupplyChainId,
+          affectedNode: "supplier_1,warehouse_2",
+          duration: "14 days",
+          severity: "75%",
+          monteCarloRuns: 1000,
+          cascadingThreshold: "60%",
+          inventoryBuffer: "15%",
+          lastUpdated: new Date().toLocaleString(),
+        },
+        nodes: [
+          {
+            id: "supplier_1",
+            name: "Primary Supplier",
+            type: "supplier",
+            status: "disrupted",
+            statusDetail: "Primary disruption - supply shortage",
+            downtime: "14 days",
+            outputDrop: "-75%",
+            recovery: "Day 15",
+            riskScore: 85,
+            x: 100,
+            y: 100,
+          },
+          {
+            id: "warehouse_2",
+            name: "Regional Warehouse",
+            type: "storage",
+            status: "partial",
+            statusDetail: "Reduced capacity due to supplier issues",
+            downtime: "7 days",
+            outputDrop: "-45%",
+            recovery: "Day 12",
+            riskScore: 62,
+            x: 300,
+            y: 150,
+          },
+          {
+            id: "factory_1",
+            name: "Manufacturing Plant",
+            type: "manufacturing",
+            status: "partial",
+            statusDetail: "Limited production capacity",
+            downtime: "3 days",
+            outputDrop: "-30%",
+            recovery: "Day 10",
+            riskScore: 45,
+            x: 500,
+            y: 100,
+          }
+        ],
+        links: [
+          { source: "supplier_1", target: "warehouse_2", value: 75 },
+          { source: "warehouse_2", target: "factory_1", value: 60 }
+        ],
+        productionData: [
+          { day: 1, actual: 100, projected: 100 },
+          { day: 2, actual: 85, projected: 100 },
+          { day: 3, actual: 60, projected: 100 },
+          { day: 4, actual: 25, projected: 100 },
+          { day: 5, actual: 30, projected: 100 },
+          { day: 6, actual: 45, projected: 100 },
+          { day: 7, actual: 55, projected: 100 },
+          { day: 8, actual: 65, projected: 100 },
+          { day: 9, actual: 75, projected: 100 },
+          { day: 10, actual: 85, projected: 100 },
+          { day: 11, actual: 90, projected: 100 },
+          { day: 12, actual: 95, projected: 100 },
+          { day: 13, actual: 98, projected: 100 },
+          { day: 14, actual: 100, projected: 100 }
+        ],
+        inventoryData: [
+          { day: 1, level: 100 },
+          { day: 2, level: 85 },
+          { day: 3, level: 65 },
+          { day: 4, level: 40 },
+          { day: 5, level: 35 },
+          { day: 6, level: 45 },
+          { day: 7, level: 55 },
+          { day: 8, level: 65 },
+          { day: 9, level: 75 },
+          { day: 10, level: 85 },
+          { day: 11, level: 90 },
+          { day: 12, level: 95 },
+          { day: 13, level: 98 },
+          { day: 14, level: 100 }
+        ]
+      })
+
+      // Jump directly to results
+      setView('results')
+      setSimulationComplete(true)
+      setSimulationRunning(false)
+      
+      toast.success("🚀 Dev mode: Jumped to results with dummy data!")
+      
+      // Update simulation history
+      fetchSimulationHistory(selectedSupplyChainId)
+    } catch (error) {
+      console.error('Error in dev mode jump to results:', error)
+      toast.error("Failed to jump to results")
+    }
   }
 
   const runSimulation = async () => {
@@ -268,7 +438,7 @@ function SimulationPageContent() {
                     <DrawerTrigger asChild>
                       <Button variant="outline" className="shadow-md">
                         <WorkflowIcon size={16} className="mr-2" />
-                        View Workflow
+                        See how it works
                       </Button>
                     </DrawerTrigger>
                     <DrawerContent>
@@ -346,6 +516,28 @@ function SimulationPageContent() {
                     <Sparkles className="mr-2 h-4 w-4 text-yellow-500" /> 
                     AI Scenarios
                   </Button>
+
+                  {/* Dev Mode Buttons - Only show in development */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        onClick={fillDummyData} 
+                        className="shadow-md border-dashed border-orange-300 text-orange-600 hover:bg-orange-50"
+                      >
+                        <RouteIcon size={16} className="mr-2" />
+                        Dev: Fill Form
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={jumpToResults} 
+                        className="shadow-md border-dashed border-green-300 text-green-600 hover:bg-green-50"
+                      >
+                        <Play size={16} className="mr-2" />
+                        Dev: Skip to Results
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -372,8 +564,11 @@ function SimulationPageContent() {
                   <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-3">Simulation Results</h1>
                   <p className="text-muted-foreground text-lg">Analysis complete - review your supply chain impact</p>
                 </div>
-                <Button onClick={handleNewSimulation} variant="outline" className="shadow-md h-10 text-base">
-                  <Play className="mr-2 h-4 w-4" />
+                <Button 
+                  onClick={handleNewSimulation} 
+                  className="bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-shadow h-10 text-base text-white"
+                >
+                  <PlusIcon size={16} className="mr-2" />
                   New Simulation
                 </Button>
               </div>

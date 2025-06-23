@@ -22,7 +22,7 @@ const config = {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-geist)", ...fontFamily.sans],
+        sans: ["var(--font-poppins)", ...fontFamily.sans],
       },
       colors: {
         border: "hsl(var(--border))",
