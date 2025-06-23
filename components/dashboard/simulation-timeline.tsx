@@ -7,39 +7,41 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Play, Pause, SkipForward, AlertTriangle, ArrowRight } from "lucide-react"
 import Link from "next/link"
+import { Card } from '@/components/ui/card'
 
 const scenarios: { id: "port" | "supplier" | "weather"; name: string; duration: string; impact: string; financial: string }[] = [
   { id: "port", name: "Port Closure", duration: "14 days", impact: "High", financial: "$2.4M" },
-  { id: "supplier", name: "Supplier Bankruptcy", duration: "30 days", impact: "Critical", financial: "$5.8M" },
-  { id: "weather", name: "Weather Event", duration: "7 days", impact: "Medium", financial: "$1.2M" },
+  { id: "supplier", name: "Supplier Bankruptcy", duration: "30 days", impact: "Medium", financial: "$1.8M" },
+  { id: "weather", name: "Weather Event", duration: "7 days", impact: "Low", financial: "$0.8M" },
 ]
 
 const timelineEvents = {
   port: [
-    { day: 1, event: "Disruption begins", description: "Port of Shanghai closes due to COVID-19 outbreak" },
-    { day: 3, event: "Inventory depleting", description: "First tier suppliers begin to run out of components" },
-    { day: 7, event: "Production impact", description: "Manufacturing capacity reduced by 35%" },
-    { day: 10, event: "Alt. sourcing", description: "Emergency suppliers activated in Vietnam" },
-    { day: 14, event: "Recovery begins", description: "Port reopens with limited capacity" },
-    { day: 21, event: "Full recovery", description: "Supply chain operations return to normal" },
+    { id: 'day-1', day: 1, event: 'Disruption begins', description: 'Port of Shanghai closes due to COVID-19 outbreak' },
+    { id: 'day-3', day: 3, event: 'Inventory depleting', description: 'First tier suppliers begin to run out of components' },
+    { id: 'day-7', day: 7, event: 'Production impact', description: 'Manufacturing lines affected by component shortage' },
+    { id: 'day-10', day: 10, event: 'Recovery starts', description: 'Alternative shipping routes established' }
   ],
   supplier: [
-    { day: 1, event: "Bankruptcy filing", description: "Key supplier files for Chapter 11" },
-    { day: 5, event: "Parts shortage", description: "Critical components availability drops to 40%" },
-    { day: 12, event: "Production halt", description: "Assembly lines 3 & 4 shut down temporarily" },
-    { day: 18, event: "New suppliers", description: "Contracts signed with replacement vendors" },
-    { day: 25, event: "Ramp-up", description: "New suppliers begin shipping parts" },
-    { day: 30, event: "Stabilization", description: "Supply chain returns to 90% efficiency" },
+    { id: 'day-1', day: 1, event: 'Bankruptcy announced', description: 'Key supplier files for bankruptcy' },
+    { id: 'day-5', day: 5, event: 'Supply shortage', description: 'Critical components become unavailable' },
+    { id: 'day-15', day: 15, event: 'New supplier', description: 'Alternative supplier onboarding begins' },
+    { id: 'day-30', day: 30, event: 'Recovery', description: 'Supply chain stabilizes with new supplier' }
   ],
   weather: [
-    { day: 1, event: "Storm warning", description: "Category 4 hurricane approaching Gulf Coast" },
-    { day: 2, event: "Evacuation", description: "Manufacturing facilities in Houston area close" },
-    { day: 3, event: "Landfall", description: "Hurricane damages port infrastructure" },
-    { day: 4, event: "Assessment", description: "Damage evaluation shows minimal impact to facilities" },
-    { day: 5, event: "Reopening", description: "Facilities reopen with generator power" },
-    { day: 7, event: "Full recovery", description: "Normal operations resume" },
+    { id: 'day-1', day: 1, event: 'Storm warning', description: 'Category 4 hurricane approaching Gulf Coast' },
+    { id: 'day-2', day: 2, event: 'Port closure', description: 'Ports begin emergency shutdown procedures' },
+    { id: 'day-4', day: 4, event: 'Storm passes', description: 'Weather conditions begin to improve' },
+    { id: 'day-7', day: 7, event: 'Operations resume', description: 'Ports return to normal operations' }
   ]
 }
+
+const timelinePoints = [
+  { id: 'day-1', day: 1, active: true, position: 0, event: 'Disruption begins', description: 'Port of Shanghai closes due to COVID-19 outbreak' },
+  { id: 'day-3', day: 3, active: true, position: 30, event: 'Inventory depleting', description: 'First tier suppliers begin to run out of components' },
+  { id: 'day-7', day: 7, active: false, position: 70, event: '', description: '' },
+  { id: 'day-10', day: 10, active: false, position: 100, event: '', description: '' }
+]
 
 export function SimulationTimeline() {
   const [activeScenario, setActiveScenario] = useState<"port" | "supplier" | "weather">("port")
@@ -106,157 +108,224 @@ export function SimulationTimeline() {
     [currentDay, maxDay]
   )
 
+  // Helper function to determine event layout with improved positioning
+  const getEventLayout = (events: typeof timelineEvents[keyof typeof timelineEvents]) => {
+    return events.map((event, index, array) => {
+      const position = (event.day / maxDay) * 100
+      
+      // Determine if this event should be adjusted for screen bounds
+      let adjustedPosition = position
+      if (position < 15) {
+        adjustedPosition = 15 // Prevent left overflow
+      } else if (position > 85) {
+        adjustedPosition = 85 // Prevent right overflow
+      }
+
+      // Calculate if this event is too close to the previous one
+      const prevEvent = array[index - 1]
+      const isCloseToPrevious = prevEvent && 
+        Math.abs(adjustedPosition - ((prevEvent.day / maxDay) * 100)) < 20
+
+      // Determine vertical position based on proximity and screen bounds
+      const layout = isCloseToPrevious
+        ? prevEvent.layout === 'top' ? 'bottom' : 'top'
+        : index % 2 === 0 ? 'top' : 'bottom'
+
+      return {
+        ...event,
+        position: adjustedPosition,
+        layout,
+        alignment: position < 20 ? 'left' : position > 80 ? 'right' : 'center'
+      }
+    })
+  }
+
+  const visibleEvents = getEventLayout(timelineEvents[activeScenario])
+    .filter(event => event.day <= currentDay)
+
+  const currentScenario = scenarios.find(s => s.id === activeScenario)!
+
   return (
-    <div className="space-y-2 w-full">
-      <Tabs defaultValue="port" onValueChange={(value) => handleScenarioChange(value as "port" | "supplier" | "weather")}>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <TabsList className="bg-white/20 dark:bg-slate-800/20 backdrop-blur-sm h-7">
-              {scenarios.map((scenario) => (
-                <TabsTrigger
-                  key={scenario.id}
-                  value={scenario.id}
-                  className="text-xs px-2 h-5 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
-                >
-                  {scenario.name}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-6 w-6 border-blue-200/30 dark:border-blue-800/30 bg-white/10 dark:bg-slate-800/20 p-0 hover:bg-white/20 dark:hover:bg-slate-800/30"
-                onClick={() => setIsPlaying(!isPlaying)}
-              >
-                {isPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-6 w-6 border-blue-200/30 dark:border-blue-800/30 bg-white/10 dark:bg-slate-800/20 p-0 hover:bg-white/20 dark:hover:bg-slate-800/30"
-                onClick={() => setCurrentDay(maxDay)}
-              >
-                <SkipForward className="h-3 w-3" />
-              </Button>
-            </div>
+    <div className="space-y-6">
+      {/* Header Controls */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {scenarios.map(scenario => (
+            <Button
+              key={scenario.id}
+              variant="ghost"
+              onClick={() => handleScenarioChange(scenario.id)}
+              className={`${
+                activeScenario === scenario.id
+                  ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'
+                  : 'text-slate-400 hover:bg-slate-800/50'
+              }`}
+            >
+              {scenario.name}
+            </Button>
+          ))}
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => setIsPlaying(!isPlaying)}
+              className="h-8 w-8 text-slate-400 hover:bg-slate-800/50"
+            >
+              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => {
+                setCurrentDay(maxDay)
+                setIsPlaying(false)
+              }}
+              className="h-8 w-8 text-slate-400 hover:bg-slate-800/50"
+            >
+              <SkipForward className="h-4 w-4" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 text-xs text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
-          >
-            <Link href="/simulation" className="flex items-center">
+          <Button asChild variant="ghost" className="text-blue-400 hover:bg-blue-500/10">
+            <Link href="/simulation/new" className="flex items-center gap-2">
               Run Full Simulation
-              <ArrowRight className="ml-1 h-3 w-3" />
+              <SkipForward className="h-4 w-4" />
             </Link>
           </Button>
         </div>
+      </div>
 
-        {scenarios.map((scenario) => (
-          <TabsContent key={scenario.id} value={scenario.id} className="mt-2">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-              {/* Left column - stats */}
-              <div className="md:col-span-3">
-                <div className="flex md:flex-col md:gap-1.5 mb-2 justify-between md:justify-start">
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <h4 className="text-xs font-semibold">Day {currentDay}/{maxDay}</h4>
-                      <Badge
-                        variant="outline"
-                        className={`text-xs px-1.5 py-0 h-5 ${getImpactClasses(scenario.impact)}`}
-                      >
-                        {scenario.impact}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Duration: {scenario.duration}</p>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <AlertTriangle className="h-3 w-3 text-amber-500 dark:text-amber-400" />
-                    <span className="text-xs text-slate-500 dark:text-slate-400">
-                      Impact: <span className="text-slate-800 dark:text-white font-medium">{scenario.financial}</span>
-                    </span>
-                  </div>
-                </div>
-
-                {/* Current event details */}
-                <div className="p-2 rounded-lg bg-slate-100/50 dark:bg-slate-800/30 backdrop-blur-sm">
-                  {currentEventDetail && (
-                    <motion.div 
-                      key={`${scenario.id}-${currentEventDetail.day}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <h5 className="text-xs font-semibold">{currentEventDetail.event}</h5>
-                      <p className="text-xs text-slate-600 dark:text-slate-300">{currentEventDetail.description}</p>
-                    </motion.div>
-                  )}
-                </div>
-              </div>
-
-              {/* Right column - timeline visualization */}
-              <div className="md:col-span-9">
-                <div className="relative pt-2 mb-3">
-                  {/* Progress track */}
-                  <div className="absolute left-0 right-0 h-1 bg-slate-200/50 dark:bg-slate-700/50"></div>
-                  
-                  {/* Progress fill */}
-                  <motion.div
-                    initial={false}
-                    animate={{ width: progressPercentage }}
-                    transition={{ duration: 0.5 }}
-                    className="absolute left-0 h-1 bg-blue-500"
-                  ></motion.div>
-
-                  {/* Event markers */}
-                  <div className="relative flex justify-between pt-2">
-                    {timelineEvents[scenario.id].map((event, index) => {
-                      // Calculate marker position once
-                      const markerPosition = `${(event.day / maxDay) * 100}%`
-                      const isActive = currentDay >= event.day
-                      
-                      return (
-                        <div
-                          key={index}
-                          className="relative flex flex-col items-center"
-                          style={{
-                            left: markerPosition,
-                            transform: "translateX(-50%)",
-                          }}
-                        >
-                          <div
-                            className={`h-2 w-2 rounded-full ${
-                              isActive 
-                                ? "bg-blue-500 ring-1 ring-blue-500/20" 
-                                : "bg-slate-300 dark:bg-slate-700"
-                            }`}
-                            style={{ marginTop: "-4px" }}
-                          ></div>
-                          <p className="mt-0.5 text-[9px] font-medium">{event.day}</p>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                {/* Simple event list - more compact */}
-                <div className="grid grid-cols-2 gap-2">
-                  {visibleTimelineEvents.map((event, index) => (
-                    <div 
-                      key={index}
-                      className="text-xs p-1.5 border-l-2 border-blue-500 bg-white/5 dark:bg-slate-800/10 rounded-r-sm"
-                    >
-                      <p className="font-medium text-[10px]">Day {event.day}: {event.event}</p>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{event.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+      {/* Timeline Content */}
+      <div className="space-y-8">
+        {/* Current Day and Impact */}
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <h3 className="text-xl font-semibold text-slate-200">Day {currentDay}/{maxDay}</h3>
+              <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-400">
+                {currentScenario.impact}
+              </span>
             </div>
-          </TabsContent>
-        ))}
-      </Tabs>
+            <p className="text-sm text-slate-400">Duration: {currentScenario.duration}</p>
+          </div>
+          <div className="flex items-center gap-2 text-slate-200">
+            <AlertTriangle className="h-4 w-4 text-amber-400" />
+            <span className="font-medium">Impact:</span>
+            <span className="text-amber-400">{currentScenario.financial}</span>
+          </div>
+        </div>
+
+        {/* Timeline Track */}
+        <div className="relative">
+          {/* Simple Timeline Bar */}
+          <div className="relative h-12">
+            {/* Track Background */}
+            <div className="absolute top-6 h-1 w-full rounded-full bg-slate-800/50" />
+            
+            {/* Active Progress */}
+            <div 
+              className="absolute top-6 h-1 rounded-full bg-blue-500 transition-all duration-500"
+              style={{ width: progressPercentage }}
+            />
+            
+            {/* Timeline Points */}
+            <div className="absolute top-4 w-full">
+              {timelineEvents[activeScenario].map(event => (
+                <div
+                  key={`point-${event.id}`}
+                  className="absolute -mt-1"
+                  style={{ left: `${(event.day / maxDay) * 100}%` }}
+                >
+                  <div className={`
+                    h-3 w-3 rounded-full border-2 
+                    ${currentDay >= event.day
+                      ? 'border-blue-500 bg-blue-500'
+                      : 'border-slate-600 bg-slate-800'
+                    }
+                  `} />
+                  <span className="absolute left-1/2 mt-4 -translate-x-1/2 text-sm text-slate-400">
+                    Day {event.day}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Event Cards Grid */}
+          <div className="mt-16 grid grid-cols-2 gap-4">
+            {visibleEvents.map((event) => (
+              <Card
+                key={`event-${event.id}`}
+                className="bg-slate-800/30 border-slate-700 p-4 transition-all duration-300"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="h-2 w-2 mt-2 rounded-full bg-blue-500" />
+                  <div className="space-y-1.5 flex-1">
+                    <h4 className="text-sm font-medium text-blue-400">
+                      Day {event.day}: {event.event}
+                    </h4>
+                    <p className="text-sm text-slate-400">
+                      {event.description}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Current Status */}
+        <div className="rounded-lg bg-slate-800/30 p-4">
+          {currentEventDetail && (
+            <>
+              <h4 className="font-medium text-slate-200">{currentEventDetail.event}</h4>
+              <p className="mt-1 text-sm text-slate-400">{currentEventDetail.description}</p>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Helper functions for text alignment
+function getTransformStyle(alignment: 'left' | 'center' | 'right') {
+  switch (alignment) {
+    case 'left':
+      return 'translateX(0)'
+    case 'right':
+      return 'translateX(-100%)'
+    default:
+      return 'translateX(-50%)'
+  }
+}
+
+function getAlignmentClasses(alignment: 'left' | 'center' | 'right') {
+  switch (alignment) {
+    case 'left':
+      return 'items-start'
+    case 'right':
+      return 'items-end'
+    default:
+      return 'items-start'
+  }
+}
+
+function TimelinePoint({ day, active, position }: { day: number; active: boolean; position: number }) {
+  return (
+    <div 
+      className="absolute flex flex-col items-center"
+      style={{ left: `${position}%` }}
+    >
+      <div className={`
+        h-3 w-3 rounded-full border-2 
+        ${active 
+          ? 'border-blue-500 bg-blue-500' 
+          : 'border-slate-600 bg-slate-800'
+        }
+      `} />
+      <span className="absolute top-6 text-sm text-slate-400">{day}</span>
     </div>
   )
 }
