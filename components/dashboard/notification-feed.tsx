@@ -1,398 +1,403 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { AlertTriangle, CheckCircle, Info, Bell, BellOff, X, ArrowRight } from "lucide-react"
+import { useState } from "react"
+import { AlertTriangle, CheckCircle, Info, Bell, BellOff, X, ArrowRight, Plus, Truck, MapPin, Package, Route, AlertCircle, Zap, Factory, Wrench } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { motion, AnimatePresence } from "framer-motion"
-import type { Notification } from "@/lib/types/database"
-import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead } from "@/lib/api/notifications"
 
 type NotificationType = "alert" | "warning" | "info" | "success"
+type NotificationCategory = "all" | "edge" | "node"
 
-// Extended notification type with UI-specific properties
-interface UINotification extends Notification {
+interface UINotification {
+  id: string
+  title: string
+  message: string
   type: NotificationType
-  time: string
+  category: "edge" | "node"
+  icon: React.ReactNode
+  timestamp: string
+  read: boolean
 }
 
+// Mock data for notifications
+const mockNotifications: UINotification[] = [
+  // Edge (Transport/Logistics) notifications
+  {
+    id: "edge-1",
+    title: "Route Disruption Alert",
+    message: "Major highway closure detected on Route A1. Expected delay: 4-6 hours for shipments.",
+    type: "alert",
+    category: "edge",
+    icon: <Route className="h-5 w-5" />,
+    timestamp: "2 minutes ago",
+    read: false,
+  },
+  {
+    id: "edge-2", 
+    title: "Port Congestion Warning",
+    message: "Port of Los Angeles experiencing high congestion. Recommend alternative routing.",
+    type: "warning",
+    category: "edge",
+    icon: <Truck className="h-5 w-5" />,
+    timestamp: "15 minutes ago",
+    read: false,
+  },
+  {
+    id: "edge-3",
+    title: "Shipping Optimized",
+    message: "AI routing algorithm reduced transportation costs by 12% on Route B3.",
+    type: "success",
+    category: "edge",
+    icon: <CheckCircle className="h-5 w-5" />,
+    timestamp: "1 hour ago",
+    read: true,
+  },
+  {
+    id: "edge-4",
+    title: "Weather Impact Update",
+    message: "Storm system cleared. Normal shipping operations resumed on all sea routes.",
+    type: "info",
+    category: "edge",
+    icon: <Info className="h-5 w-5" />,
+    timestamp: "3 hours ago",
+    read: false,
+  },
+  {
+    id: "edge-5",
+    title: "Fuel Price Spike",
+    message: "Transportation costs increased by 8% due to fuel price volatility.",
+    type: "warning",
+    category: "edge",
+    icon: <AlertTriangle className="h-5 w-5" />,
+    timestamp: "6 hours ago",
+    read: true,
+  },
+
+  // Node (Facility/Supplier) notifications
+  {
+    id: "node-1",
+    title: "Supplier Risk Alert",
+    message: "Supplier TechCorp shows elevated financial risk indicators. Risk score: 85/100.",
+    type: "alert",
+    category: "node",
+    icon: <AlertCircle className="h-5 w-5" />,
+    timestamp: "5 minutes ago",
+    read: false,
+  },
+  {
+    id: "node-2",
+    title: "Production Capacity Alert",
+    message: "Manufacturing Node M3 operating at 95% capacity. Bottleneck detected.",
+    type: "warning",
+    category: "node",
+    icon: <Factory className="h-5 w-5" />,
+    timestamp: "12 minutes ago",
+    read: false,
+  },
+  {
+    id: "node-3",
+    title: "Quality Certification Renewed",
+    message: "Supplier GlobalTech successfully renewed ISO 9001 certification.",
+    type: "success",
+    category: "node",
+    icon: <CheckCircle className="h-5 w-5" />,
+    timestamp: "45 minutes ago",
+    read: true,
+  },
+  {
+    id: "node-4",
+    title: "Inventory Threshold",
+    message: "Warehouse Node W7 inventory below safety stock. Current level: 15%.",
+    type: "warning",
+    category: "node",
+    icon: <Package className="h-5 w-5" />,
+    timestamp: "2 hours ago",
+    read: false,
+  },
+  {
+    id: "node-5",
+    title: "Equipment Maintenance",
+    message: "Scheduled maintenance completed at Distribution Center DC2. Full operations resumed.",
+    type: "info",
+    category: "node",
+    icon: <Wrench className="h-5 w-5" />,
+    timestamp: "4 hours ago",
+    read: true,
+  },
+  {
+    id: "node-6",
+    title: "New Supplier Onboarded",
+    message: "Advanced Materials Ltd. successfully integrated into supply network.",
+    type: "success",
+    category: "node",
+    icon: <Zap className="h-5 w-5" />,
+    timestamp: "1 day ago",
+    read: true,
+  }
+]
+
 export function NotificationFeed() {
-  const [notifications, setNotifications] = useState<UINotification[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<NotificationType | 'all'>('all')
+  const [activeTab, setActiveTab] = useState<NotificationCategory>("all")
+  const [showMore, setShowMore] = useState(false)
   const { toast } = useToast()
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        setLoading(true)
-        // Use a real user ID instead of the placeholder
-        const userId = "bc5a0636-27ec-49e5-bd70-cde5ee45e191"
-        const data = await getNotifications(userId)
+  // Limit to 3 notifications initially
+  const INITIAL_DISPLAY_COUNT = 3
 
-        // Transform database notifications to UI notifications
-        // In a real app, the type would be stored in the database
-        const uiNotifications: UINotification[] = data.map((notification) => {
-          // Determine notification type based on message content
-          let type: NotificationType = "info"
-          if (
-            notification.message.toLowerCase().includes("alert") ||
-            notification.message.toLowerCase().includes("risk")
-          ) {
-            type = "alert"
-          } else if (
-            notification.message.toLowerCase().includes("warning") ||
-            notification.message.toLowerCase().includes("potential")
-          ) {
-            type = "warning"
-          } else if (
-            notification.message.toLowerCase().includes("success") ||
-            notification.message.toLowerCase().includes("implemented")
-          ) {
-            type = "success"
-          }
-
-          // Format time
-          const time = formatTimeAgo(new Date(notification.created_at))
-
-          return {
-            ...notification,
-            type,
-            time,
-          }
-        })
-
-        if (uiNotifications.length > 0) {
-          setNotifications(uiNotifications)
-        } else {
-          // If no notifications found, use mock data
-          setNotifications(mockNotifications)
-        }
-      } catch (error) {
-        console.error("Error fetching notifications:", error)
-        // Fall back to mock data
-        setNotifications(mockNotifications)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchNotifications()
-  }, [])
-
-  const handleMarkAsRead = async (id: string) => {
-    try {
-      await markNotificationAsRead(id)
-      setNotifications(
-        notifications.map((notification) =>
-          notification.notification_id === id ? { ...notification, read_status: true } : notification,
-        ),
-      )
-    } catch (error) {
-      console.error("Error marking notification as read:", error)
-      toast({
-        title: "Error",
-        description: "Failed to mark notification as read",
-        variant: "destructive",
-      })
-    }
+  const handleMarkAsRead = (id: string) => {
+    // In a real app, this would make an API call
+    toast({
+      title: "Marked as read",
+      description: "Notification marked as read successfully",
+    })
   }
 
-  const handleMarkAllAsRead = async () => {
-    try {
-      // Use a real user ID instead of the placeholder
-      const userId = "bc5a0636-27ec-49e5-bd70-cde5ee45e191"
-      await markAllNotificationsAsRead(userId)
-      setNotifications(notifications.map((notification) => ({ ...notification, read_status: true })))
-
-      toast({
-        title: "Success",
-        description: "All notifications marked as read",
-      })
-    } catch (error) {
-      console.error("Error marking all notifications as read:", error)
-      toast({
-        title: "Error",
-        description: "Failed to mark all notifications as read",
-        variant: "destructive",
-      })
-    }
+  const handleMarkAllAsRead = () => {
+    toast({
+      title: "Success",
+      description: "All notifications marked as read",
+    })
   }
 
-  const getIcon = (type: NotificationType) => {
+  const getTypeIcon = (type: NotificationType) => {
     switch (type) {
       case "alert":
-        return <AlertTriangle className="h-5 w-5 text-red-500 dark:text-red-400" />
+        return <AlertTriangle className="h-4 w-4 text-red-500 dark:text-red-400" />
       case "warning":
-        return <AlertTriangle className="h-5 w-5 text-amber-500 dark:text-amber-400" />
+        return <AlertTriangle className="h-4 w-4 text-amber-500 dark:text-amber-400" />
       case "info":
-        return <Info className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+        return <Info className="h-4 w-4 text-blue-500 dark:text-blue-400" />
       case "success":
-        return <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400" />
-    }
-  }
-
-  // Helper function to format time ago
-  const formatTimeAgo = (date: Date) => {
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMins / 60)
-    const diffDays = Math.floor(diffHours / 24)
-
-    if (diffMins < 60) {
-      return `${diffMins} minute${diffMins !== 1 ? "s" : ""} ago`
-    } else if (diffHours < 24) {
-      return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`
-    } else {
-      return `${diffDays} day${diffDays !== 1 ? "s" : ""} ago`
+        return <CheckCircle className="h-4 w-4 text-green-500 dark:text-green-400" />
     }
   }
 
   const getNotificationBg = (type: NotificationType, read: boolean) => {
-    if (read) return "bg-white/40 dark:bg-slate-800/40"
+    if (read) return "bg-gradient-to-br from-white/80 via-slate-50/60 to-white/70 dark:bg-gradient-to-br dark:from-slate-800/30 dark:via-slate-700/20 dark:to-slate-800/30"
     
     switch (type) {
       case "alert":
-        return "bg-gradient-to-r from-red-500/10 to-red-600/5"
+        return "bg-gradient-to-br from-red-100/80 via-red-50/60 to-pink-100/70 dark:bg-gradient-to-br dark:from-red-950/20 dark:via-slate-800/30 dark:to-red-950/20"
       case "warning":
-        return "bg-gradient-to-r from-amber-500/10 to-amber-600/5"
+        return "bg-gradient-to-br from-amber-100/80 via-yellow-50/60 to-orange-100/80 dark:bg-gradient-to-br dark:from-amber-950/20 dark:via-slate-800/30 dark:to-amber-950/20"
       case "info":
-        return "bg-gradient-to-r from-blue-500/10 to-blue-600/5"
+        return "bg-gradient-to-br from-blue-100/80 via-sky-50/60 to-cyan-100/70 dark:bg-gradient-to-br dark:from-blue-950/20 dark:via-slate-800/30 dark:to-blue-950/20"
       case "success":
-        return "bg-gradient-to-r from-green-500/10 to-green-600/5"
+        return "bg-gradient-to-br from-green-100/80 via-emerald-50/60 to-teal-100/70 dark:bg-gradient-to-br dark:from-green-950/20 dark:via-slate-800/30 dark:to-green-950/20"
     }
   }
 
   const getNotificationBorder = (type: NotificationType, read: boolean) => {
-    if (read) return "border-transparent"
+    if (read) return "border-slate-200/60 dark:border-slate-600/30"
     
     switch (type) {
       case "alert":
-        return "border-red-300/30 dark:border-red-800/30"
+        return "border-red-200/80 dark:border-red-900/30"
       case "warning":
-        return "border-amber-300/30 dark:border-amber-800/30"
+        return "border-amber-200/80 dark:border-amber-900/30"
       case "info":
-        return "border-blue-300/30 dark:border-blue-800/30"
+        return "border-blue-200/80 dark:border-blue-900/30"
       case "success":
-        return "border-green-300/30 dark:border-green-800/30"
+        return "border-green-200/80 dark:border-green-900/30"
     }
   }
 
-  const filteredNotifications = filter === 'all' 
-    ? notifications 
-    : notifications.filter(notification => notification.type === filter)
+  const getFilteredNotifications = (category: NotificationCategory) => {
+    if (category === "all") return mockNotifications
+    return mockNotifications.filter(notification => notification.category === category)
+  }
 
-  const unreadCount = notifications.filter(n => !n.read_status).length
+  const renderNotificationList = (category: NotificationCategory) => {
+    const notifications = getFilteredNotifications(category)
+    const displayNotifications = showMore 
+      ? notifications 
+      : notifications.slice(0, INITIAL_DISPLAY_COUNT)
+    
+    const hasMoreNotifications = notifications.length > INITIAL_DISPLAY_COUNT
+    const unreadCount = notifications.filter(n => !n.read).length
 
-  if (loading) {
     return (
-      <div className="p-6 flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Bell className="h-4 w-4 text-blue-500" />
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+              {category === "all" ? "All Notifications" : 
+               category === "edge" ? "Transport & Logistics" : "Nodes & Facilities"}
+            </span>
+            {unreadCount > 0 && (
+              <Badge variant="destructive" className="ml-2 bg-red-500 hover:bg-red-600 text-xs">
+                {unreadCount} new
+              </Badge>
+            )}
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleMarkAllAsRead}
+            className="text-xs text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+          >
+            <BellOff className="h-3 w-3 mr-1" />
+            Mark all read
+          </Button>
+        </div>
+
+        {/* Notifications List */}
+        <div className="space-y-3">
+          <AnimatePresence>
+            {displayNotifications.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-center justify-center p-8 text-center text-slate-500 dark:text-slate-400"
+              >
+                <BellOff className="h-12 w-12 mb-3 opacity-20" />
+                <p className="text-sm">No notifications to display</p>
+              </motion.div>
+            ) : (
+              displayNotifications.map((notification, index) => (
+                <motion.div
+                  key={notification.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className={cn(
+                    "flex items-start gap-3 rounded-xl border p-4 transition-all duration-300 hover:shadow-lg hover:shadow-black/10 hover:scale-[1.02] transform",
+                    getNotificationBg(notification.type, notification.read),
+                    getNotificationBorder(notification.type, notification.read),
+                    "backdrop-blur-xl shadow-md shadow-black/5"
+                  )}
+                >
+                  {/* Category Icon */}
+                  <div className="flex-shrink-0 mt-0.5">
+                    <span className={cn(
+                      "rounded-full p-2.5 flex items-center justify-center shadow-lg ring-1 ring-white/20 dark:ring-slate-600/30",
+                      notification.category === "edge" 
+                        ? "bg-gradient-to-br from-blue-200 via-cyan-100 to-blue-300 dark:bg-gradient-to-br dark:from-blue-900/40 dark:via-slate-700/50 dark:to-blue-900/40 text-blue-700 dark:text-blue-400 shadow-blue-200/50 dark:shadow-blue-900/20"
+                        : "bg-gradient-to-br from-purple-200 via-pink-100 to-purple-300 dark:bg-gradient-to-br dark:from-purple-900/40 dark:via-slate-700/50 dark:to-purple-900/40 text-purple-700 dark:text-purple-400 shadow-purple-200/50 dark:shadow-purple-900/20"
+                    )}>
+                      {notification.icon}
+                    </span>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-slate-900 dark:text-slate-200">{notification.title}</p>
+                        {!notification.read && (
+                          <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {getTypeIcon(notification.type)}
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{notification.timestamp}</p>
+                        {!notification.read && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 rounded-full"
+                            onClick={() => handleMarkAsRead(notification.id)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{notification.message}</p>
+                    <div className="pt-1 flex justify-end">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2 text-xs text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                      >
+                        View Details <ArrowRight className="ml-1 h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Show More Button */}
+        {hasMoreNotifications && (
+          <div className="flex justify-center pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowMore(!showMore)}
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white border-none shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300 relative group"
+            >
+              <span className="absolute inset-0 rounded-md bg-blue-400/30 blur-md opacity-60 group-hover:opacity-100 transition-opacity animate-pulse"></span>
+              <span className="absolute inset-0 rounded-md bg-white/10 blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></span>
+              {showMore ? (
+                <>
+                  <span className="relative z-10">Show Less</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 relative z-10" />
+                  <span className="relative z-10">Show {notifications.length - INITIAL_DISPLAY_COUNT} More</span>
+                </>
+              )}
+            </Button>
+          </div>
+        )}
       </div>
     )
   }
 
   return (
     <div className="p-4">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Bell className="h-5 w-5 text-blue-500" />
-            Notifications
-            {unreadCount > 0 && (
-              <Badge variant="destructive" className="ml-2 bg-red-500 hover:bg-red-600">
-                {unreadCount} new
-              </Badge>
-            )}
-          </h3>
-        </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleMarkAllAsRead}
-          className="flex items-center gap-1 text-xs border-blue-200 hover:border-blue-300 dark:border-blue-800 dark:hover:border-blue-700 bg-white/20 hover:bg-white/30 dark:bg-slate-800/20 dark:hover:bg-slate-800/30"
-        >
-          <BellOff className="h-3 w-3 mr-1" />
-          Mark all as read
-        </Button>
-      </div>
+      <Tabs defaultValue="all" className="w-full">
+        <TabsList className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/40 dark:border-slate-600/40 mb-4">
+          <TabsTrigger 
+            value="all" 
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/25 dark:data-[state=active]:bg-slate-800/20 dark:data-[state=active]:text-white font-medium relative data-[state=active]:before:absolute data-[state=active]:before:inset-0 data-[state=active]:before:bg-blue-400/30 data-[state=active]:before:blur-md data-[state=active]:before:opacity-60 data-[state=active]:before:animate-pulse data-[state=active]:before:rounded-md"
+          >
+            <span className="relative z-10">All</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="edge"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/25 dark:data-[state=active]:bg-slate-800/20 dark:data-[state=active]:text-white font-medium relative data-[state=active]:before:absolute data-[state=active]:before:inset-0 data-[state=active]:before:bg-blue-400/30 data-[state=active]:before:blur-md data-[state=active]:before:opacity-60 data-[state=active]:before:animate-pulse data-[state=active]:before:rounded-md"
+          >
+            <span className="relative z-10 flex items-center gap-1">
+              <Truck className="h-3 w-3" />
+              Edge
+            </span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="node"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/25 dark:data-[state=active]:bg-slate-800/20 dark:data-[state=active]:text-white font-medium relative data-[state=active]:before:absolute data-[state=active]:before:inset-0 data-[state=active]:before:bg-blue-400/30 data-[state=active]:before:blur-md data-[state=active]:before:opacity-60 data-[state=active]:before:animate-pulse data-[state=active]:before:rounded-md"
+          >
+            <span className="relative z-10 flex items-center gap-1">
+              <Factory className="h-3 w-3" />
+              Node
+            </span>
+          </TabsTrigger>
+        </TabsList>
 
-      <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-200 dark:scrollbar-thumb-blue-800">
-        <Button 
-          variant={filter === 'all' ? "default" : "outline"} 
-          size="sm" 
-          onClick={() => setFilter('all')}
-          className={filter === 'all' ? "bg-blue-500 hover:bg-blue-600" : ""}
-        >
-          All
-        </Button>
-        <Button 
-          variant={filter === 'alert' ? "default" : "outline"} 
-          size="sm" 
-          onClick={() => setFilter('alert')}
-          className={filter === 'alert' ? "bg-red-500 hover:bg-red-600" : ""}
-        >
-          Alerts
-        </Button>
-        <Button 
-          variant={filter === 'warning' ? "default" : "outline"} 
-          size="sm" 
-          onClick={() => setFilter('warning')}
-          className={filter === 'warning' ? "bg-amber-500 hover:bg-amber-600" : ""}
-        >
-          Warnings
-        </Button>
-        <Button 
-          variant={filter === 'info' ? "default" : "outline"} 
-          size="sm" 
-          onClick={() => setFilter('info')}
-          className={filter === 'info' ? "bg-blue-500 hover:bg-blue-600" : ""}
-        >
-          Info
-        </Button>
-        <Button 
-          variant={filter === 'success' ? "default" : "outline"} 
-          size="sm" 
-          onClick={() => setFilter('success')}
-          className={filter === 'success' ? "bg-green-500 hover:bg-green-600" : ""}
-        >
-          Success
-        </Button>
-      </div>
-
-      <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-blue-200 dark:scrollbar-thumb-blue-800">
-        <AnimatePresence>
-          {filteredNotifications.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col items-center justify-center p-8 text-center text-slate-500 dark:text-slate-400"
-            >
-              <BellOff className="h-12 w-12 mb-3 opacity-20" />
-              <p className="text-sm">No {filter !== 'all' ? filter : ''} notifications to display</p>
-            </motion.div>
-          ) : (
-            filteredNotifications.map((notification, index) => (
-              <motion.div
-                key={notification.notification_id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className={cn(
-                  "flex items-start gap-4 rounded-lg border p-4 transition-all duration-200 hover:shadow-md",
-                  getNotificationBg(notification.type, notification.read_status),
-                  getNotificationBorder(notification.type, notification.read_status),
-                  "backdrop-blur-md"
-                )}
-              >
-                <div className="flex-shrink-0 mt-1">{getIcon(notification.type)}</div>
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <p className="font-medium">{notification.notification_type}</p>
-                      {!notification.read_status && (
-                        <span className="ml-2 h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{notification.time}</p>
-                      {!notification.read_status && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 rounded-full"
-                          onClick={() => handleMarkAsRead(notification.notification_id)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-sm text-slate-600 dark:text-slate-300">{notification.message}</p>
-                  <div className="pt-1 flex justify-end">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-xs text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
-                    >
-                      View Details <ArrowRight className="ml-1 h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
-            ))
-          )}
-        </AnimatePresence>
-      </div>
+        <TabsContent value="all">
+          {renderNotificationList("all")}
+        </TabsContent>
+        
+        <TabsContent value="edge">
+          {renderNotificationList("edge")}
+        </TabsContent>
+        
+        <TabsContent value="node">
+          {renderNotificationList("node")}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
-
-// Mock notifications for fallback
-const mockNotifications: UINotification[] = [
-  {
-    notification_id: "1",
-    user_id: "placeholder-user-id",
-    message: "Supplier XYZ has a risk score above 80%. Immediate action recommended.",
-    notification_type: "High Risk Alert",
-    read_status: false,
-    created_at: new Date(Date.now() - 5 * 60000).toISOString(), // 5 minutes ago
-    type: "alert",
-    time: "5 minutes ago",
-  },
-  {
-    notification_id: "2",
-    user_id: "placeholder-user-id",
-    message: "Weather alert detected for Port of Shanghai. Possible shipping delays expected.",
-    notification_type: "Potential Disruption",
-    read_status: false,
-    created_at: new Date(Date.now() - 30 * 60000).toISOString(), // 30 minutes ago
-    type: "warning",
-    time: "30 minutes ago",
-  },
-  {
-    notification_id: "3",
-    user_id: "placeholder-user-id",
-    message: "Your 'Port Strike' simulation has completed. View results now.",
-    notification_type: "Simulation Complete",
-    read_status: false,
-    created_at: new Date(Date.now() - 60 * 60000).toISOString(), // 1 hour ago
-    type: "info",
-    time: "1 hour ago",
-  },
-  {
-    notification_id: "4",
-    user_id: "placeholder-user-id",
-    message: "Alternate routing strategy successfully implemented. Risk reduced by 15%.",
-    notification_type: "Strategy Implemented",
-    read_status: true,
-    created_at: new Date(Date.now() - 3 * 60 * 60000).toISOString(), // 3 hours ago
-    type: "success",
-    time: "3 hours ago",
-  },
-  {
-    notification_id: "5",
-    user_id: "placeholder-user-id",
-    message: "A new supplier matching your criteria has been identified in your region.",
-    notification_type: "New Supplier Available",
-    read_status: true,
-    created_at: new Date(Date.now() - 5 * 60 * 60000).toISOString(), // 5 hours ago
-    type: "info",
-    time: "5 hours ago",
-  },
-  {
-    notification_id: "6",
-    user_id: "placeholder-user-id",
-    message: "Component X inventory below safety stock. Reorder recommended.",
-    notification_type: "Inventory Alert",
-    read_status: true,
-    created_at: new Date(Date.now() - 24 * 60 * 60000).toISOString(), // 1 day ago
-    type: "warning",
-    time: "1 day ago",
-  },
-]
