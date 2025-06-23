@@ -422,7 +422,7 @@ function SimulationPageContent() {
     <div className="flex flex-col h-full">
       <SimulationHeader />
 
-      <div className={`flex-1 overflow-y-auto ${view !== 'form' && simulationRunning ? 'bg-white dark:bg-white' : 'bg-slate-50 dark:bg-slate-900'}`}>
+      <div className={`flex-1 overflow-y-auto ${view !== 'form' && simulationRunning ? 'bg-white dark:bg-white' : 'bg-slate-50 dark:bg-background'}`}>
         {view === 'form' &&  (
           <div className="relative">
             <div className="p-6 px-10 space-y-6">
@@ -436,7 +436,7 @@ function SimulationPageContent() {
                 <div className="flex items-center gap-3">
                   <Drawer>
                     <DrawerTrigger asChild>
-                      <Button variant="outline" className="shadow-md">
+                      <Button variant="secondary" className="shadow-md">
                         <WorkflowIcon size={16} className="mr-2" />
                         See how it works
                       </Button>
@@ -485,7 +485,7 @@ function SimulationPageContent() {
 
                   <Sheet>
                     <SheetTrigger asChild>
-                      <Button variant="outline" className="shadow-md">
+                      <Button variant="secondary" className="shadow-md">
                         <HistoryIcon size={16} className="mr-2" />
                         View History
                       </Button>
@@ -512,7 +512,7 @@ function SimulationPageContent() {
                     </SheetContent>
                   </Sheet>
 
-                  <Button variant="outline" onClick={() => setIsAIScenarioOpen(true)} className="shadow-md">
+                  <Button variant="default" onClick={() => setIsAIScenarioOpen(true)} className="shadow-md">
                     <Sparkles className="mr-2 h-4 w-4 text-yellow-500" /> 
                     AI Scenarios
                   </Button>

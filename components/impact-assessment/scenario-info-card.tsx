@@ -83,7 +83,7 @@ export default function ScenarioInfoCard({ scenario, onOpenSheet }: ScenarioInfo
   ]
 
   return (
-    <Card className="bg-white dark:bg-slate-800 shadow-lg border-0">
+    <Card className="bg-white dark:bg-slate-950 shadow-lg border-0">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="space-y-2">
@@ -118,7 +118,7 @@ export default function ScenarioInfoCard({ scenario, onOpenSheet }: ScenarioInfo
             variant="link" 
             size="sm" 
             onClick={onOpenSheet} 
-            className="text-[#1D3557] hover:text-[#1D3557]/80 p-0 h-auto font-medium"
+            className="text-[#1D3557] hover:text-[#1D3557]/80 dark:text-blue-400 dark:hover:text-blue-300 p-0 h-auto font-medium transition-all duration-300 dark:shadow-lg  dark:hover:shadow-xl dark:hover:shadow-blue-500/40 hover:scale-[1.02]"
           >
             View Disruption Strategy →
           </Button>

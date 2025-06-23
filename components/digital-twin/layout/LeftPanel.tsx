@@ -53,7 +53,7 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, onLoadTempl
 
   return (
     <motion.div 
-      className="h-full border-r border-border bg-background/50 backdrop-blur-sm flex flex-col"
+      className="h-full border-r border-border bg-background/50  dark:bg-slate-950 backdrop-blur-sm flex flex-col"
       initial={false}
       animate={{ 
         width: isCollapsed ? 48 : 320 

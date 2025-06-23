@@ -117,7 +117,7 @@ export default function DigitalTwinDashboard() {
   // Show loading skeleton while user is loading or supply chains are loading
   if (userLoading || loading) {
     return (
-      <div className="p-4 sm:p-6 lg:p-8 bg-slate-50 dark:bg-slate-900 min-h-screen">
+      <div className="p-4 sm:p-6 lg:p-8 bg-background min-h-screen">
         <header className="flex items-center justify-between mb-8">
           <div className="space-y-2">
             <Skeleton className="h-9 w-64" />
@@ -150,7 +150,7 @@ export default function DigitalTwinDashboard() {
 
   if (error) {
     return (
-      <div className="p-4 sm:p-6 lg:p-8 bg-slate-50 dark:bg-slate-900 min-h-screen">
+      <div className="p-4 sm:p-6 lg:p-8 bg-background min-h-screen">
         <header className="flex items-center justify-between mb-8">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
@@ -185,7 +185,7 @@ export default function DigitalTwinDashboard() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-slate-50 dark:bg-slate-900 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8 bg-background min-h-screen">
       <header className="flex items-center justify-between mb-8">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">

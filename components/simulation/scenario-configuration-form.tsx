@@ -62,7 +62,7 @@ export function ScenarioConfigurationForm() {
         {/* Main Configuration Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Basic Configuration Card - Left Side */}
-          <Card className="shadow-lg bg-white dark:bg-gray-900 border hover:shadow-xl transition-shadow duration-300">
+          <Card className="shadow-lg bg-white dark:bg-slate-950 border hover:shadow-xl transition-shadow duration-300">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-xl text-gray-800 dark:text-gray-100">
                 <CogIcon size={20} className="text-blue-500" />
@@ -155,7 +155,7 @@ export function ScenarioConfigurationForm() {
           </Card>
 
           {/* Description and Impact Parameters Card - Right Side */}
-          <Card className="shadow-lg bg-white dark:bg-gray-900 border hover:shadow-xl transition-shadow duration-300">
+          <Card className="shadow-lg bg-white dark:bg-slate-950 border hover:shadow-xl transition-shadow duration-300">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-xl text-gray-800 dark:text-gray-100">
                 <FileTextIcon size={20} className="text-green-500" />
@@ -228,7 +228,7 @@ export function ScenarioConfigurationForm() {
         </div>
 
         {/* Advanced Settings Card - Mandatory */}
-        <Card className="shadow-lg bg-white dark:bg-gray-900 border hover:shadow-xl transition-shadow duration-300">
+        <Card className="shadow-lg bg-white dark:bg-slate-950 border hover:shadow-xl transition-shadow duration-300">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-xl text-gray-800 dark:text-gray-100">
               <SettingsIcon size={20} className="text-purple-500" />

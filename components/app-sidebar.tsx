@@ -37,7 +37,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { ThemeToggle, SidebarThemeToggle } from "@/components/theme"
-import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 

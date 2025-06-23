@@ -93,7 +93,7 @@ export default function ImpactAssessment() {
     <div className="px-4 py-4 space-y-4">
       <ScenarioInfoCard scenario={scenario} onOpenSheet={handleOpenStrategy} />
 
-      <div className="bg-white dark:bg-slate-800 backdrop-blur-sm border-0 rounded-xl p-6 shadow-lg shadow-black/5">
+      <div className="bg-white dark:bg-slate-950 backdrop-blur-sm border-0 rounded-xl p-6 shadow-lg shadow-black/5">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Impact Analysis</h2>

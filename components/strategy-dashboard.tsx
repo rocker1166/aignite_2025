@@ -115,9 +115,9 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
       : 0
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-background">
       {/* Simplified Header */}
-      <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-b border-slate-200/60 dark:border-slate-700/60 shadow-sm rounded-xl">
+      <div className="bg-white/80 dark:bg-slate-950 backdrop-blur-sm border-b border-slate-200/60 dark:border-slate-700/60 shadow-sm rounded-xl">
         <div className="px-6 py-6 ">
           <div className="flex items-center justify-between">
             <div>
@@ -133,7 +133,7 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
 
       <div className="px-0 py-4">
         {/* Executive Summary Panel with better shadows */}
-        <Card className="bg-white dark:bg-slate-800 shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 mb-8">
+        <Card className="bg-slate-950 shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 mb-8">
           <CardContent className="p-8">
             <div className="mb-4">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Impact Overview</h2>
@@ -167,7 +167,7 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             {/* Simplified Controls */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-md border border-slate-200/60 dark:border-slate-700/60">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-950 p-4 rounded-xl shadow-md border border-slate-200/60 dark:border-slate-900/60">
               <div className="flex items-center gap-3">
                 <Select defaultValue="roi">
                   <SelectTrigger className="w-[160px] shadow-sm bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-900 dark:text-slate-100">
@@ -199,7 +199,7 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
                     border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1
                     ${selectedStrategies.includes(strategy.id) 
                       ? "ring-2 ring-blue-500 dark:ring-blue-400 bg-blue-50 dark:bg-blue-900/30" 
-                      : "bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      : "bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-700"
                     }
                   `}
                 >
@@ -256,7 +256,7 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
             </div>
 
             {/* Strategy Comparison Table with better styling */}
-            <Card className="bg-white dark:bg-slate-800 shadow-lg border-0">
+            <Card className="bg-white dark:bg-slate-950 shadow-lg border-0">
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Strategy Comparison</CardTitle>
               </CardHeader>
@@ -278,7 +278,7 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
                         <TableRow 
                           key={strategy.id} 
                           className={`border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 ${
-                            index % 2 === 0 ? "bg-white dark:bg-slate-800" : "bg-slate-50/50 dark:bg-slate-700/50"
+                            index % 2 === 0 ? "bg-white dark:bg-slate-900" : "bg-slate-50/50 dark:bg-slate-900/50"
                           }`}
                         >
                           <TableCell className="font-medium text-slate-900 dark:text-slate-100">{strategy.title}</TableCell>
@@ -306,7 +306,7 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
             </Card>
 
             {/* Action Section */}
-            <Card className="bg-white dark:bg-slate-800 shadow-lg border-0">
+            <Card className="bg-white dark:bg-slate-950 shadow-lg border-0">
               <CardHeader>
                 <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Finalize Strategy</CardTitle>
               </CardHeader>
@@ -314,7 +314,7 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
                 <div className="space-y-4">
                   <Textarea 
                     placeholder="Add notes about your strategy plan..." 
-                    className="shadow-sm resize-none bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500" 
+                    className="shadow-sm resize-none bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500" 
                     rows={3}
                     maxLength={500} 
                   />
@@ -330,7 +330,7 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
 
           {/* Enhanced Sidebar */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-6 bg-white dark:bg-slate-800 shadow-xl border-0">
+            <Card className="sticky top-6 bg-white dark:bg-slate-950 shadow-xl border-0">
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Plan Summary</CardTitle>
               </CardHeader>

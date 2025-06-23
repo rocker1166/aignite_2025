@@ -188,7 +188,7 @@ const RightPanel: FC<RightPanelProps> = ({
 
   return (
     <motion.div 
-      className="border-l border-border bg-card/50 backdrop-blur-sm shadow-sm flex flex-col h-full overflow-hidden"
+      className="border-l border-border bg-card/50 backdrop-blur-sm shadow-sm flex flex-col h-full overflow-hidden dark:bg-slate-950"
       variants={panelVariants}
       animate="expanded"
       initial={false}
@@ -196,12 +196,12 @@ const RightPanel: FC<RightPanelProps> = ({
     >
       {/* Header with Save Status */}
       <motion.div 
-        className="flex-shrink-0 p-6 border-b border-border bg-gradient-to-r from-card to-card/80 space-y-3"
+        className="flex-shrink-0 p-6 border-b border-border bg-gradient-to-r from-card to-card/80 space-y-3 "
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between dark:bg-slate-950" >
           <h3 className="text-lg font-semibold text-foreground">Properties</h3>
         </div>
         
