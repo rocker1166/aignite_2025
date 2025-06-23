@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Lottie from "lottie-react"
-import searchingAnimation from "@/public/animtions/searchin-animation.json"
-import gradientGlobeAnimation from "@/public/animtions/gradient-globe.json"
+import searchingAnimation from "@/public/animations/searchin-animation.json"
+import gradientGlobeAnimation from "@/public/animations/gradient-globe.json"
 
 type Props = {
   progress: number
