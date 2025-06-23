@@ -1,6 +1,7 @@
 packages:
-  - "."
+  - .
 
 onlyBuiltDependencies:
+  - '@scarf/scarf'
   - sharp
   - sqlite3
