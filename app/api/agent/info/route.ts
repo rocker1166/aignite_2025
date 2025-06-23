@@ -143,13 +143,49 @@ class ProductionIntelligenceAgent {
       console.log(`Successfully cached intelligence for node ${nodeId}`);
     } catch (error) {
       console.error('Cache storage error:', error);
-    }
-  }private async buildSearchContext(node: any): Promise<string> {
+    }  }
+
+  private async buildSearchContext(node: any, supplyChainData?: any): Promise<string> {
     let memoryContext = '';
     let historicalTrends = '';
+    let supplyChainContext = '';
+    
+    // Extract supply chain form data if available
+    if (supplyChainData?.form_data) {
+      try {
+        const formData = typeof supplyChainData.form_data === 'string' 
+          ? JSON.parse(supplyChainData.form_data) 
+          : supplyChainData.form_data;
+        
+        supplyChainContext = `
+        SUPPLY CHAIN COMPANY INFORMATION:
+        - Company Name: ${supplyChainData.name || 'Not specified'}
+        - Business Type: ${formData.businessType || 'Not specified'}
+        - Industry Sector: ${formData.industrySector || 'Not specified'}
+        - Company Size: ${formData.companySize || 'Not specified'}
+        - Annual Revenue: ${formData.annualRevenue || 'Not specified'}
+        - Geographic Focus: ${formData.geographicFocus || 'Not specified'}
+        - Main Products/Services: ${formData.mainProducts || 'Not specified'}
+        - Supply Chain Complexity: ${formData.supplyChainComplexity || 'Not specified'}
+        - Primary Risk Concerns: ${formData.primaryRisks || 'Not specified'}
+        - Current Challenges: ${formData.currentChallenges || 'Not specified'}`;
+      } catch (error) {
+        console.warn('Error parsing supply chain form_data:', error);
+        supplyChainContext = `
+        SUPPLY CHAIN COMPANY INFORMATION:
+        - Company Name: ${supplyChainData.name || 'Not specified'}
+        - Additional Data: Available but format not recognized`;
+      }
+    } else if (supplyChainData?.name) {
+      supplyChainContext = `
+      SUPPLY CHAIN COMPANY INFORMATION:
+      - Company Name: ${supplyChainData.name}
+      - Organisation: ${supplyChainData.organisation || 'Not specified'}
+      - Description: ${supplyChainData.description || 'Not specified'}`;
+    }
     
     // Try to retrieve memories with proper error handling following latest Mem0 docs
-    if (process.env.MEM0_API_KEY) {      try {
+    if (process.env.MEM0_API_KEY) {try {
         // Build a rich, specific search query for more relevant memories
         const searchQuery = `supply chain intelligence analysis for ${node.name} ${node.type} in ${node.location} ${node.industry || ''} recent disruptions risk assessment`;
         
@@ -244,16 +280,17 @@ Historical event pattern suggests ${riskTrend > 10 ? 'significant deterioration'
     } else {
       console.warn('MEM0_API_KEY not configured, skipping memory retrieval');
       memoryContext = 'Memory service not configured - historical context unavailable.';
-    }
-
-    return `
+    }    return `
+      ${supplyChainContext}
+      
       NODE CONTEXT:
       - Name: ${node.name}
       - Type: ${node.type}
-      - Location: ${node.location}
-      - Industry: ${node.industry || 'General'}
-      - Coordinates: ${node.coordinates}
-      - Capacity: ${node.capacity || 'Unknown'}
+      - Location: ${node.address || 'Location not specified'}
+      - Coordinates: ${node.location_lat && node.location_lng ? `${node.location_lat},${node.location_lng}` : 'Coordinates not available'}
+      - Industry: ${node.data?.industry || 'General'}
+      - Capacity: ${node.data?.capacity || 'Unknown'}
+      - Description: ${node.description || 'No description'}
       
       HISTORICAL INTELLIGENCE MEMORY:
       ${memoryContext}
@@ -262,16 +299,16 @@ Historical event pattern suggests ${riskTrend > 10 ? 'significant deterioration'
       
       FOCUS AREAS:
       - Supply chain disruptions affecting ${node.type} operations
-      - Weather events in ${node.location}
+      - Weather events in ${node.address || 'this location'}
       - Geopolitical events affecting trade routes
       - Regulatory changes in logistics/shipping
       - Economic factors affecting supply chains
       - Port congestions, strikes, closures
       - Manufacturing shutdowns or capacity changes
     `;
-  }  public async gatherComprehensiveIntelligence(node: any): Promise<any> {
+  }  public async gatherComprehensiveIntelligence(node: any, supplyChainData?: any): Promise<any> {
     const startTime = Date.now();
-    const context = await this.buildSearchContext(node);
+    const context = await this.buildSearchContext(node, supplyChainData);
 
     // Check quota first
     if (!QuotaManager.canMakeCall()) {
@@ -291,11 +328,10 @@ Historical event pattern suggests ${riskTrend > 10 ? 'significant deterioration'
       weather: !weatherApiMissing,
       memory: process.env.MEM0_API_KEY ? true : false
     };
-    
-    // If all critical APIs are missing, use fallback mode
+      // If all critical APIs are missing, use fallback mode
     if (googleApiMissing && tavilyApiMissing && weatherApiMissing) {
       console.log('Using complete fallback mode - all critical API keys missing');
-      return this.generateFallbackIntelligence(node, startTime);
+      return this.generateFallbackIntelligence(node, startTime, supplyChainData);
     }
 
     // Record that we're making an API call
@@ -491,36 +527,32 @@ Historical event pattern suggests ${riskTrend > 10 ? 'significant deterioration'
           const defaultCoordinates = { lat: 0, lon: 0, source: 'default' };
           let coordinatesSource = 'unknown';
           
-          // First try to get coordinates from node.coordinates (most reliable source)
-          if (node.coordinates) {
+          // Primary: Use location_lat and location_lng from database
+          if (node.location_lat && node.location_lng) {
+            lat = parseFloat(node.location_lat);
+            lon = parseFloat(node.location_lng);
+            coordinatesSource = 'database location fields';
+          }
+          // Fallback: Check node.data.coordinates from JSONB field
+          else if (node.data?.coordinates) {
             try {
-              if (typeof node.coordinates === 'string') {
-                const parts: number[] = node.coordinates.split(',').map((p: string): number => parseFloat(p.trim()));
+              if (typeof node.data.coordinates === 'string') {
+                const parts = node.data.coordinates.split(',').map((p: string) => parseFloat(p.trim()));
                 if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
                   [lat, lon] = parts;
-                  coordinatesSource = 'node.coordinates (string)';
+                  coordinatesSource = 'node.data.coordinates (string)';
                 }
-              } else if (Array.isArray(node.coordinates) && node.coordinates.length >= 2) {
-                [lat, lon] = node.coordinates.map(Number);
-                if (!isNaN(lat) && !isNaN(lon)) {
-                  coordinatesSource = 'node.coordinates (array)';
-                }
-              } else if (typeof node.coordinates === 'object' && 
-                        node.coordinates?.lat !== undefined && 
-                        node.coordinates?.lon !== undefined) {
-                lat = parseFloat(node.coordinates.lat);
-                lon = parseFloat(node.coordinates.lon);
-                if (!isNaN(lat) && !isNaN(lon)) {
-                  coordinatesSource = 'node.coordinates (object)';
-                }
+              } else if (Array.isArray(node.data.coordinates) && node.data.coordinates.length >= 2) {
+                [lat, lon] = node.data.coordinates.map(Number);
+                coordinatesSource = 'node.data.coordinates (array)';
               }
             } catch (parseError) {
-              console.error('Error parsing node coordinates:', parseError);
+              console.error('Error parsing coordinates from node.data:', parseError);
             }
           }
           
-          // If no valid coordinates but we have a location, try to geocode it
-          if ((lat === undefined || lon === undefined) && node.location) {
+          // Geocoding fallback using address instead of location
+          if ((lat === undefined || lon === undefined) && node.address) {
             try {
               // Hardcoded coordinates for common locations to reduce API calls and handle errors
               const commonLocations: Record<string, {lat: number, lon: number}> = {
@@ -534,7 +566,7 @@ Historical event pattern suggests ${riskTrend > 10 ? 'significant deterioration'
               };
               
               // Check for known locations first
-              const normalizedLocation = node.location.toLowerCase();
+              const normalizedLocation = node.address.toLowerCase();
               let found = false;
               
               for (const [key, coords] of Object.entries(commonLocations)) {
@@ -550,7 +582,7 @@ Historical event pattern suggests ${riskTrend > 10 ? 'significant deterioration'
               // Try geocoding API only if we didn't find a match and the API key is available
               if (!found && process.env.OPENWEATHER_API_KEY) {
                 // Try geocode the location using OpenWeather's API
-                const geocodeUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(node.location)}&limit=1&appid=${process.env.OPENWEATHER_API_KEY}`;
+                const geocodeUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(node.address)}&limit=1&appid=${process.env.OPENWEATHER_API_KEY}`;
                 const geoResponse = await fetch(geocodeUrl);
                 
                 if (geoResponse.ok) {
@@ -559,10 +591,10 @@ Historical event pattern suggests ${riskTrend > 10 ? 'significant deterioration'
                     lat = geoData[0].lat;
                     lon = geoData[0].lon;
                     coordinatesSource = 'geocoding API';
-                    console.log(`Successfully geocoded location "${node.location}" to coordinates ${lat},${lon}`);
+                    console.log(`Successfully geocoded location "${node.address}" to coordinates ${lat},${lon}`);
                   }
                 } else {
-                  console.warn(`Geocoding failed for "${node.location}": ${geoResponse.status} ${geoResponse.statusText}`);
+                  console.warn(`Geocoding failed for "${node.address}": ${geoResponse.status} ${geoResponse.statusText}`);
                 }
               }
             } catch (error) {
@@ -633,21 +665,21 @@ Historical event pattern suggests ${riskTrend > 10 ? 'significant deterioration'
         } catch (error) {
           console.error('Previous intelligence retrieval error:', error);
         }
-      }
-
-      // Build an enhanced prompt with all collected data
+      }      // Build an enhanced prompt with all collected data
       let enhancedPrompt = `
-Analyze comprehensive supply chain data for ${node.name} (${node.type}) in ${node.location}:
+Analyze comprehensive supply chain data for ${node.name} (${node.type}) in ${node.address || 'unknown location'}:
 
 NODE CONTEXT:
 - Name: ${node.name}
 - Type: ${node.type}
-- Location: ${node.location}
-- Industry: ${node.industry || 'General'}
-- Capacity: ${node.capacity || 'Unknown'}
+- Location: ${node.address || 'Not specified'}
+- Industry: ${node.data?.industry || 'General'}
+- Capacity: ${node.data?.capacity || 'Unknown'}
+
+${supplyChainData?.form_data ? 'COMPANY CONTEXT:\n' + JSON.stringify(supplyChainData.form_data, null, 2) : ''}
 
 SEARCH RESULTS:
-${JSON.stringify(collectedData.tavilyResults, null, 1)}`;      // Add weather data if available
+${JSON.stringify(collectedData.tavilyResults, null, 1)}`;// Add weather data if available
       if (collectedData.weatherForecast) {
         enhancedPrompt += `\n\nWEATHER FORECAST (${collectedData.weatherForecast?.location || node.location}):
 ${JSON.stringify(collectedData.weatherForecast?.forecasts || [], null, 1)}`;
@@ -810,8 +842,7 @@ Generated at: ${new Date().toISOString()}`
       return new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(); // 4 hours
     }
   }
-
-  async processSupplyChainIntelligence(supplyChainId: string, forceRefresh: boolean = false): Promise<any[]> {
+  async processSupplyChainIntelligence(supplyChainId: string, forceRefresh: boolean = false, supplyChainData?: any): Promise<any[]> {
     const results = [];
     
     // Get all nodes for this supply chain
@@ -838,7 +869,7 @@ Generated at: ${new Date().toISOString()}`
         let intelligence = !forceRefresh ? await this.getCachedIntelligence(node.node_id) : null;
         
         if (!intelligence) {
-          intelligence = await this.gatherComprehensiveIntelligence(node);
+          intelligence = await this.gatherComprehensiveIntelligence(node, supplyChainData);
           await this.cacheIntelligence(node.node_id, intelligence);
         }
         
@@ -863,7 +894,7 @@ Generated at: ${new Date().toISOString()}`
         let intelligence = !forceRefresh ? await this.getCachedIntelligence(node.node_id) : null;
         
         if (!intelligence) {
-          intelligence = await this.gatherComprehensiveIntelligence(node);
+          intelligence = await this.gatherComprehensiveIntelligence(node, supplyChainData);
           await this.cacheIntelligence(node.node_id, intelligence);
         }
         
@@ -909,8 +940,18 @@ Generated at: ${new Date().toISOString()}`
       // Return empty array instead of throwing to maintain API stability
       return [];
     }
-  }
-  private generateFallbackIntelligence(node: any, startTime: number): any {
+  }  private generateFallbackIntelligence(node: any, startTime: number, supplyChainData?: any): any {
+    // Extract node data properly from database schema
+    const nodeAddress = node.address || 'Location not specified';
+    const nodeCoords = node.location_lat && node.location_lng ? 
+      `${node.location_lat},${node.location_lng}` : 'Coordinates not available';
+    const nodeIndustry = node.data?.industry || 'General';
+    
+    // Include supply chain context in fallback mode
+    const companyContext = supplyChainData?.form_data ? 
+      `Company: ${supplyChainData.form_data.companyName || supplyChainData.name}` : 
+      `Organization: ${supplyChainData?.organisation || 'Unknown'}`;
+    
     // Try to get some real data even in fallback mode by using fetch directly
     let sources = [{
       title: 'System Generated Alert',
@@ -922,8 +963,8 @@ Generated at: ${new Date().toISOString()}`
     // Attempt to fetch some real data using direct fetch if possible
     try {
       // Try to fetch news for location via a simple web API if Tavily is not available
-      if (!process.env.TAVILY_API_KEY && node.location) {
-        fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(node.location + ' supply chain')}&sortBy=publishedAt&apiKey=sample-key`)
+      if (!process.env.TAVILY_API_KEY && nodeAddress) {
+        fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(nodeAddress + ' supply chain')}&sortBy=publishedAt&apiKey=sample-key`)
           .then(response => response.ok ? response.json() : null)
           .then(data => {
             if (data && data.articles && data.articles.length > 0) {
@@ -949,10 +990,10 @@ Generated at: ${new Date().toISOString()}`
     const relationshipMapping = [
       {
         source: node.name,
-        target: "Supply Chain",
+        target: supplyChainData?.name || "Supply Chain Network",
         relationship: "part_of",
         strength: 0.9,
-        context: "This node is part of the broader supply chain network"
+        context: `${node.name} is a ${node.type} node in the broader supply chain network at ${nodeAddress}. ${companyContext}`
       },
       {
         source: "Global Events",
@@ -970,11 +1011,11 @@ Generated at: ${new Date().toISOString()}`
         criticalEvents: [
           {
             title: `Supply Chain Monitoring for ${node.name}`,
-            summary: `Regular monitoring active for ${node.type} operations in ${node.location}. Limited data available in fallback mode. Real-time data integration pending.`,
+            summary: `Regular monitoring active for ${node.type} operations at ${nodeAddress}. ${companyContext}. Limited data available in fallback mode. Real-time data integration pending.`,
             severity: 20,
             impact: 'LOW',
             category: 'OPERATIONAL',
-            affectedEntities: [node.name],
+            affectedEntities: [node.name, nodeAddress],
             timeframe: 'Next 24 hours',
             confidence: 0.6,
             sources: sources
@@ -1017,7 +1058,14 @@ Generated at: ${new Date().toISOString()}`
         fallbackMode: true,
         fallbackReason: !process.env.TAVILY_API_KEY ? "Missing Tavily API Key" : 
                         !process.env.OPENWEATHER_API_KEY ? "Missing OpenWeather API Key" : 
-                        !process.env.GOOGLE_GENERATIVE_AI_API_KEY ? "Missing Google AI API Key" : "Unknown reason"
+                        !process.env.GOOGLE_GENERATIVE_AI_API_KEY ? "Missing Google AI API Key" : "Unknown reason",
+        nodeData: {
+          address: nodeAddress,
+          coordinates: nodeCoords,
+          industry: nodeIndustry,
+          type: node.type,
+          supply_chain_id: node.supply_chain_id
+        }
       }
     };
   }
@@ -1114,8 +1162,7 @@ class QuotaManager {
     return {
       callsRemaining: Math.max(0, this.MAX_CALLS_PER_HOUR - this.callCount),
       resetsIn: `${minutesUntilReset} minutes`
-    };
-  }
+    };  }
 }
 
 // API Key Validation System
@@ -1681,9 +1728,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         error: 'supply_chain_id parameter is required'
       }, { status: 400 });
-    }
-
-    // Validate API keys before processing
+    }    // Validate API keys before processing
     const validation = await ApiKeyValidator.validateAllKeys();
     
     // Log validation results
@@ -1692,6 +1737,19 @@ export async function GET(request: NextRequest) {
       issues: validation.issues.map(i => `${i.name}: ${i.error || 'OK'}`),
       mode: validation.canProceed ? 'LIVE' : 'FALLBACK'
     });
+
+    // Get supply chain information including user_id and form_data for proper data association
+    const { data: supplyChain } = await supabaseServer
+      .from('supply_chains')
+      .select('user_id, name, description, organisation, form_data')
+      .eq('supply_chain_id', supplyChainId)
+      .single();
+
+    if (!supplyChain) {
+      return NextResponse.json({
+        error: 'Supply chain not found'
+      }, { status: 404 });
+    }
 
     const agent = new ProductionIntelligenceAgent();
 
@@ -1731,18 +1789,17 @@ export async function GET(request: NextRequest) {
             processingTime: Date.now() - startTime
           });
         }
-      }
-
-      const intelligence = await agent.gatherComprehensiveIntelligence(node);
+      }      const intelligence = await agent.gatherComprehensiveIntelligence(node, supplyChain);
       await agent.cacheIntelligence(nodeId, intelligence);
       results = [intelligence];
     } else {
       // Process entire supply chain
-      results = await agent.processSupplyChainIntelligence(supplyChainId, forceRefresh);
+      results = await agent.processSupplyChainIntelligence(supplyChainId, forceRefresh, supplyChain);
     }
 
-    // Store results in database
+    // Store results in database with proper user association
     const dbResults = results.filter(r => !r.error).map(result => ({
+      user_id: supplyChain.user_id,
       supply_chain_id: supplyChainId,
       node_id: result.nodeId,
       intelligence_data: result,
@@ -1801,13 +1858,24 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { supply_chain_id, node_id, stream = false, query } = body;
-
-    if (!supply_chain_id) {
+    const { supply_chain_id, node_id, stream = false, query } = body;    if (!supply_chain_id) {
       return NextResponse.json({
         error: 'supply_chain_id is required'
       }, { status: 400 });
-    }    // If streaming is requested, use streamText with memory-enhanced intelligence
+    }
+
+    // Get supply chain data for context
+    const { data: supplyChain } = await supabaseServer
+      .from('supply_chains')
+      .select('user_id, name, description, organisation, form_data')
+      .eq('supply_chain_id', supply_chain_id)
+      .single();
+
+    if (!supplyChain) {
+      return NextResponse.json({ error: 'Supply chain not found' }, { status: 404 });
+    }
+    
+    // If streaming is requested, use streamText with memory-enhanced intelligence
     if (stream) {
       // Get node information
       const { data: node } = await supabaseServer
@@ -1972,10 +2040,10 @@ export async function POST(request: NextRequest) {
           You are an advanced AI supply chain intelligence analyst with real-time access to web search and memory systems. 
           
           Current Task: ${query || 'Gather comprehensive supply chain intelligence'}
-          
-          Supply Chain Context:
+            Supply Chain Context:
           - Supply Chain ID: ${supply_chain_id}
-          ${node ? `- Node: ${node.name} (${node.type}) in ${node.location}` : '- Analyzing entire supply chain'}
+          ${node ? `- Node: ${node.name} (${node.type}) in ${node.address || 'unknown location'}` : '- Analyzing entire supply chain'}
+          ${supplyChain?.form_data ? `- Company: ${JSON.parse(supplyChain.form_data).companyName || supplyChain.name}` : `- Organization: ${supplyChain.organisation || 'Unknown'}`}
           
           INSTRUCTIONS:
           
