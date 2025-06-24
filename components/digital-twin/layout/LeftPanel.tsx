@@ -212,7 +212,7 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, onLoadTempl
                           transition={{ duration: 0.2 }}
                         >
                           {/* Info about grouping */}
-                          <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
+                          <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-900 rounded-md border border-blue-200 dark:border-blue-800">
                             <div className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">
                               🔗 Template Grouping
                             </div>

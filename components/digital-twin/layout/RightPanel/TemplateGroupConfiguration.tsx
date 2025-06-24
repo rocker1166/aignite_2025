@@ -22,7 +22,7 @@ const TemplateGroupConfiguration: FC<TemplateGroupConfigurationProps> = ({ node,
       className="space-y-4"
     >
       {/* Header Card */}
-      <Card className="shadow-md border-l-4 border-l-blue-500">
+      <Card className="shadow-md border-l-4 border-l-blue-500 dark:bg-gray-950">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center space-x-2 text-lg">
             <Blocks className="h-5 w-5 text-blue-500" />
@@ -47,7 +47,7 @@ const TemplateGroupConfiguration: FC<TemplateGroupConfigurationProps> = ({ node,
                   <FileText className="h-4 w-4 text-muted-foreground" />
                   <label className="text-sm font-medium text-muted-foreground">Description</label>
                 </div>
-                <div className="text-sm text-muted-foreground bg-muted/20 px-2.5 py-1.5 rounded-md italic">
+                <div className="text-sm text-muted-foreground font-sm bg-muted/20 px-2.5 py-1.5 rounded-md ">
                   {node.data.description}
                 </div>
               </div>
