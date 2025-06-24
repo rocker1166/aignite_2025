@@ -3,5 +3,6 @@ packages:
 
 onlyBuiltDependencies:
   - '@scarf/scarf'
+  - protobufjs
   - sharp
   - sqlite3

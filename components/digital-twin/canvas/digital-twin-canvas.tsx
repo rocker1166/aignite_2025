@@ -21,7 +21,7 @@ import { useQueryState } from 'nuqs';
 import debounce from 'lodash.debounce';
 
 import SimulationToolbar from '../layout/SimulationToolbar';
-import LeftPanel from '../layout/LeftPanel';
+import { LeftPanel } from '../layout/left-panel';
 import RightPanel from '../layout/RightPanel';
 import ValidationDialog from '../forms/ValidationDialog';
 import { nodeTypes } from "./CustomNodes";
