@@ -15,6 +15,20 @@ interface StrategyDashboardProps {
   scenarioId: string
 }
 
+
+// Glassmorphic Card Component
+function GlassmorphicCard({ children, className = "", ...props }: { children: React.ReactNode; className?: string; [key: string]: any }) {
+  return (
+    <Card 
+      className={`border border-white/30 dark:border-slate-700/10 bg-white/70 dark:bg-slate-950 backdrop-blur-xl shadow-xl shadow-black/5 dark:shadow-black/20 rounded-xl ${className}`} 
+      {...props}
+    >
+      {children}
+    </Card>
+  )
+}
+
+
 export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps) {
   const [selectedStrategies, setSelectedStrategies] = useState<string[]>([])
   const [appliedStrategies, setAppliedStrategies] = useState<string[]>([])
@@ -115,9 +129,9 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
       : 0
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen ">
       {/* Simplified Header */}
-      <div className="bg-white/80 dark:bg-slate-950 backdrop-blur-sm border-b border-slate-200/60 dark:border-slate-700/60 shadow-sm rounded-xl">
+      <GlassmorphicCard className="  backdrop-blur-sm border-b border-slate-200/60 dark:border-slate-700/60 shadow-sm rounded-xl">
         <div className="px-6 py-6 ">
           <div className="flex items-center justify-between">
             <div>
@@ -129,11 +143,11 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
             </Badge>
           </div>
         </div>
-      </div>
+      </GlassmorphicCard>
 
       <div className="px-0 py-4">
         {/* Executive Summary Panel with better shadows */}
-        <Card className="bg-slate-950 shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 mb-8">
+        <GlassmorphicCard className=" shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 mb-8">
           <CardContent className="p-8">
             <div className="mb-4">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Impact Overview</h2>
@@ -162,7 +176,7 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
               </div>
             </div>
           </CardContent>
-        </Card>
+        </GlassmorphicCard>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
@@ -191,9 +205,9 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
             </div>
 
             {/* Strategy Cards with enhanced shadows */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <GlassmorphicCard className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {strategies.map((strategy) => (
-                <Card
+                <GlassmorphicCard
                   key={strategy.id}
                   className={`
                     border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1
@@ -251,12 +265,12 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
                       {selectedStrategies.includes(strategy.id) ? "Remove" : "Add"}
                     </Button>
                   </CardFooter>
-                </Card>
+                </GlassmorphicCard>
               ))}
-            </div>
+            </GlassmorphicCard>
 
             {/* Strategy Comparison Table with better styling */}
-            <Card className="bg-white dark:bg-slate-950 shadow-lg border-0">
+            <GlassmorphicCard className=" shadow-lg border-0">
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Strategy Comparison</CardTitle>
               </CardHeader>
@@ -303,10 +317,10 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
                   </Table>
                 </div>
               </CardContent>
-            </Card>
+            </GlassmorphicCard>
 
             {/* Action Section */}
-            <Card className="bg-white dark:bg-slate-950 shadow-lg border-0">
+            <GlassmorphicCard className=" shadow-lg border-0">
               <CardHeader>
                 <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Finalize Strategy</CardTitle>
               </CardHeader>
@@ -325,12 +339,12 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </GlassmorphicCard>
           </div>
 
           {/* Enhanced Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-6 bg-white dark:bg-slate-950 shadow-xl border-0">
+          <div className="lg:col-span-1 bg-transparent">
+            <GlassmorphicCard className="sticky top-6 shadow-xl border-0">
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Plan Summary</CardTitle>
               </CardHeader>
@@ -433,7 +447,7 @@ export default function StrategyDashboard({ scenarioId }: StrategyDashboardProps
                   <span className="font-bold text-xl text-emerald-600 dark:text-emerald-400">{formatCurrency(totalSavings - totalCost)}</span>
                 </div>
               </CardContent>
-            </Card>
+            </GlassmorphicCard>
           </div>
         </div>
       </div>

@@ -33,7 +33,7 @@ const chartConfig = {
 
 export default function ImpactByNodeChart({ data }: ImpactByNodeChartProps) {
   return (
-    <Card className="bg-background/60 backdrop-blur-sm border-border/50 shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/15 transition-all duration-300">
+    <Card className="bg-transparent  border-border/50 shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/15 transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div className="space-y-0">
           <CardTitle className="text-lg font-semibold">Impact by Node</CardTitle>

@@ -2,18 +2,28 @@
 
 
 import { useState } from "react"
-import { AlertTriangle, CheckCircle, Info, Bell, BellOff, X, ArrowRight, Plus, Truck, MapPin, Package, Route, AlertCircle, Zap, Factory, Wrench } from "lucide-react"
+import { AlertTriangle, CheckCircle, Info, BellOff, X, ArrowRight, Plus, Truck, MapPin, Package, Route, AlertCircle, Zap, Factory, Wrench, Filter, ChevronDown } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { BellIcon } from "@/components/icons"
+import { motion, AnimatePresence } from "framer-motion"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { motion, AnimatePresence } from "framer-motion"
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel
+} from "@/components/ui/dropdown-menu"
+import { RecentActivityList } from "@/components/dashboard/recent-activity-list"
 
 type NotificationType = "alert" | "warning" | "info" | "success"
 type NotificationCategory = "all" | "edge" | "node"
+type MainTab = "alerts" | "activity"
 
 interface UINotification {
   id: string
@@ -144,7 +154,8 @@ const mockNotifications: UINotification[] = [
 ]
 
 export function NotificationFeed() {
-  const [activeTab, setActiveTab] = useState<NotificationCategory>("all")
+  const [activeMainTab, setActiveMainTab] = useState<MainTab>("alerts")
+  const [selectedCategory, setSelectedCategory] = useState<NotificationCategory>("all")
   const [showMore, setShowMore] = useState(false)
   const { toast } = useToast()
 
@@ -214,8 +225,30 @@ export function NotificationFeed() {
     return mockNotifications.filter(notification => notification.category === category)
   }
 
-  const renderNotificationList = (category: NotificationCategory) => {
-    const notifications = getFilteredNotifications(category)
+  const getCategoryLabel = (category: NotificationCategory) => {
+    switch (category) {
+      case "all":
+        return "All Notifications"
+      case "edge":
+        return "Transport & Logistics"
+      case "node":
+        return "Nodes & Facilities"
+    }
+  }
+
+  const getCategoryIcon = (category: NotificationCategory) => {
+    switch (category) {
+      case "all":
+        return <BellIcon size={16} className="text-blue-500" />
+      case "edge":
+        return <Truck className="h-4 w-4 text-blue-500" />
+      case "node":
+        return <Factory className="h-4 w-4 text-purple-500" />
+    }
+  }
+
+  const renderNotificationList = () => {
+    const notifications = getFilteredNotifications(selectedCategory)
     const displayNotifications = showMore 
       ? notifications 
       : notifications.slice(0, INITIAL_DISPLAY_COUNT)
@@ -225,20 +258,69 @@ export function NotificationFeed() {
 
     return (
       <div className="space-y-4">
-        {/* Header */}
+        {/* Header with Filter Dropdown */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Bell className="h-4 w-4 text-blue-500" />
-            <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-              {category === "all" ? "All Notifications" : 
-               category === "edge" ? "Transport & Logistics" : "Nodes & Facilities"}
-            </span>
+          <div className="flex items-center gap-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-white/40 dark:border-slate-600/40 hover:bg-white/80 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50"
+                >
+                  {getCategoryIcon(selectedCategory)}
+                  <span className="text-sm font-medium">{getCategoryLabel(selectedCategory)}</span>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/20 dark:border-slate-700/20">
+                <DropdownMenuLabel className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  Filter Notifications
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => setSelectedCategory("all")}
+                  className={cn(
+                    "flex items-center gap-2 cursor-pointer",
+                    selectedCategory === "all" && "bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300"
+                  )}
+                >
+                  <BellIcon size={16} className="text-blue-500" />
+                  All Notifications
+                  {selectedCategory === "all" && <CheckCircle className="ml-auto h-4 w-4 text-blue-500" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setSelectedCategory("edge")}
+                  className={cn(
+                    "flex items-center gap-2 cursor-pointer",
+                    selectedCategory === "edge" && "bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300"
+                  )}
+                >
+                  <Truck className="h-4 w-4 text-blue-500" />
+                  Transport & Logistics
+                  {selectedCategory === "edge" && <CheckCircle className="ml-auto h-4 w-4 text-blue-500" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setSelectedCategory("node")}
+                  className={cn(
+                    "flex items-center gap-2 cursor-pointer",
+                    selectedCategory === "node" && "bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300"
+                  )}
+                >
+                  <Factory className="h-4 w-4 text-purple-500" />
+                  Nodes & Facilities
+                  {selectedCategory === "node" && <CheckCircle className="ml-auto h-4 w-4 text-purple-500" />}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
             {unreadCount > 0 && (
               <Badge variant="destructive" className="ml-2 bg-red-500 hover:bg-red-600 text-xs">
                 {unreadCount} new
               </Badge>
             )}
           </div>
+          
           <Button 
             variant="ghost" 
             size="sm" 
@@ -348,7 +430,7 @@ export function NotificationFeed() {
               ) : (
                 <>
                   <Plus className="h-4 w-4 relative z-10" />
-                  <span className="relative z-10">Show {notifications.length - INITIAL_DISPLAY_COUNT} More</span>
+                  <span className="relative z-10">Show {getFilteredNotifications(selectedCategory).length - INITIAL_DISPLAY_COUNT} More</span>
                 </>
               )}
             </Button>
@@ -360,46 +442,71 @@ export function NotificationFeed() {
 
   return (
     <div className="p-4">
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/40 dark:border-slate-600/40 mb-4">
-          <TabsTrigger 
-            value="all" 
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/25 dark:data-[state=active]:bg-slate-800/20 dark:data-[state=active]:text-white font-medium relative data-[state=active]:before:absolute data-[state=active]:before:inset-0 data-[state=active]:before:bg-blue-400/30 data-[state=active]:before:blur-md data-[state=active]:before:opacity-60 data-[state=active]:before:animate-pulse data-[state=active]:before:rounded-md"
+      {/* Main Tab Navigation */}
+      <div className="bg-white/60 dark:bg-slate-800/10 backdrop-blur-sm border border-white/40 dark:border-slate-700/20 shadow-lg rounded-lg p-1 flex space-x-1 w-fit mb-6">
+        {[
+          { id: "alerts" as MainTab, label: "Real-Time Alerts" },
+          { id: "activity" as MainTab, label: "Recent Activity" }
+        ].map((tab) => (
+          <motion.button
+            key={tab.id}
+            onClick={() => setActiveMainTab(tab.id)}
+            className={`relative px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
+              activeMainTab === tab.id
+                ? "text-white"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+            }`}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <span className="relative z-10">All</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="edge"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/25 dark:data-[state=active]:bg-slate-800/20 dark:data-[state=active]:text-white font-medium relative data-[state=active]:before:absolute data-[state=active]:before:inset-0 data-[state=active]:before:bg-blue-400/30 data-[state=active]:before:blur-md data-[state=active]:before:opacity-60 data-[state=active]:before:animate-pulse data-[state=active]:before:rounded-md"
-          >
-            <span className="relative z-10 flex items-center gap-1">
-              <Truck className="h-3 w-3" />
-              Edge
-            </span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="node"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/25 dark:data-[state=active]:bg-slate-800/20 dark:data-[state=active]:text-white font-medium relative data-[state=active]:before:absolute data-[state=active]:before:inset-0 data-[state=active]:before:bg-blue-400/30 data-[state=active]:before:blur-md data-[state=active]:before:opacity-60 data-[state=active]:before:animate-pulse data-[state=active]:before:rounded-md"
-          >
-            <span className="relative z-10 flex items-center gap-1">
-              <Factory className="h-3 w-3" />
-              Node
-            </span>
-          </TabsTrigger>
-        </TabsList>
+            {activeMainTab === tab.id && (
+              <motion.div
+                layoutId="activeMainTab"
+                className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-700 rounded-md shadow-lg shadow-blue-500/25"
+                initial={false}
+                transition={{
+                  type: "spring",
+                  stiffness: 500,
+                  damping: 30
+                }}
+              />
+            )}
+            <span className="relative z-10">{tab.label}</span>
+          </motion.button>
+        ))}
+      </div>
 
-        <TabsContent value="all">
-          {renderNotificationList("all")}
-        </TabsContent>
-        
-        <TabsContent value="edge">
-          {renderNotificationList("edge")}
-        </TabsContent>
-        
-        <TabsContent value="node">
-          {renderNotificationList("node")}
-        </TabsContent>
-      </Tabs>
+      {/* Tab Content */}
+      <AnimatePresence mode="wait">
+        {activeMainTab === "alerts" && (
+          <motion.div
+            key="alerts"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{
+              duration: 0.3,
+              ease: "easeInOut"
+            }}
+          >
+            {renderNotificationList()}
+          </motion.div>
+        )}
+        {activeMainTab === "activity" && (
+          <motion.div
+            key="activity"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{
+              duration: 0.3,
+              ease: "easeInOut"
+            }}
+          >
+            <RecentActivityList />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

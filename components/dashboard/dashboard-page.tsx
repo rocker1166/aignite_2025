@@ -2,15 +2,14 @@
 
 import { AlertTriangle, ArrowRight, Clock, Gauge, TrendingUp, Play, LightbulbIcon } from "lucide-react"
 import Link from "next/link"
+import { motion, AnimatePresence } from "framer-motion"
+import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RecentActivityList } from "@/components/dashboard/recent-activity-list"
 import { NotificationFeed } from "@/components/dashboard/notification-feed"
-import { KpiCard } from "@/components/dashboard/kpi-card"
-import { SupplyChainHealthChart } from "@/components/dashboard/supply-chain-health-chart"
-import { DashboardRiskHeatmap } from "@/components/dashboard/risk-heatmap"
 
 export default function DashboardPage() {
   return (
@@ -26,18 +25,6 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">Dashboard</h1>
             <p className="text-slate-600 dark:text-slate-300">Welcome to your Supply Chain Resilience Planner dashboard.</p>
-          </div>
-          <div className="flex gap-3 mt-4 md:mt-0">
-            <Button asChild className="justify-between bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white relative group shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300">
-              <Link href="/simulation">
-                <span className="flex items-center">
-                  <span className="absolute inset-0 rounded-md bg-blue-400/30 blur-md opacity-60 group-hover:opacity-100 transition-opacity animate-pulse"></span>
-                  <span className="absolute inset-0 rounded-md bg-white/10 blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                  <Play className="h-4 w-4 mr-2 animate-pulse relative z-10" /> 
-                  <span className="relative z-10">Run Simulation</span>
-                </span>
-              </Link>
-            </Button>
           </div>
         </div>
 
@@ -82,35 +69,12 @@ export default function DashboardPage() {
           </div>
         </div>
 
-
-
-        <GlassmorphicTabs defaultValue="notifications" className="w-full">
-          <TabsList className="bg-white/60 dark:bg-slate-800/10 backdrop-blur-sm border border-white/40 dark:border-slate-700/20 shadow-lg">
-            <TabsTrigger value="notifications" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/25 dark:data-[state=active]:bg-slate-800/20 dark:data-[state=active]:text-white font-medium relative data-[state=active]:before:absolute data-[state=active]:before:inset-0 data-[state=active]:before:rounded-md data-[state=active]:before:bg-blue-400/30 data-[state=active]:before:blur-md data-[state=active]:before:opacity-60 data-[state=active]:before:animate-pulse">Real-Time Alerts</TabsTrigger>
-            <TabsTrigger value="activity" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/25 dark:data-[state=active]:bg-slate-800/20 dark:data-[state=active]:text-white font-medium relative data-[state=active]:before:absolute data-[state=active]:before:inset-0 data-[state=active]:before:rounded-md data-[state=active]:before:bg-blue-400/30 data-[state=active]:before:blur-md data-[state=active]:before:opacity-60 data-[state=active]:before:animate-pulse">Recent Activity</TabsTrigger>
-          </TabsList>
-          <TabsContent value="notifications" className="mt-6">
-            <GlassmorphicCard className="border-0">
-              <NotificationFeed />
-            </GlassmorphicCard>
-          </TabsContent>
-          <TabsContent value="activity" className="mt-6">
-            <GlassmorphicCard className="border-0">
-              <RecentActivityList />
-            </GlassmorphicCard>
-          </TabsContent>
-        </GlassmorphicTabs>
-
-        {/* Risk Heatmap Section */}
-        <GlassmorphicCard className="">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200">Risk Heatmap</CardTitle>
-            <CardDescription>Supply chain risk by category</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <DashboardRiskHeatmap />
-          </CardContent>
-        </GlassmorphicCard>
+        <div className="w-full">
+          {/* Notification Feed with integrated tabs */}
+          <GlassmorphicCard className="border-0 min-h-[600px]">
+            <NotificationFeed />
+          </GlassmorphicCard>
+        </div>
       </div>
     </div>
   )
@@ -161,9 +125,3 @@ function GlassmorphicKpiCard({ title, value, trend, trendDirection, icon, descri
   )
 }
 
-// Glassmorphic Tabs Component
-function GlassmorphicTabs({ className = "", ...props }: { className?: string; [key: string]: any }) {
-  return (
-    <Tabs className={`${className}`} {...props} />
-  )
-}

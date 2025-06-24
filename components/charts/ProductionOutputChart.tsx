@@ -41,7 +41,7 @@ const chartConfig = {
 
 export default function ProductionOutputChart({ data }: ProductionOutputChartProps) {
   return (
-    <Card className="bg-background/60 backdrop-blur-sm border-border/50 shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/15 transition-all duration-300">
+    <Card className="bg-transparent  border-border/50 shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/15 transition-all duration-300">
       <CardHeader>
         <CardTitle>Production Output</CardTitle>
         <CardDescription>Daily production capacity (% of normal)</CardDescription>
