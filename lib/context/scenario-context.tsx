@@ -36,22 +36,22 @@ type ScenarioContextType = {
   setSelectedSupplyChainId: (id: string) => void
 }
 
-// Default values
+// Default values - all empty for placeholder-only approach
 const defaultScenarioData: ScenarioData = {
-  scenarioName: "Port Strike Scenario",
-  scenarioType: "disruption",
-  disruptionSeverity: 70,
-  disruptionDuration: 14,
-  affectedNode: "supplier-a",
-  description: "Simulating a port strike affecting key suppliers...",
-  startDate: formatISO(new Date()),
-  endDate: formatISO(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)),
-  monteCarloRuns: 100,
-  distributionType: "normal",
-  cascadeEnabled: true,
-  failureThreshold: 30,
-  bufferPercent: 20,
-  alternateRouting: true,
+  scenarioName: "",
+  scenarioType: "",
+  disruptionSeverity: 0,
+  disruptionDuration: 0,
+  affectedNode: "",
+  description: "",
+  startDate: "",
+  endDate: "",
+  monteCarloRuns: 0,
+  distributionType: "",
+  cascadeEnabled: false,
+  failureThreshold: 0,
+  bufferPercent: 0,
+  alternateRouting: false,
   randomSeed: ""
 }
 

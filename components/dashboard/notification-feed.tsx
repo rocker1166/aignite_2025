@@ -1,8 +1,10 @@
 "use client"
 
+
 import { useState } from "react"
 import { AlertTriangle, CheckCircle, Info, Bell, BellOff, X, ArrowRight, Plus, Truck, MapPin, Package, Route, AlertCircle, Zap, Factory, Wrench } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { BellIcon } from "@/components/icons"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"

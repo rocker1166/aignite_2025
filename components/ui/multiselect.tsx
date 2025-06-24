@@ -199,13 +199,13 @@ export const MultiSelect = React.forwardRef<
             {...props}
             onClick={handleTogglePopover}
             className={cn(
-              'flex w-full p-1 rounded-md border min-h-10 h-auto items-center justify-between bg-background hover:bg-background',
+              'flex w-full p-1 rounded-xl border min-h-10 h-auto items-center justify-between bg-background hover:bg-background dark:bg-gray-800 dark:border-gray-700',
               className
             )}
           >
             {selectedValues.length > 0 ? (
               <div className='flex justify-between items-center w-full'>
-                <div className='flex flex-wrap items-center gap-1 p-1 max-h-16 overflow-y-auto overflow-x-hidden flex-1 min-h-0'>
+                <div className='flex items-center gap-1 p-1 overflow-x-auto overflow-y-hidden flex-1 min-h-0'>
                   {(showall
                     ? selectedValues
                     : selectedValues.slice(0, maxCount)

@@ -205,12 +205,32 @@ export const RetailerNode = memo(({ data, isConnectable, selected }: NodeProps) 
   );
 });
 
-// Export a map of all node types to use in React Flow
+// Template Group Node
+export const TemplateGroupNode = memo(({ data, selected }: NodeProps) => {
+  // Use a simpler selection class for template groups without the blue ring
+  const templateSelectionClass = selected ? 'transition-all duration-200' : 'transition-all duration-200';
+  
+  return (
+    <div 
+      className={`template-group ${templateSelectionClass}`}
+      data-label={data.label}
+      title="Double-click to ungroup this template"
+    >
+      {/* Template content area - children nodes will be positioned here */}
+      <div className="h-full w-full">
+        {/* This div provides space for child nodes */}
+      </div>
+    </div>
+  );
+});
+
+// Export node types for use in React Flow
 export const nodeTypes = {
   supplierNode: SupplierNode,
   factoryNode: FactoryNode,
   portNode: PortNode,
   warehouseNode: WarehouseNode,
   distributionNode: DistributionNode,
-  retailerNode: RetailerNode
+  retailerNode: RetailerNode,
+  group: TemplateGroupNode,
 }; 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useFormContext } from "react-hook-form";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FormField,
   FormItem,
@@ -26,108 +26,124 @@ export const LogisticsStep = () => {
   return (
     <motion.div
       key="step-1"
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="space-y-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.4, ease: [0.4, 0.0, 0.2, 1] }}
+      className="space-y-4"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-        <FormField
-          control={form.control}
-          name="currency"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Currency</FormLabel>
-              <CurrencySelect {...field} onValueChange={field.onChange} />
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="shippingMethods"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Shipping Methods</FormLabel>
-              <MultiSelect
-                options={SHIPPING_METHODS}
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                placeholder="Select methods..."
-              />
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 shadow-md shadow-slate-200/50 dark:shadow-slate-900/50 p-4 backdrop-blur-sm">
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200 mb-1">Logistics & Shipping</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Define your currency and shipping methods.</p>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
+          <FormField
+            control={form.control}
+            name="currency"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-slate-800 dark:text-slate-200">Currency</FormLabel>
+                <CurrencySelect 
+                  {...field} 
+                  onValueChange={field.onChange} 
+                />
+                <FormMessage className="!mt-1.5 text-xs"/>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="shippingMethods"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-slate-800 dark:text-slate-200">Shipping Methods</FormLabel>
+                <div className="shadow-sm">
+                  <MultiSelect
+                    options={SHIPPING_METHODS}
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    placeholder="Select methods..."
+                    className="border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 transition-colors"
+                  />
+                </div>
+                <FormMessage className="!mt-1.5 text-xs"/>
+              </FormItem>
+            )}
+          />
+        </div>
       </div>
-      <div className="w-full">
-        <FormLabel className="text-base font-medium">Annual Volume</FormLabel>
-        <Tabs defaultValue="units" className="w-full mt-2">
-          <TabsList className="grid w-full grid-cols-2">
-            {ANNUAL_VOLUME_TYPES.map((type) => (
-              <TabsTrigger key={type.value} value={type.value}>
-                {type.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <TabsContent value="units" className="mt-4">
-            <FormField
-              control={form.control}
-              name="annualVolumeValue"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Annual Volume (Units)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="e.g., 10,000"
-                      value={field.value || ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(
-                          value === "" ? 0 : parseInt(value, 10) || 0
-                        );
-                      }}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Enter the total number of units you handle annually
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </TabsContent>
-          <TabsContent value="currency" className="mt-4">
-            <FormField
-              control={form.control}
-              name="annualVolumeValue"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Annual Volume (Currency)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="e.g., 500,000"
-                      value={field.value || ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(
-                          value === "" ? 0 : parseInt(value, 10) || 0
-                        );
-                      }}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Enter your total annual revenue in your selected currency
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </TabsContent>
-        </Tabs>
+
+      <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 shadow-md shadow-slate-200/50 dark:shadow-slate-900/50 p-4 backdrop-blur-sm">
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200 mb-1">Annual Volume</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Provide an estimate of your annual volume.</p>
+        </div>
+
+        <div className="flex gap-4 items-start">
+          <FormField
+            control={form.control}
+            name="annualVolumeType"
+            render={({ field }) => (
+              <div className="flex-shrink-0">
+                <FormLabel className="text-sm font-medium text-slate-800 dark:text-slate-200 mb-2 block">Type</FormLabel>
+                <Tabs 
+                  value={field.value} 
+                  onValueChange={field.onChange} 
+                  className="w-40"
+                >
+                  <TabsList className="grid w-full grid-cols-2 bg-slate-100 dark:bg-slate-800 shadow-inner">
+                    {ANNUAL_VOLUME_TYPES.map((type) => (
+                      <TabsTrigger 
+                        key={type.value} 
+                        value={type.value}
+                        className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-md rounded-md text-xs px-2"
+                      >
+                        {type.label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              </div>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="annualVolumeValue"
+            render={({ field: volumeField }) => (
+              <FormItem className="flex-1">
+                <FormField
+                  control={form.control}
+                  name="annualVolumeType"
+                  render={({ field: typeField }) => (
+                    <>
+                      <FormLabel className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                        Annual Volume ({typeField.value === 'units' ? 'Units' : 'Currency'})
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder={typeField.value === 'units' ? "e.g., 10,000" : "e.g., 500,000"}
+                          value={volumeField.value || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            volumeField.onChange(
+                              value === "" ? 0 : parseInt(value, 10) || 0
+                            );
+                          }}
+                          className="h-10 shadow-sm border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 transition-colors focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                        />
+                      </FormControl>
+                      <FormMessage className="!mt-1.5 text-xs"/>
+                    </>
+                  )}
+                />
+              </FormItem>
+            )}
+          />
+        </div>
       </div>
     </motion.div>
   );

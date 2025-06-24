@@ -1,4 +1,5 @@
 import { FC, useState, useEffect } from 'react';
+import { useQueryState, parseAsString } from 'nuqs';
 import SaveSupplyChainDialog from '../forms/SaveSupplyChainDialog';
 import FloatingSaveButton from './FloatingSaveButton';
 
@@ -25,6 +26,10 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
   description,
   setDescription
 }) => {
+  // Check for URL parameters to detect if save dialog was previously opened
+  const [nameParam] = useQueryState('saveName', parseAsString);
+  const [descriptionParam] = useQueryState('saveDescription', parseAsString);
+  
   const [inputValue, setInputValue] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -37,11 +42,20 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
       'automotive-chain': 'Automotive Supply Chain'
     };
 
-    setInputValue(supplyChainOptions[selectedSupplyChain as keyof typeof supplyChainOptions] || selectedSupplyChain);
-    if (setSupplyChainName) {
-      setSupplyChainName(supplyChainOptions[selectedSupplyChain as keyof typeof supplyChainOptions] || selectedSupplyChain);
+    const defaultName = supplyChainOptions[selectedSupplyChain as keyof typeof supplyChainOptions] || selectedSupplyChain;
+    setInputValue(defaultName);
+    
+    // If there are URL params for save data, prioritize those, otherwise use current state or default
+    const finalName = nameParam || supplyChainName || defaultName;
+    const finalDescription = descriptionParam || description || '';
+    
+    if (setSupplyChainName && supplyChainName !== finalName) {
+      setSupplyChainName(finalName);
     }
-  }, [selectedSupplyChain, setSupplyChainName]);
+    if (setDescription && description !== finalDescription) {
+      setDescription(finalDescription);
+    }
+  }, [selectedSupplyChain, setSupplyChainName, setDescription, nameParam, descriptionParam, supplyChainName, description]);
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,7 +71,6 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
       setDescription(e.target.value);
     }
   };
-
 
   // Handle save button click - opens dialog
   const handleSaveClick = () => {

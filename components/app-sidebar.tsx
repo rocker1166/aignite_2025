@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import {
@@ -37,7 +37,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { ThemeToggle, SidebarThemeToggle } from "@/components/theme"
-import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
@@ -91,12 +90,6 @@ export function AppSidebar() {
                 <ShieldAlert className="h-5 w-5 text-primary-foreground" />
               </div>
             </div>
-            <button
-              onClick={toggleSidebar}
-              className="absolute -right-3 top-1/2 -translate-y-1/2 group relative p-1.5 rounded-full bg-background border border-border/50 shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
-            >
-              <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-foreground transition-colors" />
-            </button>
           </div>
 
           {/* Collapsed Navigation */}
@@ -195,13 +188,6 @@ export function AppSidebar() {
               </Link>
             </div>
           </div>
-          <button
-            onClick={toggleSidebar}
-            className="group relative p-2 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 hover:from-muted to-muted/50 border border-border/50 shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <ChevronLeft className="h-4 w-4 relative z-10 text-muted-foreground group-hover:text-foreground transition-colors" />
-          </button>
         </div>
       </SidebarHeader>
       

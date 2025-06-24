@@ -131,7 +131,7 @@ const CurrencySelect = React.forwardRef<HTMLButtonElement, CurrencySelectProps>(
         data-valid={valid}
       >
         <SelectTrigger
-          className={cn("w-full", variant === "small" && "w-fit gap-2")}
+          className={cn("w-full shadow-sm", variant === "small" && "w-fit gap-2")}
           data-valid={valid}
           ref={ref}
         >

@@ -1,0 +1,130 @@
+"use client"
+
+import { useState } from "react"
+import { useToast } from "@/hooks/use-toast"
+import { useQueryState, parseAsString } from "nuqs"
+import { Button } from "@/components/ui/button"
+import { ChevronLeft } from "lucide-react"
+import StrategyDashboard from "@/components/strategy-dashboard"
+import { useImpact } from "@/lib/context/impact-context"
+import MetricsDashboard from "@/components/metrics-dashboard"
+import NodeImpactGrid from "@/components/node-impact-grid"
+import CascadingFailureMap from "@/components/cascading-failure-map"
+
+import ScenarioInfoCard from "./scenario-info-card"
+import CriticalAlert from "./critical-alert"
+import ImpactAssessmentLoading from "./impact-assessment-loading"
+
+export default function ImpactAssessment() {
+  const { toast } = useToast()
+  const { impactData, isLoading } = useImpact()
+  const [isRunning, setIsRunning] = useState(false)
+  const [scenarioId, setScenarioId] = useState("PORT-CLOSURE-Q3-25")
+  const [activeTab, setActiveTab] = useState("metrics")
+  
+  // URL state management with nuqs - using 'impactView' to avoid conflicts with simulation page
+  const [impactView, setImpactView] = useQueryState('impactView', parseAsString.withDefault('analysis'))
+
+  const handleOpenStrategy = () => {
+    setImpactView('strategy')
+  }
+
+  const handleBackToImpact = () => {
+    setImpactView('analysis')
+  }
+
+  const runSimulation = () => {
+    setIsRunning(true)
+    toast({
+      title: "Simulation started",
+      description: "Running 100 Monte Carlo simulations...",
+    })
+
+    setTimeout(() => {
+      setIsRunning(false)
+      toast({
+        title: "Simulation complete",
+        description: "All 100 simulations completed successfully.",
+      })
+    }, 3000)
+  }
+
+  // Use the scenario data from the context, with null check
+  const scenario = impactData?.scenario || {}
+
+  if (isLoading) {
+    return <ImpactAssessmentLoading />
+  }
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "metrics":
+        return <MetricsDashboard />
+      case "nodes":
+        return <NodeImpactGrid />
+      case "map":
+        return <CascadingFailureMap />
+      default:
+        return <MetricsDashboard />
+    }
+  }
+
+  // Show strategy dashboard view
+  if (impactView === 'strategy') {
+    return (
+      <div className="w-full">
+        <div className="mb-6">
+          <Button 
+            variant="ghost" 
+            onClick={handleBackToImpact}
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Back to Impact Analysis
+          </Button>
+        </div>
+        <StrategyDashboard scenarioId={scenarioId} />
+      </div>
+    )
+  }
+
+  // Show main impact assessment view
+  return (
+    <div className="px-4 py-4 space-y-4">
+      <ScenarioInfoCard scenario={scenario} onOpenSheet={handleOpenStrategy} />
+
+      <div className="bg-white dark:bg-slate-950 backdrop-blur-sm border-0 rounded-xl p-6 shadow-lg shadow-black/5">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Impact Analysis</h2>
+            <p className="text-slate-600 dark:text-slate-400">Real-time supply chain performance metrics</p>
+          </div>
+          <div className="flex items-center gap-2 bg-muted/80 p-2 rounded-lg shadow-inner border border-border/30">
+            {[
+              { value: "metrics", label: "Metrics", icon: "📊" },
+              { value: "nodes", label: "Nodes", icon: "🔗" },
+              { value: "map", label: "Map", icon: "🗺️" },
+            ].map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === tab.value
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                }`}
+              >
+                <span>{tab.icon}</span>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        {renderTabContent()}
+      </div>
+
+      <CriticalAlert />
+    </div>
+  )
+} 

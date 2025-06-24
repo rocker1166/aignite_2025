@@ -362,7 +362,7 @@ export default function AddressAutocompleteMap({
                         onKeyDown={handleKeyDown}
                         placeholder="Enter address or location..."
                         className={cn(
-                            "pl-10",
+                            "pl-10 shadow-md",
                             error && "border-destructive focus:ring-destructive"
                         )}
                         autoComplete="off"

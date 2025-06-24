@@ -69,8 +69,9 @@ export function ChangePasswordDialog({ isOpen, onClose }: ChangePasswordDialogPr
                 type={showCurrentPassword ? "text" : "password"}
                 value={formData.currentPassword}
                 onChange={(e) => handleChange("currentPassword", e.target.value)}
-                placeholder="Enter current password"
+                placeholder="Enter current password "
                 required
+                className="shadow-md border-none focus-visible:ring-0 focus-visible:ring-offset-0"
               />
               <Button
                 type="button"
@@ -98,6 +99,7 @@ export function ChangePasswordDialog({ isOpen, onClose }: ChangePasswordDialogPr
                 onChange={(e) => handleChange("newPassword", e.target.value)}
                 placeholder="Enter new password"
                 required
+                className="shadow-md border-none focus-visible:ring-0 focus-visible:ring-offset-0"
               />
               <Button
                 type="button"
@@ -125,6 +127,7 @@ export function ChangePasswordDialog({ isOpen, onClose }: ChangePasswordDialogPr
                 onChange={(e) => handleChange("confirmPassword", e.target.value)}
                 placeholder="Confirm new password"
                 required
+                className="shadow-md border-none focus-visible:ring-0 focus-visible:ring-offset-0"
               />
               <Button
                 type="button"

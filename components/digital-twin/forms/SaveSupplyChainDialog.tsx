@@ -1,6 +1,8 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useState, useEffect, useCallback } from 'react';
+import { useQueryState, parseAsString } from 'nuqs';
+import debounce from 'lodash.debounce';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,10 +29,54 @@ const SaveSupplyChainDialog: FC<SaveSupplyChainDialogProps> = ({
   initialName = '',
   initialDescription = ''
 }) => {
-  const [name, setName] = useState(initialName);
-  const [description, setDescription] = useState(initialDescription);
+  // URL state for name and description with debouncing
+  const [nameParam, setNameParam] = useQueryState('saveName', parseAsString);
+  const [descriptionParam, setDescriptionParam] = useQueryState('saveDescription', parseAsString);
+  
+  // Local state for immediate UI updates
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
+
+  // Debounced URL parameter updates
+  const debouncedSetNameParam = useCallback(
+    debounce((value: string) => {
+      setNameParam(value || null);
+    }, 500),
+    [setNameParam]
+  );
+
+  const debouncedSetDescriptionParam = useCallback(
+    debounce((value: string) => {
+      setDescriptionParam(value || null);
+    }, 500),
+    [setDescriptionParam]
+  );
+
+  // Initialize values from URL params or props when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      const initialNameValue = nameParam || initialName || 'Default Supply Chain';
+      const initialDescValue = descriptionParam || initialDescription || '';
+      
+      setName(initialNameValue);
+      setDescription(initialDescValue);
+    }
+  }, [isOpen, nameParam, descriptionParam, initialName, initialDescription]);
+
+  // Update URL params when local values change
+  useEffect(() => {
+    if (isOpen && name !== (nameParam || initialName)) {
+      debouncedSetNameParam(name);
+    }
+  }, [name, nameParam, initialName, isOpen, debouncedSetNameParam]);
+
+  useEffect(() => {
+    if (isOpen && description !== (descriptionParam || initialDescription)) {
+      debouncedSetDescriptionParam(description);
+    }
+  }, [description, descriptionParam, initialDescription, isOpen, debouncedSetDescriptionParam]);
 
   // Validate form inputs
   const validateForm = (): boolean => {
@@ -69,6 +115,10 @@ const SaveSupplyChainDialog: FC<SaveSupplyChainDialogProps> = ({
 
   // Handle dialog close
   const handleClose = () => {
+    // Clear URL parameters when dialog closes successfully
+    setNameParam(null);
+    setDescriptionParam(null);
+    
     setName(initialName);
     setDescription(initialDescription);
     setErrors({});
@@ -81,6 +131,15 @@ const SaveSupplyChainDialog: FC<SaveSupplyChainDialogProps> = ({
     if (e.key === 'Enter' && e.ctrlKey) {
       handleSave();
     }
+  };
+
+  // Handle input changes with immediate local state update
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setName(e.target.value);
+  };
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setDescription(e.target.value);
   };
 
   return (
@@ -107,7 +166,7 @@ const SaveSupplyChainDialog: FC<SaveSupplyChainDialogProps> = ({
               type="text"
               placeholder="e.g., Global Electronics Supply Chain"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={handleNameChange}
               onKeyPress={handleKeyPress}
               className={`w-full transition-colors ${
                 errors.name 
@@ -137,7 +196,7 @@ const SaveSupplyChainDialog: FC<SaveSupplyChainDialogProps> = ({
               id="supply-chain-description"
               placeholder="Describe your supply chain configuration, key components, and objectives..."
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={handleDescriptionChange}
               className={`w-full min-h-[100px] resize-none transition-colors ${
                 errors.description 
                   ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 

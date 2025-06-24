@@ -1,16 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Download, LineChart, Sparkles } from "lucide-react"
-import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
-
-import { Button } from "@/components/ui/button"
-//have delete useless components
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { SimulationImpactChart } from "@/components/simulation/simulation-impact-chart"
-import { SimulationTimeline } from "@/components/simulation/simulation-timeline"
 import type { Simulation } from "@/lib/types/database"
 import { getSimulationById } from "@/lib/api/simulation"
 import ImpactAssessment from "../impact-assessment"

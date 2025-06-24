@@ -33,7 +33,7 @@ const NodeConfiguration: FC<NodeConfigurationProps> = ({
         {/* Node Type Header - Always visible at top */}
         <NodeTypeHeader nodeType={nodeType} />
 
-        <Accordion type="multiple" defaultValue={["general", "type-specific", "risk-assessment", "appearance"]} className="w-full">
+        <Accordion type="multiple" defaultValue={[]} className="w-full">
           {/* General Section */}
           <GeneralSection 
             formValues={formValues}
