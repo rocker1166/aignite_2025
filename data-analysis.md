@@ -15,7 +15,14 @@ This document provides a comprehensive analysis of the supply chain data structu
   "edges": [Edge[]],                 // Array of connections between nodes
   "connections": [Connection[]],     // Flattened view of edges for analysis
   "timestamp": "ISO 8601 string",    // Creation/modification timestamp
-  "organisation": {}                 // Organization metadata
+  "organisation": {                  // Organization metadata
+    "id": "string",                  // Unique identifier for the organisation
+    "name": "string",                // Organisation name
+    "description": "string",         // Organisation description
+    "industry": "string",            // Industry of the organisation
+    "sub_industry": "string",        // Sub-industry
+    "location": "string"             // Location of the organisation
+  }
 }
 ```
 
@@ -368,367 +375,249 @@ Below is an actual supply chain configuration showing the complete data structur
 
 ```json
 {
-  "id": "default-chain",                     // REQUIRED - Unique identifier
-  "name": "Default Supply Chain",            // REQUIRED - Human-readable name
-  "description": "damn",                     // REQUIRED - Description
-  "nodes": [
-    // SUPPLIER NODE EXAMPLE
-    {
-      "id": "tier1-supplier-1",              // REQUIRED - Unique node ID
-      "type": "supplierNode",                // REQUIRED - Internal node type
-      "data": {
-        "label": "Tier 1 Supplier",         // REQUIRED - Display name
-        "description": "Direct supplier with complete component assembly", // REQUIRED
-        "type": "Supplier",                 // REQUIRED - Display type
-        "capacity": 25000,                  // OPTIONAL - Legacy field
-        "leadTime": 10,                     // OPTIONAL - General lead time
-        "riskScore": 0.2,                   // OPTIONAL - Base risk score (0-1)
-        "location": {                       // REQUIRED - At least lat/lng
-          "lat": 42.331,                    // REQUIRED - Latitude
-          "lng": -83.045                    // REQUIRED - Longitude
-        },
-        "address": "Detroit Tier 1 Supplier, MI", // REQUIRED - Physical address
-        
-        // SUPPLIER-SPECIFIC REQUIRED FIELDS
-        "supplierTier": "tier1",            // REQUIRED - Must be tier1/tier2/tier3+
-        "supplyCapacity": 1000,             // REQUIRED - Must be > 0
-        "materialType": "metal",            // REQUIRED - String description
-        "minOrderQty": 10,                  // REQUIRED - Minimum order quantity
-        
-        // SUPPLIER-SPECIFIC OPTIONAL FIELDS
-        "reliabilityPct": 1000              // OPTIONAL - On-time reliability % (Note: 1000% is invalid - should be 0-100)
-      },
-      "position": {                         // REQUIRED - Canvas positioning
-        "x": -38.66965444401487,
-        "y": -239.80505523459365
-      },
-      "width": 150,                         // REQUIRED - Visual width
-      "height": 43,                         // REQUIRED - Visual height
-      "selected": false,                    // OPTIONAL - UI state
-      "positionAbsolute": {                 // OPTIONAL - Absolute positioning
-        "x": -38.66965444401487,
-        "y": -239.80505523459365
-      },
-      "dragging": false                     // OPTIONAL - UI state
-    },
-    
-    // FACTORY NODE EXAMPLE  
-    {
-      "id": "assembly-facility-2",          // REQUIRED - Unique node ID
-      "type": "factoryNode",               // REQUIRED - Internal node type
-      "data": {
-        "label": "Assembly Facility",       // REQUIRED - Display name
-        "description": "Final product assembly and testing", // REQUIRED
-        "type": "Factory",                 // REQUIRED - Display type
-        "capacity": 20000,                 // OPTIONAL - Legacy field
-        "leadTime": 3,                     // OPTIONAL - General lead time
-        "riskScore": 0.1,                  // OPTIONAL - Base risk score (0-1)
-        "location": {                      // REQUIRED - At least lat/lng
-          "lat": 41.878,
-          "lng": -87.629,
-          "country": "IND",                // OPTIONAL - ISO country code
-          "countryName": "India"           // OPTIONAL - Full country name
-        },
-        "address": "Chicago Assembly Plant, IL", // REQUIRED - Physical address
-        
-        // FACTORY-SPECIFIC REQUIRED FIELDS
-        "cycleTime": 10,                   // REQUIRED - Must be > 0 (days/unit)
-        "utilizationPct": 80,              // REQUIRED - Must be > 0 (average %)
-        
-        // FACTORY-SPECIFIC OPTIONAL FIELDS
-        "productionCapacity": 10,          // OPTIONAL - Production capacity
-        
-        // EXTERNAL DEPENDENCY FIELDS (ALL REQUIRED IF dependsOnExternalCompany = true)
-        "dependsOnExternalCompany": true,  // OPTIONAL - External dependency flag
-        "externalCompanyName": "tsmc",     // REQUIRED if dependsOnExternalCompany = true
-        "externalCompanyCountry": "TWN",   // REQUIRED if dependsOnExternalCompany = true
-        "externalCompanyDescription": "taiwnan" // OPTIONAL but recommended if dependent
-      },
-      "position": { "x": 600, "y": 150 },  // REQUIRED - Canvas positioning
-      "width": 150, "height": 43,          // REQUIRED - Visual dimensions
-      "selected": false, "dragging": false // OPTIONAL - UI states
-    },
-    
-    // WAREHOUSE NODE EXAMPLE
-    {
-      "id": "distribution-center-2",       // REQUIRED - Unique node ID
-      "type": "warehouseNode",             // REQUIRED - Internal node type
-      "data": {
-        "label": "Distribution Center",     // REQUIRED - Display name
-        "description": "Finished goods distribution", // REQUIRED
-        "type": "Warehouse",               // REQUIRED - Display type
-        "capacity": 15000,                 // OPTIONAL - Legacy field
-        "leadTime": 2,                     // OPTIONAL - General lead time
-        "riskScore": 0.1,                  // OPTIONAL - Base risk score (0-1)
-        "location": {                      // REQUIRED - At least lat/lng
-          "lat": 39.961,
-          "lng": -82.998
-        },
-        "address": "Columbus Distribution, OH", // REQUIRED - Physical address
-        
-        // WAREHOUSE-SPECIFIC REQUIRED FIELDS
-        "storageCapacity": 100,            // REQUIRED - Must be >= 0
-        "temperatureControl": false,       // REQUIRED - Boolean flag
-        
-        // WAREHOUSE-SPECIFIC OPTIONAL FIELDS
-        "storageCostPerUnit": 10,          // OPTIONAL - Must be > 0 if present
-        "handlingCostPerUnit": null        // OPTIONAL - Must be > -1 if present
-      },
-      "position": { "x": 1000, "y": 150 }, // REQUIRED - Canvas positioning
-      "width": 150, "height": 43,          // REQUIRED - Visual dimensions
-      "selected": false, "dragging": false // OPTIONAL - UI states
-    },
-    
-    // PORT NODE EXAMPLE
-    {
-      "id": "port-4",                      // REQUIRED - Unique node ID
-      "type": "portNode",                  // REQUIRED - Internal node type
-      "data": {
-        "label": "New Port",               // REQUIRED - Display name
-        "description": "Description for Port", // REQUIRED
-        "type": "Port",                    // REQUIRED - Display type
-        "capacity": 500,                   // OPTIONAL - Legacy field
-        "leadTime": 7,                     // OPTIONAL - General lead time
-        "riskScore": 0.3,                  // OPTIONAL - Base risk score (0-1)
-        "location": {                      // REQUIRED - At least lat/lng
-          "lat": 0,                        // Note: 0,0 coordinates indicate placeholder
-          "lng": 0
-        },
-        "address": "Default address for Port", // REQUIRED - Physical address
-        
-        // PORT-SPECIFIC OPTIONAL FIELDS
-        "annualThroughputTEU": 1,          // OPTIONAL - Must be >= 0 if present
-        "customsTimeDays": null,           // OPTIONAL - Must be >= 0 if present
-        
-        // EXTERNAL DEPENDENCY FIELDS
-        "dependsOnExternalCompany": false  // OPTIONAL - External dependency flag
-      },
-      "position": { "x": 356.6257236740206, "y": 313.0119016231839 },
-      "width": 150, "height": 43,
-      "selected": false, "dragging": false
-    },
-    
-    // DISTRIBUTION NODE EXAMPLE
-    {
-      "id": "distribution-5",              // REQUIRED - Unique node ID
-      "type": "distributionNode",          // REQUIRED - Internal node type
-      "data": {
-        "label": "New Distribution",       // REQUIRED - Display name
-        "description": "Description for Distribution", // REQUIRED
-        "type": "Distribution",            // REQUIRED - Display type
-        "capacity": 500,                   // OPTIONAL - Legacy field
-        "leadTime": 7,                     // OPTIONAL - General lead time
-        "riskScore": 0.3,                  // OPTIONAL - Base risk score (0-1)
-        "location": {                      // REQUIRED - At least lat/lng
-          "lat": 0,
-          "lng": 0
-        },
-        "address": "Default address for Distribution", // REQUIRED - Physical address
-        
-        // DISTRIBUTION-SPECIFIC OPTIONAL FIELDS
-        "fleetSize": null,                 // OPTIONAL - Must be >= 0 if present
-        "deliveryRangeKm": null            // OPTIONAL - Must be > 0 if present
-      },
-      "position": { "x": 723.1538304235867, "y": 267.51841530050507 },
-      "width": 150, "height": 43,
-      "selected": false, "dragging": false
-    },
-    
-    // RETAILER NODE EXAMPLE
-    {
-      "id": "retailer-6",                  // REQUIRED - Unique node ID
-      "type": "retailerNode",              // REQUIRED - Internal node type
-      "data": {
-        "label": "New Retailer",           // REQUIRED - Display name
-        "description": "Description for Retailer", // REQUIRED
-        "type": "Retailer",                // REQUIRED - Display type
-        "capacity": 500,                   // OPTIONAL - Legacy field
-        "leadTime": 7,                     // OPTIONAL - General lead time
-        "riskScore": 0.3,                  // OPTIONAL - Base risk score (0-1)
-        "location": {                      // REQUIRED - At least lat/lng
-          "lat": 0,
-          "lng": 0
-        },
-        "address": "Default address for Retailer", // REQUIRED - Physical address
-        
-        // RETAILER-SPECIFIC REQUIRED FIELDS
-        "demandRate": 99,                  // REQUIRED - Must be >= 0
-        
-        // RETAILER-SPECIFIC OPTIONAL FIELDS
-        "shelfSpaceCap": null,             // OPTIONAL - Shelf space capacity
-        "reorderPoint": null,              // OPTIONAL - Inventory reorder point
-        
-        // RISK ASSESSMENT FIELDS (ALL OPTIONAL)
-        "hasPreKnownRisks": false,         // OPTIONAL - Known risks flag
-        "riskExplanation": null,           // OPTIONAL - Required if hasPreKnownRisks = true
-        "riskSeverity": null,              // OPTIONAL - 1-5 scale, required if hasPreKnownRisks = true
-        "nodeColor": "#b16868"             // OPTIONAL - Visual risk indicator
-      },
-      "position": { "x": 578.4524282970924, "y": -57.10099161407138 },
-      "width": 150, "height": 43,
-      "selected": false, "dragging": false
-    },
-    
-    // ADDITIONAL FACTORY NODE EXAMPLE
-    {
-      "id": "factory-7",                   // REQUIRED - Unique node ID
-      "type": "factoryNode",               // REQUIRED - Internal node type
-      "data": {
-        "label": "New Factory",            // REQUIRED - Display name
-        "description": "Description for Factory", // REQUIRED
-        "type": "Factory",                 // REQUIRED - Display type
-        "capacity": 500,                   // OPTIONAL - Legacy field
-        "leadTime": 7,                     // OPTIONAL - General lead time
-        "riskScore": 0.3,                  // OPTIONAL - Base risk score (0-1)
-        "location": {                      // REQUIRED - At least lat/lng
-          "lat": 0,
-          "lng": 0
-        },
-        "address": "Default address for Factory", // REQUIRED - Physical address
-        
-        // FACTORY-SPECIFIC REQUIRED FIELDS
-        "cycleTime": 10,                   // REQUIRED - Must be > 0 (days/unit)
-        "utilizationPct": 10               // REQUIRED - Must be > 0 (average %)
-      },
-      "position": { "x": 225.05103754259926, "y": 147.06284498191263 },
-      "width": 150, "height": 43,
-      "selected": false, "dragging": false
-    }
-  ],
-  
-  "edges": [
-    // EDGE WITH COMPREHENSIVE RISK DATA
-    {
-      "id": "e-tier1-assembly",            // REQUIRED - Unique edge ID
-      "source": "tier1-supplier-1",       // REQUIRED - Source node ID
-      "target": "assembly-facility-2",    // REQUIRED - Target node ID
-      "type": "transportEdge",             // REQUIRED - Edge type
-      "data": {
-        // CORE TRANSPORTATION FIELDS (REQUIRED)
-        "mode": "road",                    // REQUIRED - road/rail/sea/air
-        "cost": 300,                       // REQUIRED - Must be > 0
-        "transitTime": 1,                  // REQUIRED - Must be > 0 (days)
-        "riskMultiplier": 1,               // OPTIONAL - Risk adjustment factor
-        
-        // HISTORICAL RISK DATA (OPTIONAL)
-        "avgDelayDays": 10,                // OPTIONAL - Must be >= 0 if present
-        "frequencyOfDisruptions": 2,       // OPTIONAL - Must be >= 0 if present
-        
-        // ALTERNATIVE ROUTING (OPTIONAL)
-        "hasAltRoute": false,              // OPTIONAL - Alternative routes flag
-        "altRouteDetails": null,           // OPTIONAL - Required if hasAltRoute = true
-        
-        // CHOKEPOINT EXPOSURE (OPTIONAL)
-        "passesThroughChokepoint": true,   // OPTIONAL - Global chokepoint flag
-        "chokepointNames": [               // OPTIONAL - Required if passesThroughChokepoint = true
-          "Bosphorus Strait",              // Note: These chokepoints are unusual for a road route
-          "Panama Canal",                  // This suggests potential data quality issues
-          "Suez Canal"
-        ]
-      },
-      "selected": true                     // OPTIONAL - UI selection state
-    },
-    
-    // SIMPLE EDGE EXAMPLE
-    {
-      "id": "e-assembly-distribution",     // REQUIRED - Unique edge ID
-      "source": "assembly-facility-2",    // REQUIRED - Source node ID
-      "target": "distribution-center-2",  // REQUIRED - Target node ID
-      "type": "transportEdge",             // REQUIRED - Edge type
-      "data": {
-        // MINIMAL REQUIRED FIELDS
-        "mode": "road",                    // REQUIRED - Transportation mode
-        "cost": 200,                       // REQUIRED - Must be > 0
-        "transitTime": 1,                  // REQUIRED - Must be > 0 (days)
-        "riskMultiplier": 1.1,             // OPTIONAL - Risk adjustment factor
-        
-        // OPTIONAL FIELDS WITH DEFAULT VALUES
-        "avgDelayDays": 0,                 // OPTIONAL - Default to 0
-        "frequencyOfDisruptions": 0,       // OPTIONAL - Default to 0
-        "hasAltRoute": false,              // OPTIONAL - Default to false
-        "passesThroughChokepoint": false   // OPTIONAL - Default to false
-      }
-    },
-    
-    // ADDITIONAL EDGES WITH VARIOUS TRANSPORT MODES
-    {
-      "source": "port-4", "target": "assembly-facility-2",
-      "id": "eport-4-assembly-facility-2", "type": "transportEdge",
-      "data": {
-        "mode": "road", "cost": 100, "transitTime": 1, "riskMultiplier": 1,
-        "avgDelayDays": 0, "frequencyOfDisruptions": 0,
-        "hasAltRoute": false, "passesThroughChokepoint": false
-      }
-    },
-    {
-      "source": "port-4", "target": "distribution-5",
-      "id": "eport-4-distribution-5", "type": "transportEdge",
-      "data": {
-        "mode": "rail",                    // RAIL transportation mode
-        "cost": 100, "transitTime": 1, "riskMultiplier": 1,
-        "avgDelayDays": 0, "frequencyOfDisruptions": 0,
-        "hasAltRoute": false, "passesThroughChokepoint": false
-      },
-      "selected": false
-    },
-    {
-      "source": "factory-7", "target": "retailer-6",
-      "id": "efactory-7-retailer-6", "type": "transportEdge",
-      "data": {
-        "mode": "road", "cost": 100, "transitTime": 1, "riskMultiplier": 1,
-        "avgDelayDays": 0, "frequencyOfDisruptions": 0,
-        "hasAltRoute": false, "passesThroughChokepoint": false
-      }
-    },
-    {
-      "source": "port-4", "target": "factory-7",
-      "id": "eport-4-factory-7", "type": "transportEdge",
-      "data": {
-        "mode": "road", "cost": 100,
-        "transitTime": 20,                 // LONGER transit time example
-        "riskMultiplier": 1,
-        "avgDelayDays": 0, "frequencyOfDisruptions": 0,
-        "hasAltRoute": false, "passesThroughChokepoint": false
-      },
-      "selected": false
-    }
-  ],
-  
-  "connections": [                         // OPTIONAL - Flattened view for analysis
-    {
-      "sourceId": "tier1-supplier-1", "targetId": "assembly-facility-2",
-      "sourceLabel": "Tier 1 Supplier", "targetLabel": "Assembly Facility",
-      "mode": "road", "cost": 300, "transitTime": 1, "riskMultiplier": 1
-    },
-    {
-      "sourceId": "assembly-facility-2", "targetId": "distribution-center-2",
-      "sourceLabel": "Assembly Facility", "targetLabel": "Distribution Center",
-      "mode": "road", "cost": 200, "transitTime": 1, "riskMultiplier": 1.1
-    },
-    {
-      "sourceId": "port-4", "targetId": "assembly-facility-2",
-      "sourceLabel": "New Port", "targetLabel": "Assembly Facility",
-      "mode": "road", "cost": 100, "transitTime": 1, "riskMultiplier": 1
-    },
-    {
-      "sourceId": "port-4", "targetId": "distribution-5",
-      "sourceLabel": "New Port", "targetLabel": "New Distribution",
-      "mode": "rail", "cost": 100, "transitTime": 1, "riskMultiplier": 1
-    },
-    {
-      "sourceId": "factory-7", "targetId": "retailer-6",
-      "sourceLabel": "New Factory", "targetLabel": "New Retailer",
-      "mode": "road", "cost": 100, "transitTime": 1, "riskMultiplier": 1
-    },
-    {
-      "sourceId": "port-4", "targetId": "factory-7",
-      "sourceLabel": "New Port", "targetLabel": "New Factory",
-      "mode": "road", "cost": 100, "transitTime": 20, "riskMultiplier": 1
-    }
-  ],
-  
-  "timestamp": "2025-06-22T06:05:11.471Z", // REQUIRED - ISO 8601 timestamp
-  "organisation": {}                       // OPTIONAL - Organization metadata
+	"id": "default-chain",
+	"name": "Default Supply Chain",
+	"description": "",
+	"nodes": [{
+			"id": "luxury-supplier-1",
+			"type": "supplierNode",
+			"data": {
+				"label": "Luxury Component Supplier",
+				"description": "High-end materials with premium quality",
+				"type": "Supplier",
+				"capacity": 1000,
+				"leadTime": 14,
+				"riskScore": 0.3,
+				"location": {
+					"lat": 45.764,
+					"lng": 4.835
+				},
+				"address": "Lyon Luxury District, France",
+				"supplierTier": "tier1",
+				"supplyCapacity": 100,
+				"materialType": "idk ",
+				"minOrderQty": 8,
+				"reliabilityPct": 86
+			},
+			"position": {
+				"x": 200,
+				"y": 100
+			},
+			"width": 150,
+			"height": 63,
+			"selected": false,
+			"dragging": false,
+			"positionAbsolute": {
+				"x": 200,
+				"y": 100
+			}
+		},
+		{
+			"id": "secure-facility-1",
+			"type": "factoryNode",
+			"data": {
+				"label": "Secure Assembly",
+				"description": "High-security manufacturing with quality controls",
+				"type": "Factory",
+				"capacity": 500,
+				"leadTime": 7,
+				"riskScore": 0.1,
+				"location": {
+					"lat": 47.608,
+					"lng": -122.335
+				},
+				"address": "Seattle Secure Facility, WA",
+				"cycleTime": 10,
+				"utilizationPct": 80
+			},
+			"position": {
+				"x": 500,
+				"y": 150
+			},
+			"width": 150,
+			"height": 43,
+			"selected": false,
+			"positionAbsolute": {
+				"x": 500,
+				"y": 150
+			}
+		},
+		{
+			"id": "air-freight-hub-1",
+			"type": "portNode",
+			"data": {
+				"label": "Air Freight Hub",
+				"description": "Express air shipping for high-value goods",
+				"type": "Port",
+				"capacity": 5000,
+				"leadTime": 1,
+				"riskScore": 0.2,
+				"location": {
+					"lat": 35.047,
+					"lng": -106.061
+				},
+				"address": "Albuquerque Air Cargo, NM",
+				"annualThroughputTEU": 10,
+				"customsTimeDays": 10
+			},
+			"position": {
+				"x": 800,
+				"y": 120
+			},
+			"width": 150,
+			"height": 43,
+			"selected": false,
+			"positionAbsolute": {
+				"x": 800,
+				"y": 120
+			}
+		},
+		{
+			"id": "premium-distribution-1",
+			"type": "distributionNode",
+			"data": {
+				"label": "Premium Distribution",
+				"description": "White-glove delivery service",
+				"type": "Distribution",
+				"capacity": 200,
+				"leadTime": 2,
+				"riskScore": 0.4,
+				"location": {
+					"lat": 40.748,
+					"lng": -73.985
+				},
+				"address": "Manhattan Premium Service, NY",
+				"fleetSize": 10,
+				"deliveryRangeKm": 10
+			},
+			"position": {
+				"x": 1100,
+				"y": 180
+			},
+			"width": 150,
+			"height": 63,
+			"selected": true,
+			"positionAbsolute": {
+				"x": 1100,
+				"y": 180
+			}
+		}
+	],
+	"edges": [{
+			"id": "e-luxury-secure",
+			"source": "luxury-supplier-1",
+			"target": "secure-facility-1",
+			"data": {
+				"mode": "air",
+				"cost": 1500,
+				"transitTime": 1,
+				"riskMultiplier": 1.2,
+				"avgDelayDays": 0,
+				"frequencyOfDisruptions": 0,
+				"hasAltRoute": false,
+				"passesThroughChokepoint": false
+			},
+			"type": "transportEdge",
+			"selected": false
+		},
+		{
+			"id": "e-secure-air",
+			"source": "secure-facility-1",
+			"target": "air-freight-hub-1",
+			"data": {
+				"mode": "road",
+				"cost": 300,
+				"transitTime": 0.5,
+				"riskMultiplier": 1.1,
+				"avgDelayDays": 0,
+				"frequencyOfDisruptions": 0,
+				"hasAltRoute": false,
+				"passesThroughChokepoint": false
+			},
+			"type": "transportEdge"
+		},
+		{
+			"id": "e-air-premium",
+			"source": "air-freight-hub-1",
+			"target": "premium-distribution-1",
+			"data": {
+				"mode": "air",
+				"cost": 1200,
+				"transitTime": 4,
+				"riskMultiplier": 1.3,
+				"avgDelayDays": 0,
+				"frequencyOfDisruptions": 0,
+				"hasAltRoute": false,
+				"passesThroughChokepoint": false
+			},
+			"type": "transportEdge"
+		}
+	],
+	"connections": [{
+			"sourceId": "luxury-supplier-1",
+			"targetId": "secure-facility-1",
+			"sourceLabel": "Luxury Component Supplier",
+			"targetLabel": "Secure Assembly",
+			"mode": "air",
+			"cost": 1500,
+			"transitTime": 1,
+			"riskMultiplier": 1.2
+		},
+		{
+			"sourceId": "secure-facility-1",
+			"targetId": "air-freight-hub-1",
+			"sourceLabel": "Secure Assembly",
+			"targetLabel": "Air Freight Hub",
+			"mode": "road",
+			"cost": 300,
+			"transitTime": 0.5,
+			"riskMultiplier": 1.1
+		},
+		{
+			"sourceId": "air-freight-hub-1",
+			"targetId": "premium-distribution-1",
+			"sourceLabel": "Air Freight Hub",
+			"targetLabel": "Premium Distribution",
+			"mode": "air",
+			"cost": 1200,
+			"transitTime": 4,
+			"riskMultiplier": 1.3
+		}
+	],
+	"timestamp": "2025-06-22T16:07:09.600Z",
+	"formData": {
+		"industry": "Industrial Manufacturing",
+		"customIndustry": null,
+		"productCharacteristics": [
+			"perishable",
+			"high_value"
+		],
+		"supplierTiers": "tier1",
+		"operationsLocation": [
+			"eu",
+			"na"
+		],
+		"country": null,
+		"currency": "DZD",
+		"shippingMethods": [
+			"sea",
+			"air"
+		],
+		"annualVolumeType": "units",
+		"annualVolumeValue": 10000,
+		"risks": [
+			"quality",
+			"financial"
+		]
+	},
+	"organisation": {
+		"id": "8e971282-9f48-4278-9206-167bfc3d2af3",
+		"name": "codewarnab",
+		"description": "Some company Description ",
+		"industry": "manufacturing",
+		"sub_industry": "manufacturing",
+		"location": "India , Kolkata"
+	}
 }
 ```
 

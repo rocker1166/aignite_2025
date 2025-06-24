@@ -68,7 +68,7 @@ export default function NodeImpactGrid() {
   }
 
   return (
-    <Card>
+    <Card className="shadow-xl shadow-black/10 border-border/50">
       <CardHeader>
         <CardTitle className="flex items-center">
           Node-Level Impact Grid
@@ -89,7 +89,7 @@ export default function NodeImpactGrid() {
         <CardDescription>Detailed impact analysis for each node in the supply chain</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md border">
+        <div className="rounded-md border shadow-lg shadow-black/10">
           <Table>
             <TableHeader>
               <TableRow>
@@ -176,7 +176,7 @@ export default function NodeImpactGrid() {
 
 function LoadingState() {
   return (
-    <Card>
+    <Card className="shadow-xl shadow-black/10 border-border/50">
       <CardHeader>
         <CardTitle>
           <Skeleton className="h-6 w-64" />

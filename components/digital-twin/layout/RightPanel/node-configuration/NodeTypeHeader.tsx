@@ -11,7 +11,7 @@ interface NodeTypeHeaderProps {
 const NodeTypeHeader: React.FC<NodeTypeHeaderProps> = ({ nodeType }) => {
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="bg-muted/30 border border-border rounded-lg p-4">
+      <div className="bg-muted/30 border border-border rounded-lg p-4 shadow-md">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-8 h-8 bg-background border border-border rounded-md">

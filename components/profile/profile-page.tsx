@@ -121,7 +121,7 @@ export function ProfilePage(): React.ReactElement {
   }
 
   return (
-    <div className="max-w-5xl mx-auto py-8 px-4 space-y-8">
+    <div className="max-w-6xl mx-auto py-8 px-4 space-y-8">
       {/* Profile Header Card */}
       <Card className="overflow-hidden border-0 shadow-xl bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
         <CardContent className="p-8">

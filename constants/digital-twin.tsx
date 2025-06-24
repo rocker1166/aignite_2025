@@ -89,15 +89,39 @@ export const NODE_TYPES = [
 // Master list of node-specific form fields, with UI hints (optional flags, info icons, conditional logic)
 export const NODE_PROPERTY_SPECS: Record<NodeType, PropertySpec[]> = {
   supplierNode: [
-    { key: 'supplierTier',       type: 'enum',   options: ['tier1', 'tier2', 'tier3+'], label: 'Supplier Tier' },
-    { key: 'supplyCapacity',     type: 'number', label: 'Annual Supply Capacity' },
-    { key: 'materialType',       type: 'string', label: 'Material / Component Type' },
-    { key: 'minOrderQty',        type: 'number', label: 'Min. Order Qty' },
+    { 
+      key: 'supplierTier',       
+      type: 'enum',   
+      options: ['tier1', 'tier2', 'tier3+'], 
+      label: 'Supplier Tier',
+      defaultValue: 0
+    },
+    { 
+      key: 'supplyCapacity',     
+      type: 'number', 
+      label: 'Annual Supply Capacity',
+      defaultValue: 0
+    },
+    { 
+      key: 'materialType',       
+      type: 'string', 
+      label: 'Material / Component Type',
+      defaultValue: 0
+    },
+    { 
+      key: 'minOrderQty',        
+      type: 'number', 
+      label: 'Min. Order Qty',
+      defaultValue: 1
+    },
     {
-      key: 'reliabilityPct',     type: 'number', label: 'On‑time Reliability (%)',
+      key: 'reliabilityPct',     
+      type: 'number', 
+      label: 'On‑time Reliability (%)',
       optional: true,
       showInfoIcon: true,
-      infoText: 'Optional: Percentage of orders delivered on time.'
+      infoText: 'Optional: Percentage of orders delivered on time.',
+      defaultValue: 100
     },
 
   ],
@@ -210,9 +234,150 @@ export const NODE_TYPE_MAP: Record<string, NodeType> = {
 // Template selection logic has been moved to lib/template-selector.ts for better separation of concerns
 
 export const SUPPLY_CHAIN_TEMPLATES = [
-  { id: 'simple-chain', name: 'Simple Chain', nodes: 3, description: 'Linear supply chain' },
-  { id: 'hub-spoke', name: 'Hub and Spoke', nodes: 6, description: 'Centralized distribution' },
-  { id: 'network', name: 'Network Mesh', nodes: 8, description: 'Complex interconnected' }
+  {
+    id: 'electronics-global',
+    name: 'Electronics & High Tech',
+    description: 'Global supply chain for electronics with tier 3+ suppliers',
+    nodes: 7,
+    category: 'Industry',
+    complexity: 'High',
+    nodes_data: ELECTRONICS_TEMPLATE,
+    edges_data: ELECTRONICS_TEMPLATE_EDGES,
+    icon: '💻',
+    features: ['Global reach', 'Tier 3+ suppliers', 'Air/Sea shipping']
+  },
+  {
+    id: 'food-beverage',
+    name: 'Food & Beverage Cold Chain',
+    description: 'Temperature-controlled supply chain for perishables',
+    nodes: FOOD_BEVERAGE_COLD_CHAIN_TEMPLATE.length,
+    category: 'Industry',
+    complexity: 'Medium',
+    nodes_data: FOOD_BEVERAGE_COLD_CHAIN_TEMPLATE,
+    edges_data: FOOD_BEVERAGE_COLD_CHAIN_TEMPLATE_EDGES,
+    icon: '🥗',
+    features: ['Cold chain', 'Temperature control', 'Fast transit']
+  },
+  {
+    id: 'automotive-jit',
+    name: 'Automotive Just-in-Time',
+    description: 'Lean manufacturing with minimal inventory',
+    nodes: AUTOMOTIVE_JIT_TEMPLATE.length,
+    category: 'Industry',
+    complexity: 'High',
+    nodes_data: AUTOMOTIVE_JIT_TEMPLATE,
+    edges_data: AUTOMOTIVE_JIT_TEMPLATE_EDGES,
+    icon: '🚗',
+    features: ['JIT delivery', 'Lean inventory', 'Regional suppliers']
+  },
+  {
+    id: 'pharma-regulated',
+    name: 'Pharmaceutical Regulated',
+    description: 'Highly regulated supply chain with compliance requirements',
+    nodes: PHARMA_REGULATED_TEMPLATE.length,
+    category: 'Industry',
+    complexity: 'High',
+    nodes_data: PHARMA_REGULATED_TEMPLATE,
+    edges_data: PHARMA_REGULATED_TEMPLATE_EDGES,
+    icon: '💊',
+    features: ['Regulatory compliance', 'Traceability', 'Quality control']
+  },
+  {
+    id: 'energy-bulk',
+    name: 'Energy & Bulk Commodities',
+    description: 'Large-scale commodity transportation',
+    nodes: ENERGY_BULK_TEMPLATE.length,
+    category: 'Industry',
+    complexity: 'Medium',
+    nodes_data: ENERGY_BULK_TEMPLATE,
+    edges_data: ENERGY_BULK_TEMPLATE_EDGES,
+    icon: '⚡',
+    features: ['Bulk transport', 'Infrastructure heavy', 'Long contracts']
+  },
+  {
+    id: 'fashion-seasonal',
+    name: 'Fashion & Seasonal',
+    description: 'Fast fashion with seasonal demand patterns',
+    nodes: FASHION_SEASONAL_TEMPLATE.length,
+    category: 'Industry',
+    complexity: 'Medium',
+    nodes_data: FASHION_SEASONAL_TEMPLATE,
+    edges_data: FASHION_SEASONAL_TEMPLATE_EDGES,
+    icon: '👗',
+    features: ['Seasonal demand', 'Fast fashion', 'Global sourcing']
+  },
+  {
+    id: 'high-value-global',
+    name: 'High-Value Global Network',
+    description: 'Secure transport for high-value items',
+    nodes: HIGH_VALUE_GLOBAL_TEMPLATE.length,
+    category: 'Characteristics',
+    complexity: 'High',
+    nodes_data: HIGH_VALUE_GLOBAL_TEMPLATE,
+    edges_data: HIGH_VALUE_GLOBAL_TEMPLATE_EDGES,
+    icon: '💎',
+    features: ['High security', 'Specialized transport', 'Insurance coverage']
+  },
+  {
+    id: 'hazardous-materials',
+    name: 'Hazardous Materials',
+    description: 'Specialized handling for dangerous goods',
+    nodes: HAZARDOUS_MATERIALS_TEMPLATE.length,
+    category: 'Characteristics',
+    complexity: 'High',
+    nodes_data: HAZARDOUS_MATERIALS_TEMPLATE,
+    edges_data: HAZARDOUS_MATERIALS_TEMPLATE_EDGES,
+    icon: '☢️',
+    features: ['Safety protocols', 'Specialized carriers', 'Regulatory compliance']
+  },
+  {
+    id: 'domestic-regional',
+    name: 'Domestic Regional',
+    description: 'Regional supply chain within single country',
+    nodes: DOMESTIC_REGIONAL_TEMPLATE.length,
+    category: 'Geographic',
+    complexity: 'Low',
+    nodes_data: DOMESTIC_REGIONAL_TEMPLATE,
+    edges_data: DOMESTIC_REGIONAL_TEMPLATE_EDGES,
+    icon: '🏠',
+    features: ['Local sourcing', 'Shorter transit', 'Single currency']
+  },
+  {
+    id: 'global-network',
+    name: 'Global Multi-Hub Network',
+    description: 'Complex international supply network',
+    nodes: GLOBAL_NETWORK_TEMPLATE.length,
+    category: 'Geographic',
+    complexity: 'High',
+    nodes_data: GLOBAL_NETWORK_TEMPLATE,
+    edges_data: GLOBAL_NETWORK_TEMPLATE_EDGES,
+    icon: '🌍',
+    features: ['Global reach', 'Multiple hubs', 'Cross-border trade']
+  },
+  {
+    id: 'tier1-simple',
+    name: 'Simple Linear Chain',
+    description: 'Basic Tier 1 supplier relationship',
+    nodes: TIER1_SIMPLE_TEMPLATE.length,
+    category: 'Complexity',
+    complexity: 'Low',
+    nodes_data: TIER1_SIMPLE_TEMPLATE,
+    edges_data: TIER1_SIMPLE_TEMPLATE_EDGES,
+    icon: '📏',
+    features: ['Linear flow', 'Direct suppliers', 'Simple structure']
+  },
+  {
+    id: 'tier3-complex',
+    name: 'Complex Multi-Tier Network',
+    description: 'Deep supply chain with Tier 3+ suppliers',
+    nodes: TIER3_COMPLEX_TEMPLATE.length,
+    category: 'Complexity',
+    complexity: 'High',
+    nodes_data: TIER3_COMPLEX_TEMPLATE,
+    edges_data: TIER3_COMPLEX_TEMPLATE_EDGES,
+    icon: '🕸️',
+    features: ['Multi-tier suppliers', 'Complex dependencies', 'Risk cascading']
+  }
 ] as const;
 
 // Re-export all templates for backward compatibility

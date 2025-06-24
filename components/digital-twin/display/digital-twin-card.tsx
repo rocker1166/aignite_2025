@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { ArrowRight, Clock, MapPin } from 'lucide-react';
 
 interface DigitalTwin {
   id: string;
@@ -19,53 +20,49 @@ interface DigitalTwinCardProps {
   twin: DigitalTwin;
 }
 
-const gradientVariants = [
-  'from-blue-50 to-indigo-100 border-blue-200',
-  'from-green-50 to-emerald-100 border-green-200', 
-  'from-purple-50 to-violet-100 border-purple-200',
-  'from-orange-50 to-amber-100 border-orange-200',
-  'from-pink-50 to-rose-100 border-pink-200',
-  'from-teal-50 to-cyan-100 border-teal-200',
-];
-
-const tagVariants = [
-  'bg-blue-100 text-blue-800 hover:bg-blue-200',
-  'bg-green-100 text-green-800 hover:bg-green-200',
-  'bg-purple-100 text-purple-800 hover:bg-purple-200',
-  'bg-orange-100 text-orange-800 hover:bg-orange-200',
-  'bg-pink-100 text-pink-800 hover:bg-pink-200',
-  'bg-teal-100 text-teal-800 hover:bg-teal-200',
-];
-
 export default function DigitalTwinCard({ twin }: DigitalTwinCardProps) {
-  // Use twin.id to consistently assign colors
-  const gradientIndex = parseInt(twin.id.slice(-1)) % gradientVariants.length;
-  const gradientClass = gradientVariants[gradientIndex];
+  const getRiskColor = (tag: string) => {
+    if (tag.toLowerCase().includes('high risk')) return 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 dark:from-red-900 dark:to-red-800 dark:text-red-200 shadow-sm';
+    if (tag.toLowerCase().includes('medium risk')) return 'bg-gradient-to-r from-yellow-100 to-orange-200 text-yellow-800 dark:from-yellow-900 dark:to-orange-800 dark:text-yellow-200 shadow-sm';
+    if (tag.toLowerCase().includes('low risk')) return 'bg-gradient-to-r from-green-100 to-emerald-200 text-green-800 dark:from-green-900 dark:to-emerald-800 dark:text-green-200 shadow-sm';
+    return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 dark:from-gray-700 dark:to-gray-600 dark:text-gray-200 shadow-sm';
+  };
 
   return (
     <Link href={`/digital-twin?twinId=${twin.id}`}>
-      <Card className={`hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer h-full bg-gradient-to-br ${gradientClass} border-2 hover:border-opacity-60 group relative overflow-hidden`}>
+      <Card className="hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer h-full dark:bg-slate-950 border shadow-md group relative overflow-hidden">
         {/* Subtle animated gradient overlay on hover */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
         
-        <CardHeader className="relative z-10">
-          <CardTitle className="text-gray-800 group-hover:text-gray-900 transition-colors duration-200">
-            {twin.name}
+        {/* Floating action indicator */}
+        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+          <div className="bg-white/90 dark:bg-gray-700/90 rounded-full p-2 shadow-sm">
+            <ArrowRight className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+          </div>
+        </div>
+        
+        <CardHeader className="relative z-10 pb-3">
+          <CardTitle className="text-gray-800 dark:text-gray-100 group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-200 flex items-start justify-between pr-12">
+            <span className="line-clamp-2">{twin.name}</span>
           </CardTitle>
-          <CardDescription className="text-gray-600 group-hover:text-gray-700 transition-colors duration-200">
+          <CardDescription className="text-gray-600 dark:text-gray-300 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors duration-200 line-clamp-2">
             {twin.description}
           </CardDescription>
         </CardHeader>
-        <CardContent className="relative z-10">
+        
+        <CardContent className="relative z-10 pt-0">
           <div className="flex flex-wrap gap-2">
             {twin.tags.map((tag, index) => {
-              const tagVariantIndex = index % tagVariants.length;
-              const tagClass = tagVariants[tagVariantIndex];
+              const isRiskTag = tag.toLowerCase().includes('risk');
+              const tagClass = isRiskTag ? getRiskColor(tag) : 'bg-gradient-to-r from-blue-100 to-indigo-200 text-blue-800 dark:from-blue-900 dark:to-indigo-800 dark:text-blue-200 shadow-sm';
+              const isDateTag = /\w{3}-\d{4}/.test(tag); // Matches format like "Jun-2024"
+              
               return (
                 <Badge 
                   key={tag} 
-                  className={`${tagClass} transition-all duration-200 border-0 font-medium`}
+                  className={`${tagClass} transition-all duration-200 border-0 font-medium text-xs px-2 py-1 flex items-center gap-1`}
                 >
+                  {isDateTag && <Clock className="h-3 w-3" />}
                   {tag}
                 </Badge>
               );

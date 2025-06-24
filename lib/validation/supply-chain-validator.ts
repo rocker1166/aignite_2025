@@ -345,6 +345,9 @@ function validateNode(node: Node): ValidationIssue[] {
   // Check for incomplete essential data
   issues.push(...validateNodeEssentialData(node));
   
+  // Check for country information
+  issues.push(...validateNodeCountry(node));
+  
   // Check for invalid numeric values
   issues.push(...validateNodeNumericValues(node));
   
@@ -392,7 +395,11 @@ function validateNodeEssentialData(node: Node): ValidationIssue[] {
     missingFields.push('Type');
   }
   
-  if (!node.data.country && !node.data.address) {
+  // Check for country information - look in both possible locations
+  const hasCountry = getNodeCountry(node);
+  const hasAddress = node.data.address;
+  
+  if (!hasCountry && !hasAddress) {
     missingFields.push('Country or Address');
   }
   
@@ -881,8 +888,9 @@ function validateTransportMode(edge: Edge, sourceNode?: Node, targetNode?: Node)
   
   if (!sourceNode || !targetNode) return issues;
   
-  const sourceCountry = sourceNode.data.country;
-  const targetCountry = targetNode.data.country;
+  // Get country from either location structure or direct property
+  const sourceCountry = getNodeCountry(sourceNode);
+  const targetCountry = getNodeCountry(targetNode);
   const mode = edge.data.mode;
   
   // Check for inefficient transport modes
@@ -963,7 +971,11 @@ function validateEdgeRiskFields(edge: Edge, sourceNode?: Node, targetNode?: Node
   
   // Validate chokepoint names for international routes only
   if (edge.data.chokepointNames && Array.isArray(edge.data.chokepointNames) && edge.data.chokepointNames.length > 0) {
-    if (sourceNode?.data?.country && targetNode?.data?.country && sourceNode.data.country === targetNode.data.country) {
+    // Get country from either location structure or direct property
+    const sourceCountry = sourceNode ? getNodeCountry(sourceNode) : undefined;
+    const targetCountry = targetNode ? getNodeCountry(targetNode) : undefined;
+    
+    if (sourceCountry && targetCountry && sourceCountry === targetCountry) {
       issues.push({
         id: `chokepoint-domestic-route-${edge.id}`,
         elementId: edge.id,
@@ -1079,4 +1091,59 @@ export function getValidationSummary(issues: ValidationIssue[]): {
     errorsByType,
     warningsByType
   };
+}
+
+// Helper function to get country from node data (checking both possible locations)
+function getNodeCountry(node: Node): string | undefined {
+  return node.data.location?.country || node.data.country;
+}
+
+// Helper function to set country in the proper structure for consistency
+function ensureCountryConsistency(node: Node): void {
+  const country = getNodeCountry(node);
+  if (country) {
+    // Ensure both formats exist for backward compatibility
+    if (!node.data.country) {
+      node.data.country = country;
+    }
+    if (!node.data.location?.country) {
+      if (!node.data.location) {
+        node.data.location = {};
+      }
+      node.data.location.country = country;
+    }
+  }
+}
+
+// Add a specific country validation function
+function validateNodeCountry(node: Node): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  
+  // Get country from either location structure or direct property
+  const country = getNodeCountry(node);
+  
+  if (!country) {
+    issues.push({
+      id: `missing-country-${node.id}`,
+      elementId: node.id,
+      elementType: 'node',
+      severity: 'error', // Changed to error since country is critical for supply chain analysis
+      message: `Node '${node.data.label || node.id}' is missing country information.`,
+      suggestion: 'Select a country in the Location section. Country information is required for accurate supply chain risk assessment, logistics planning, and regulatory compliance analysis.'
+    });
+  } else if (typeof country !== 'string' || country.trim() === '') {
+    issues.push({
+      id: `invalid-country-${node.id}`,
+      elementId: node.id,
+      elementType: 'node',
+      severity: 'error',
+      message: `Node '${node.data.label || node.id}' has invalid country information.`,
+      suggestion: 'Please re-select a valid country from the dropdown in the Location section.'
+    });
+  } else {
+    // Country is valid, ensure consistency across data structure
+    ensureCountryConsistency(node);
+  }
+  
+  return issues;
 } 
