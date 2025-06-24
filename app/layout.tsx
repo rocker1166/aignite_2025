@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="min-h-screen flex flex-col">
         <NuqsAdapter>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <CopilotKit publicApiKey="copilotkit-1234567890"> 
+          <CopilotKit runtimeUrl="/api/copilotkit"> 
             {children}
             </CopilotKit>
             <Toaster position="top-right" />
