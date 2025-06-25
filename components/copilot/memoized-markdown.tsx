@@ -3,16 +3,46 @@ import { memo, useMemo, Component, ErrorInfo, ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
+import { visit } from 'unist-util-visit';
+import { WebSearchResult } from '@/components/ui/web-search-result';
 
-/*
-Example of properly formatted markdown table:
-| Header 1 | Header 2 | Header 3 |
-|----------|----------|----------|
-| Cell 1   | Cell 2   | Cell 3<br>Line break |
-| Cell 4   | Cell 5   | Cell 6 |
+const customSchema = {
+  ...defaultSchema,
+  clobberPrefix: "", // Disable default "user-content-" prefix
+  tagNames: [
+    ...(defaultSchema.tagNames || []),
+    "web_search",     // Add our custom web search tag
+  ],
+  attributes: {
+    ...defaultSchema.attributes,
+    "web_search": ["type", "query", "answer", "results", "error"],     // Define allowed attributes
+  },
+};
 
-Note: Remove extra | at the end of header rows and ensure consistent formatting
-*/
+// 2. CREATE REHYPE PLUGINS
+function processWebSearchElements() {
+  return (tree: any) => {
+    visit(tree, (node: any) => {
+      if (node.tagName === "web_search") {
+        // Clean and process attributes
+        if (node.properties.query) {
+          node.properties.query = node.properties.query.replace(/<[^>]*>/g, "").trim();
+        }
+        if (node.properties.answer) {
+          node.properties.answer = node.properties.answer.replace(/<[^>]*>/g, "").trim();
+        }
+        if (node.properties.error) {
+          node.properties.error = node.properties.error.replace(/<[^>]*>/g, "").trim();
+        }
+        // Handle HTML entities in results JSON
+        if (node.properties.results) {
+          node.properties.results = node.properties.results.replace(/&quot;/g, '"');
+        }
+      }
+    });
+  };
+}
 
 // Error Boundary Component for Markdown Parsing
 interface ErrorBoundaryState {
@@ -73,12 +103,24 @@ class MarkdownErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
 
 function parseMarkdownIntoBlocks(markdown: string): string[] {
   try {
-    const tokens = marked.lexer(markdown);
-    return tokens.map(token => token.raw);
+    // Handle null, undefined, or non-string inputs
+    if (!markdown || typeof markdown !== 'string') {
+      console.warn('Invalid markdown content provided:', markdown);
+      return [markdown || ''];
+    }
+
+    // Ensure markdown is properly trimmed
+    const cleanMarkdown = markdown.trim();
+    if (!cleanMarkdown) {
+      return [''];
+    }
+
+    const tokens = marked.lexer(cleanMarkdown);
+    return tokens.map(token => token.raw || '').filter(Boolean);
   } catch (error) {
-    console.error('Error parsing markdown:', error);
+    console.error('Error parsing markdown:', error, 'Content:', markdown);
     // Return the original markdown as a single block if parsing fails
-    return [markdown];
+    return [markdown || ''];
   }
 }
 
@@ -88,8 +130,36 @@ const MemoizedMarkdownBlock = memo(
       <MarkdownErrorBoundary>
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeRaw]}
+          rehypePlugins={[
+            rehypeRaw,                          // Allow raw HTML
+            [rehypeSanitize, customSchema],     // Apply custom sanitization
+            processWebSearchElements,           // Apply custom transformations
+          ]}
+          skipHtml={false}                      // Don't skip HTML tags
           components={{
+            // Custom web search component
+            // @ts-ignore: custom element
+            "web_search": ({ type, query, answer, results, error, children }) => {
+              // Parse results if it's a JSON string
+              let parsedResults;
+              try {
+                parsedResults = typeof results === 'string' ? JSON.parse(results) : results;
+              } catch {
+                parsedResults = results;
+              }
+              
+              return (
+                <WebSearchResult
+                  type={type}
+                  query={query}
+                  answer={answer}
+                  results={parsedResults}
+                  error={error}
+                >
+                  {children}
+                </WebSearchResult>
+              );
+            },
             // Customize components for chat message styling with accessibility
             p: ({ children }) => (
               <p className="my-1 text-xs leading-relaxed">
@@ -260,12 +330,30 @@ export const MemoizedMarkdown = memo(
   ({ content, id }: { content: string; id: string }) => {
     const blocks = useMemo(() => {
       try {
+        // Additional safety check before parsing
+        if (content === undefined || content === null) {
+          console.warn('Undefined or null content passed to MemoizedMarkdown:', { content, id });
+          return [''];
+        }
         return parseMarkdownIntoBlocks(content);
       } catch (error) {
-        console.error('Error creating markdown blocks:', error);
-        return [content]; // Fallback to original content
+        console.error('Error creating markdown blocks:', error, 'Content:', content, 'ID:', id);
+        return [content || '']; // Fallback to original content or empty string
       }
     }, [content]);
+
+    // Handle empty or invalid content gracefully
+    if (!content && content !== '') {
+      return (
+        <div 
+          className="text-muted-foreground text-xs italic"
+          role="note"
+          aria-label="Empty content"
+        >
+          No content to display
+        </div>
+      );
+    }
 
     return (
       <MarkdownErrorBoundary 
@@ -282,7 +370,7 @@ export const MemoizedMarkdown = memo(
               The content could not be properly formatted. Displaying as plain text:
             </div>
             <pre className="mt-2 text-xs bg-yellow-100 dark:bg-yellow-900/30 p-2 rounded whitespace-pre-wrap">
-              {content}
+              {content || 'No content available'}
             </pre>
           </div>
         }

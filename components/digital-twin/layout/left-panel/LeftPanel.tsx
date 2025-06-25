@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { NODE_TYPES, SUPPLY_CHAIN_TEMPLATES } from '@/constants/digital-twin';
-import AIChatPanel from './ai-chat-panel';
+import { AIChatPanel } from './assistant';
 
 interface LeftPanelProps {
   onAddNode: (nodeType: string) => void;

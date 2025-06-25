@@ -49,7 +49,23 @@ export default function DigitalTwinClientPage() {
           }
         } else {
           // TODO: Replace with API call to fetch twin data from database
-          console.log('No localStorage data found for twin:', twinId);
+          console.error('No localStorage data found for twin:', twinId, 'Available keys:', Object.keys(localStorage));
+          
+          // Check if this might be a newly created twin that hasn't been properly saved yet
+          const allStorageKeys = Object.keys(localStorage);
+          const possibleTwinKey = allStorageKeys.find(key => key.startsWith('supplyChain-'));
+          
+          if (possibleTwinKey) {
+            try {
+              console.log('Found potential twin data in:', possibleTwinKey, 'trying to use it instead');
+              const alternativeData = JSON.parse(localStorage.getItem(possibleTwinKey) || '{}');
+              setActiveTwinData(alternativeData);
+              return;
+            } catch (err) {
+              console.error('Error parsing alternative twin data:', err);
+            }
+          }
+          
           setActiveTwinData(null);
         }
       } else {
@@ -106,6 +122,9 @@ export default function DigitalTwinClientPage() {
     console.log('✅ Digital twin created with dummy ID:', twinId);
     console.log('💾 Template data stored temporarily:', twinData);
     
+    // Store the data in localStorage so it can be retrieved when loading the canvas
+    localStorage.setItem(`supplyChain-${twinId}`, JSON.stringify(twinData));
+    console.log('💾 Template data stored in localStorage with key:', `supplyChain-${twinId}`);
     
     // Close the dialog
     setView(null, { scroll: false });
