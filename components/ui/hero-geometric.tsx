@@ -179,17 +179,25 @@ export function HeroGeometric() {
     return () => clearInterval(interval);
   }, [activeDemo]);
 
+  // Use state to track if component is mounted on client-side
+  const [isMounted, setIsMounted] = useState(false);
+  
+  // Set isMounted to true when component mounts (client-side only)
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+  
   return (
     <div ref={ref} className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
       {/* Animated background particles */}
       <div className="absolute inset-0">
-        {[...Array(50)].map((_, i) => (
+        {isMounted && [...Array(50)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-1 h-1 bg-white/20 rounded-full"
             initial={{ 
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
+              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
+              y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800),
               opacity: 0
             }}
             animate={{ 
