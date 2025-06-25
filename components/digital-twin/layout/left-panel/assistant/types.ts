@@ -53,6 +53,8 @@ export interface AIChatPanelProps {
   onBulkUpdateEdges?: (edgeIds: string[], properties: object) => void;
   onCreateNodeGroup?: (nodeIds: string[], groupName: string) => void;
   onExportSubgraph?: (nodeIds: string[]) => void;
+  pendingAIMessage?: string | null;
+  setPendingAIMessage?: (message: string | null) => void;
 }
 
 export interface MessagesAreaProps {

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { Node, Edge, ReactFlowInstance } from 'reactflow';
+import { useQueryState } from 'nuqs';
 
 import { useDigitalTwinState } from './useDigitalTwinState';
 import { useInteraction } from './useInteraction';
@@ -9,6 +10,8 @@ import { useNodeEdgeActions } from './useNodeEdgeActions';
 import { useTemplateManager } from './useTemplateManager';
 import { useSaveAndValidate } from './useSaveAndValidate';
 import { useCanvasView } from './useCanvasView';
+import { ValidationIssue } from '@/lib/validation/supply-chain-validator';
+import { generateAIFixPrompt } from '../../forms/ValidationDialog';
 
 export interface DigitalTwinManagerProps {
   initialNodes?: Node[];
@@ -36,6 +39,10 @@ export function useDigitalTwinManager({
   const [simulationMode, setSimulationMode] = useState(false);
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
+
+  // Chat mode state for AI integration
+  const [chatMode, setChatMode] = useQueryState('chat');
+  const [pendingAIMessage, setPendingAIMessage] = useState<string | null>(null);
 
   const {
     handleSave,
@@ -102,6 +109,21 @@ export function useDigitalTwinManager({
       reactFlowInstance,
   });
 
+  // Handle AI fix requests from ValidationDialog
+  const handleAIFixRequest = useCallback((issue: ValidationIssue) => {
+    const aiPrompt = generateAIFixPrompt(issue);
+    
+    // Switch to immersive chat mode
+    setChatMode('immersive');
+    setIsLeftPanelCollapsed(false);
+    
+    // Store the message to be sent to AI
+    setPendingAIMessage(aiPrompt);
+    
+    // Close validation dialog
+    setShowValidationDialog(false);
+  }, [setChatMode, setShowValidationDialog]);
+
   return {
     nodes,
     edges,
@@ -133,6 +155,8 @@ export function useDigitalTwinManager({
       setSupplyChainName,
       description,
       setDescription,
+      nodes,
+      edges,
     },
     leftPanelProps: {
       onAddNode: nodeEdgeActions.handleAddNode,
@@ -148,6 +172,8 @@ export function useDigitalTwinManager({
       onUpdateNode: nodeEdgeActions.handleUpdateNode,
       onUpdateEdge: nodeEdgeActions.handleUpdateEdge,
       onValidateSupplyChain: handleValidateSupplyChain,
+      pendingAIMessage,
+      setPendingAIMessage,
       ...canvasViewActions,
     },
     rightPanelProps: {
@@ -157,6 +183,8 @@ export function useDigitalTwinManager({
       onDelete: nodeEdgeActions.handleDeleteNode,
       onUngroup: finalTemplateManager.handleUngroupTemplate,
       onSave: handleSave,
-    }
+    },
+    // Add AI fix handler for ValidationDialog
+    handleAIFixRequest,
   };
 } 

@@ -44,6 +44,8 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
   onBulkUpdateEdges,
   onCreateNodeGroup,
   onExportSubgraph,
+  pendingAIMessage,
+  setPendingAIMessage,
 }) => {
   // Local input state with safe initialization
   const [input, setInput] = useState<string>("");
@@ -58,6 +60,7 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
   const [chatError, setChatError] = useState<ChatError | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
+  const [errorCount, setErrorCount] = useState(0);
 
   // Get URL state to read current canvas data
   const [archParam] = useQueryState('arch', {
@@ -246,6 +249,33 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
     }
   }, [isImmersiveMode, debouncedContextualSuggestions]);
 
+    // Handle pending AI messages from validation dialog
+  useEffect(() => {
+    if (pendingAIMessage && setPendingAIMessage) {
+      const timer = setTimeout(async () => {
+        console.log('🤖 Sending pending AI message:', pendingAIMessage);
+        setInput(pendingAIMessage);
+        
+        // Auto-submit the message
+        try {
+          await handleAISubmit(pendingAIMessage);
+          console.log('✅ Pending AI message sent successfully');
+          
+          // Clear the input field after successful submission
+          setInput('');
+        } catch (error) {
+          console.error('❌ Failed to send pending AI message:', error);
+          // Keep the message in input on error so user can retry
+        }
+        
+        // Clear the pending message
+        setPendingAIMessage(null);
+      }, 500); // Small delay to ensure UI is ready
+      
+      return () => clearTimeout(timer);
+    }
+   }, [pendingAIMessage, setPendingAIMessage, setInput]);
+
   // Global error handler for CopilotKit
   useEffect(() => {
     const handleGlobalError = (event: ErrorEvent) => {
@@ -285,7 +315,7 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
   // Calculate dynamic height based on message content length
   const calculateMessagesHeight = () => {
     if (isImmersiveMode) {
-      return 'calc(100vh - 300px)';
+      return 'calc(100vh - 250px)';
     }
     
     if (messages.length === 0) return 120;
@@ -315,9 +345,21 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
   // Error handling functions
 
   const handleChatError = (error: any, failedMessage?: string) => {
+    if (errorCount > 3) {
+      toast.error('Multiple AI errors occurred. Please check your connection or try again later.');
+      return;
+    }
+
     const parsedError = parseError(error);
+
+    // If the error is benign (e.g., abort), do nothing
+    if (!parsedError) {
+      return;
+    }
+    
+    // Set the error state
+    setErrorCount(prev => prev + 1);
     setChatError(parsedError);
-    setRetryCount(prev => prev + 1);
     if (failedMessage) {
       setLastFailedMessage(failedMessage);
     }

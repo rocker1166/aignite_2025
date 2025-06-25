@@ -16,7 +16,9 @@ import {
   X,
   ChevronRight,
   Target,
-  Link
+  Link,
+  Bot,
+  Sparkles
 } from 'lucide-react';
 import { ValidationIssue, getValidationSummary } from '@/lib/validation/supply-chain-validator';
 
@@ -26,8 +28,91 @@ interface ValidationDialogProps {
   issues: ValidationIssue[];
   onFocusElement: (elementId: string, elementType: 'node' | 'edge') => void;
   onSaveWithWarnings?: () => void;
+  onFixWithAI?: (issue: ValidationIssue) => void;
   isLoading?: boolean;
 }
+
+// Determine which issues can be fixed by AI based on the validation types
+const getFixableIssues = (issues: ValidationIssue[]): Set<string> => {
+  const fixableTypes = new Set([
+    'missing-country',
+    'missing-supplier-tier',
+    'missing-supply-capacity',
+    'missing-lead-time',
+    'missing-location',
+    'incomplete-node-data',
+    'missing-edge-data',
+    'invalid-capacity',
+    'invalid-coordinates',
+    'duplicate-connections',
+    'orphaned-nodes',
+    'missing-supplier-info',
+    'incomplete-logistics-data'
+  ]);
+
+  return new Set(
+    issues
+      .filter(issue => {
+        // Check if the issue message indicates it's fixable
+        const issueKey = issue.message.toLowerCase().replace(/\s+/g, '-');
+        const messageText = issue.message.toLowerCase();
+        
+        return fixableTypes.has(issueKey) || 
+               messageText.includes('missing') ||
+               messageText.includes('incomplete') ||
+               messageText.includes('invalid') ||
+               (issue.elementType !== 'graph' && ( // Graph-level issues are usually not directly fixable
+                 messageText.includes('country') ||
+                 messageText.includes('tier') ||
+                 messageText.includes('capacity') ||
+                 messageText.includes('lead time') ||
+                 messageText.includes('location') ||
+                 messageText.includes('coordinates') ||
+                 messageText.includes('supplier')
+               ));
+      })
+      .map(issue => issue.id)
+  );
+};
+
+// Generate AI prompt for fixing specific issue types
+const generateAIFixPrompt = (issue: ValidationIssue): string => {
+  const elementInfo = issue.elementType !== 'graph' 
+    ? `for ${issue.elementType} "${issue.elementId}"` 
+    : '';
+
+  switch (true) {
+    case issue.message.includes('missing country'):
+      return `Fix the missing country information ${elementInfo}. Please analyze the node name and context to suggest an appropriate country and update the location data.`;
+    
+    case issue.message.includes('missing supplier tier'):
+      return `Fix the missing supplier tier information ${elementInfo}. Please analyze the node type and supply chain context to determine the appropriate supplier tier (tier1, tier2, or tier3+) and update it.`;
+    
+    case issue.message.includes('missing supply capacity'):
+      return `Fix the missing supply capacity information ${elementInfo}. Please analyze the supplier type and industry context to suggest realistic supply capacity values and update the node.`;
+    
+    case issue.message.includes('missing lead time'):
+      return `Fix the missing lead time information ${elementInfo}. Please analyze the supplier type, location, and industry to suggest appropriate lead time values.`;
+    
+    case issue.message.includes('missing location') || issue.message.includes('coordinates'):
+      return `Fix the missing location/coordinate information ${elementInfo}. Please analyze the node context to determine appropriate geographic coordinates.`;
+    
+    case issue.message.includes('incomplete') || issue.message.includes('missing'):
+      return `Fix the incomplete data ${elementInfo}. The issue is: ${issue.message}. Please analyze the context and fill in the missing information with appropriate values.`;
+    
+    case issue.message.includes('invalid'):
+      return `Fix the invalid data ${elementInfo}. The issue is: ${issue.message}. Please correct the invalid values with appropriate ones.`;
+    
+    case issue.message.includes('duplicate'):
+      return `Fix the duplicate connections issue ${elementInfo}. Please analyze and remove or merge duplicate connections while maintaining supply chain integrity.`;
+    
+    case issue.message.includes('orphaned'):
+      return `Fix the orphaned nodes issue ${elementInfo}. Please analyze the supply chain structure and create appropriate connections for isolated nodes.`;
+    
+    default:
+      return `Fix the validation issue ${elementInfo}: ${issue.message}. Please analyze the problem and provide an appropriate solution. ${issue.suggestion}`;
+  }
+};
 
 const ValidationDialog: FC<ValidationDialogProps> = ({
   isOpen,
@@ -35,11 +120,13 @@ const ValidationDialog: FC<ValidationDialogProps> = ({
   issues,
   onFocusElement,
   onSaveWithWarnings,
+  onFixWithAI,
   isLoading = false
 }) => {
   const summary = getValidationSummary(issues);
   const errors = issues.filter(issue => issue.severity === 'error');
   const warnings = issues.filter(issue => issue.severity === 'warning');
+  const fixableIssueIds = getFixableIssues(issues);
 
   const getSeverityIcon = (severity: 'error' | 'warning') => {
     return severity === 'error' ? (
@@ -72,47 +159,79 @@ const ValidationDialog: FC<ValidationDialogProps> = ({
     }
   };
 
-  const IssueCard = ({ issue }: { issue: ValidationIssue }) => (
-    <div 
-      className={`p-4 rounded-lg border ${getSeverityColor(issue.severity)} transition-all duration-200 hover:shadow-sm`}
-    >
-      <div className="flex items-start gap-3">
-        {/* Severity Icon */}
-        <div className="flex-shrink-0 mt-0.5">
-          {getSeverityIcon(issue.severity)}
-        </div>
-        
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            <Badge variant="outline" className="text-xs">
-              {getElementTypeIcon(issue.elementType)}
-              <span className="ml-1 capitalize">{issue.elementType}</span>
-            </Badge>
-            {issue.elementType !== 'graph' && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleFocusElement(issue)}
-                className="h-6 px-2 text-xs hover:bg-background/80"
-              >
-                <Eye className="h-3 w-3 mr-1" />
-                Focus
-              </Button>
-            )}
+  const handleFixWithAI = (issue: ValidationIssue) => {
+    if (onFixWithAI) {
+      onFixWithAI(issue);
+    }
+  };
+
+  const IssueCard = ({ issue }: { issue: ValidationIssue }) => {
+    const isFixable = fixableIssueIds.has(issue.id);
+    
+    return (
+      <div 
+        className={`p-4 rounded-lg border ${getSeverityColor(issue.severity)} transition-all duration-200 hover:shadow-sm`}
+      >
+        <div className="flex items-start gap-3">
+          {/* Severity Icon */}
+          <div className="flex-shrink-0 mt-0.5">
+            {getSeverityIcon(issue.severity)}
           </div>
           
-          <h4 className="font-medium text-sm text-foreground mb-1">
-            {issue.message}
-          </h4>
-          
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            {issue.suggestion}
-          </p>
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <Badge variant="outline" className="text-xs">
+                {getElementTypeIcon(issue.elementType)}
+                <span className="ml-1 capitalize">{issue.elementType}</span>
+              </Badge>
+              
+              <div className="flex gap-1">
+                {issue.elementType !== 'graph' && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleFocusElement(issue)}
+                    className="h-6 px-2 text-xs hover:bg-background/80"
+                  >
+                    <Eye className="h-3 w-3 mr-1" />
+                    Focus
+                  </Button>
+                )}
+                
+                {isFixable && onFixWithAI && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleFixWithAI(issue)}
+                    className="h-6 px-2 text-xs hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-950/30 dark:hover:text-blue-400 transition-colors"
+                  >
+                    <Bot className="h-3 w-3 mr-1" />
+                    Fix with AI
+                  </Button>
+                )}
+              </div>
+            </div>
+            
+            <h4 className="font-medium text-sm text-foreground mb-1">
+              {issue.message}
+            </h4>
+            
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {issue.suggestion}
+            </p>
+
+            {isFixable && (
+              <div className="mt-2 flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
+                <Sparkles className="h-3 w-3" />
+                <span>AI can help fix this issue automatically</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -126,31 +245,46 @@ const ValidationDialog: FC<ValidationDialogProps> = ({
 
         {/* Summary Section */}
         <div className="px-6">
-          <Alert className={summary.errors > 0 ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20' : 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20'}>
-            <AlertDescription className="text-sm">
-              {summary.errors > 0 ? (
-                <>
-                  <strong>Cannot save:</strong> Found {summary.errors} error{summary.errors !== 1 ? 's' : ''}{' '}
-                  {summary.warnings > 0 && `and ${summary.warnings} warning${summary.warnings !== 1 ? 's' : ''} `}
-                  that need to be addressed.
-                </>
-              ) : summary.warnings > 0 ? (
-                <>
-                  <strong>Ready to save:</strong> Found {summary.warnings} warning{summary.warnings !== 1 ? 's' : ''}{' '}
-                  that you may want to review, but saving is allowed.
-                </>
-              ) : (
-                <>
-                  <strong>All good:</strong> No validation issues found. Ready to save!
-                </>
-              )}
-            </AlertDescription>
-          </Alert>
+          <div className={`grid grid-cols-1 ${fixableIssueIds.size > 0 && onFixWithAI ? 'lg:grid-cols-2' : ''} gap-3 items-start`}>
+            <Alert className={summary.errors > 0 ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20' : 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20'}>
+              <AlertDescription className="text-sm">
+                {summary.errors > 0 ? (
+                  <>
+                    <strong>Cannot save:</strong> Found {summary.errors} error{summary.errors !== 1 ? 's' : ''}{' '}
+                    {summary.warnings > 0 && `and ${summary.warnings} warning${summary.warnings !== 1 ? 's' : ''} `}
+                    that need to be addressed.
+                  </>
+                ) : summary.warnings > 0 ? (
+                  <>
+                    <strong>Ready to save:</strong> Found {summary.warnings} warning{summary.warnings !== 1 ? 's' : ''}{' '}
+                    that you may want to review, but saving is allowed.
+                  </>
+                ) : (
+                  <>
+                    <strong>All good:</strong> No validation issues found. Ready to save!
+                  </>
+                )}
+              </AlertDescription>
+            </Alert>
+
+            {/* AI Fix Info */}
+            {fixableIssueIds.size > 0 && onFixWithAI && (
+              <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg h-full">
+                <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-400">
+                  <Bot className="h-4 w-4" />
+                  <span className="font-medium">AI Assistant Available</span>
+                </div>
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                  {fixableIssueIds.size} issue{fixableIssueIds.size !== 1 ? 's' : ''} can be automatically fixed with AI assistance.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Issues List */}
         {issues.length > 0 && (
-          <div className="px-6 pb-2 flex-1 min-h-0">
+          <div className="px-6 pb-2 flex-1 min-h-0 pt-4">
             <ScrollArea className="h-full max-h-[400px]">
               <div className="space-y-6 pr-4 pb-4">
                 {/* Errors Section */}
@@ -206,7 +340,7 @@ const ValidationDialog: FC<ValidationDialogProps> = ({
         <DialogFooter className="p-6 pt-4 border-t border-border">
           <div className="flex items-center justify-between w-full">
             <div className="text-xs text-muted-foreground">
-              Click "Focus" to navigate to problematic elements in the canvas
+              Click "Focus" to navigate to elements or "Fix with AI" for automatic fixes
             </div>
             
             <div className="flex gap-2">
@@ -233,4 +367,5 @@ const ValidationDialog: FC<ValidationDialogProps> = ({
   );
 };
 
+export { generateAIFixPrompt };
 export default ValidationDialog; 
