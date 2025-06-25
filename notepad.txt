@@ -11,7 +11,9 @@
 11. add more error handling in the actions so that there is no chance of regeiertering the hook two times 
 12. add more analysis related actions 
 13. find and select not working 
-14 . fix input box  not clearing but 
+14 . fix input box  not clearing but
+15. add small url functionalitu 
+
 //suman improvment list :
 1. scenario :
   #1add ai scenario suggestion panwl : totaly removed. (list 3 sugggestion, a box to write and llm will generate the scenario.)
