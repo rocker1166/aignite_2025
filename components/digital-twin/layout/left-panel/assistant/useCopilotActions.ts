@@ -28,6 +28,7 @@ interface UseCopilotActionsProps {
   onClearCanvas?: () => void;
   onValidateSupplyChain?: () => void;
   onUpdateNode?: (nodeId: string, properties: object) => void;
+  onDeleteNode?: (nodeId: string) => void;
   onUpdateMultipleNodes?: (nodeIds: string[], properties: object) => void;
   onUpdateNodePositions?: (nodePositions: { [nodeId: string]: { x: number; y: number } }) => void;
   onFindAndSelectNode?: (nodeId: string) => void;

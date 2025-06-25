@@ -171,6 +171,7 @@ export function useDigitalTwinManager({
       onAddMultipleEdges: nodeEdgeActions.handleAddMultipleEdges,
       onAddEdges: nodeEdgeActions.handleAddEdges,
       onUpdateNode: nodeEdgeActions.handleUpdateNode,
+      onDeleteNode: nodeEdgeActions.handleDeleteNode,
       onUpdateMultipleNodes: nodeEdgeActions.handleUpdateMultipleNodes,
       onUpdateNodePositions: canvasViewActions.handleUpdateNodePositions,
       onUpdateEdge: nodeEdgeActions.handleUpdateEdge,

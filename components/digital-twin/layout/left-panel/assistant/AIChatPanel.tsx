@@ -32,6 +32,7 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
   onLoadTemplate,
   onClearCanvas,
   onUpdateNode,
+  onDeleteNode,
   onUpdateEdge,
   onValidateSupplyChain,
   onUpdateMultipleNodes,
@@ -157,7 +158,7 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
         
         // Check if this is a CopilotKit API request
         const url = args[0] as string;
-        if (url.includes('/api/copilotkit') || url.includes('copilot')) {
+        if (url?.includes('/api/copilotkit') || url?.includes('copilot')) {
           // console.log('🔍 Intercepted CopilotKit request:', url);
           
           // Clone response to read it without consuming the original
@@ -217,6 +218,7 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
     onLoadTemplate,
     onClearCanvas,
     onUpdateNode,
+    onDeleteNode,
     onUpdateEdge,
     onValidateSupplyChain,
     onUpdateMultipleNodes,

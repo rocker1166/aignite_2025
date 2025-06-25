@@ -40,6 +40,7 @@ export interface AIChatPanelProps {
   onLoadTemplate?: (templateId: string) => void;
   onClearCanvas?: () => void;
   onUpdateNode?: (nodeId: string, updates: any) => void;
+  onDeleteNode?: (nodeId: string) => void;
   onUpdateEdge?: (edgeId: string, updates: any) => void;
   onValidateSupplyChain?: () => void;
   onUpdateMultipleNodes?: (nodeIds: string[], properties: object) => void;

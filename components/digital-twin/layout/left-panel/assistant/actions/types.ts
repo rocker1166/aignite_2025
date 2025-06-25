@@ -26,6 +26,7 @@ export interface ActionContext {
     onUpdateMultipleNodes?: (nodeIds: string[], properties: object) => void;
     onUpdateNodePositions?: (nodePositions: { [nodeId: string]: { x: number; y: number } }) => void;
     onFindAndSelectNode?: (nodeId: string) => void;
+    onDeleteNode?: (nodeId: string) => void;
     onUpdateEdge?: (edgeId: string, properties: object) => void;
     onFindAndSelectEdges?: (edgeIds: string[]) => void;
 
