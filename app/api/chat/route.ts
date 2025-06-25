@@ -181,7 +181,7 @@ export async function POST(req: Request) {
       console.log('Messages to send:', messages)
       
       const result = await generateObject({
-        model: google("gemini-2.5-flash-lite-preview-06-17"),
+        model: google("gemini-2.5-flash-lite-preview-"),
         schema: SupplyChainSuggestionSchema,
         messages: [
           { role: "system", content: SUPPLY_CHAIN_SUGGESTION_SYSTEM_PROMPT },

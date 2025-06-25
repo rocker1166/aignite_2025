@@ -1,9 +1,53 @@
 import { Node, Edge } from 'reactflow';
 import { ValidationIssue } from './types';
 
+// Validate empty supply chain
+function validateEmptySupplyChain(nodes: Node[], edges: Edge[]): ValidationIssue[] {
+    const issues: ValidationIssue[] = [];
+
+    if (nodes.length === 0) {
+        issues.push({
+            id: 'empty-supply-chain-nodes',
+            elementId: 'graph',
+            elementType: 'graph',
+            severity: 'error',
+            message: 'Supply chain cannot be empty. You must add at least one node (e.g., Supplier, Manufacturer, or Customer).',
+            suggestion: 'Use the Digital Twin Assistant or the toolbar to add nodes to your supply chain before saving.'
+        });
+    }
+
+    if (edges.length === 0 && nodes.length > 1) {
+        issues.push({
+            id: 'no-connections',
+            elementId: 'graph',
+            elementType: 'graph',
+            severity: 'error',
+            message: 'Supply chain nodes must be connected. Add connections between your nodes to define the flow.',
+            suggestion: 'Connect your nodes by dragging from one node to another to create supply chain connections.'
+        });
+    }
+
+    // Additional validation: minimum viable supply chain
+    if (nodes.length === 1 && edges.length === 0) {
+        issues.push({
+            id: 'single-node-no-flow',
+            elementId: 'graph',
+            elementType: 'graph',
+            severity: 'warning',
+            message: 'A supply chain with only one node has no flow. Consider adding more nodes and connections.',
+            suggestion: 'Add additional nodes (suppliers, manufacturers, distributors, customers) and connect them to model a complete supply chain.'
+        });
+    }
+
+    return issues;
+}
+
 // A. Graph-Level Validation Functions
 export function validateGraphStructure(nodes: Node[], edges: Edge[]): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
+
+    // Check for empty supply chain (critical validation)
+    issues.push(...validateEmptySupplyChain(nodes, edges));
 
     // Check for duplicate node IDs
     issues.push(...findDuplicateNodeIds(nodes));
