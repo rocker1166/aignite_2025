@@ -31,7 +31,20 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
   onLoadTemplate,
   onClearCanvas,
   onUpdateNode,
-  onUpdateEdge
+  onUpdateEdge,
+  onValidateSupplyChain,
+  onUpdateMultipleNodes,
+  onFindAndSelectNode,
+  onFindAndSelectEdges,
+  onApplyLayout,
+  onHighlightNodes,
+  onFocusNode,
+  onZoomToNodes,
+  onGetNodeConnections,
+  onAnalyzeNetworkPaths,
+  onBulkUpdateEdges,
+  onCreateNodeGroup,
+  onExportSubgraph,
 }) => {
   // Local input state with safe initialization
   const [input, setInput] = useState<string>("");
@@ -194,11 +207,25 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
   const { } = useCopilotActions({
     nodes,
     edges,
-    internetSearchEnabled: internetSearch,
     onAddNode,
     onAddMultipleNodes,
     onLoadTemplate,
-    onClearCanvas
+    onClearCanvas,
+    onUpdateNode,
+    onUpdateEdge,
+    onValidateSupplyChain,
+    onUpdateMultipleNodes,
+    onFindAndSelectNode,
+    onFindAndSelectEdges,
+    onApplyLayout,
+    onHighlightNodes,
+    onFocusNode,
+    onZoomToNodes,
+    onGetNodeConnections,
+    onAnalyzeNetworkPaths,
+    onBulkUpdateEdges,
+    onCreateNodeGroup,
+    onExportSubgraph,
   });
 
   const {
@@ -260,7 +287,7 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
   // Calculate dynamic height based on message content length
   const calculateMessagesHeight = () => {
     if (isImmersiveMode) {
-      return 'calc(100vh - 200px)';
+      return 'calc(100vh - 300px)';
     }
     
     if (messages.length === 0) return 120;
@@ -374,7 +401,7 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
       clearError();
       
       // Show success toast
-      toast.success("Chat cleared successfully");
+      // toast.success("Chat cleared successfully");
       
       console.log("✅ Chat cleared successfully");
     } catch (error) {
@@ -394,9 +421,7 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
         setInternetSearch={setInternetSearch}
         isSearching={isSearching}
       />
-      <div 
-        className="flex-grow overflow-y-auto" 
-      >
+      <div className="flex-grow overflow-y-auto">
         {/* Clear Chat Button */}
         <div className="flex justify-end p-2 border-b border-border/50">
           <Button
@@ -412,7 +437,7 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
         </div>
 
         {/* Messages Area - Full Height */}
-        <MessagesArea 
+        <MessagesArea
           messages={messages}
           isLoading={isLoading}
           isImmersiveMode={isImmersiveMode}
@@ -422,28 +447,28 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
           onDismissError={clearError}
           retryCount={retryCount}
         />
-        
-        {/* Input Area - Fixed at Bottom */}
-        <AutocompleteInput
-          input={input}
-          setInput={(value) => {
-            setInput(value);
-            // Clear error when user starts typing
-            if (chatError && value.trim()) {
-              clearError();
-            }
-          }}
-          onSubmit={(message) => {
-            saveQuery(message);
-            handleAISubmit(message);
-          }}
-          isLoading={isLoading}
-          autocompleteSuggestions={autocompleteSuggestions}
-          recentQueries={recentQueries}
-          onAutocompleteSelect={handleAutocompleteSelect}
-          showRecentInHeader={showRecentInHeader}
-        />
       </div>
+
+      {/* Input Area - Fixed at Bottom */}
+      <AutocompleteInput
+        input={input}
+        setInput={value => {
+          setInput(value);
+          // Clear error when user starts typing
+          if (chatError && value.trim()) {
+            clearError();
+          }
+        }}
+        onSubmit={message => {
+          saveQuery(message);
+          handleAISubmit(message);
+        }}
+        isLoading={isLoading}
+        autocompleteSuggestions={autocompleteSuggestions}
+        recentQueries={recentQueries}
+        onAutocompleteSelect={handleAutocompleteSelect}
+        showRecentInHeader={showRecentInHeader}
+      />
     </div>
   );
 };

@@ -1,5 +1,6 @@
 "use client"
 import { FC, useState } from 'react';
+import { useQueryState } from 'nuqs';
 import { ChevronDown, ChevronRight, ChevronLeft, Building2, MessageSquare } from 'lucide-react';
 import { DeleteIcon } from '@/components/icons';
 import { BlocksIcon } from '@/components/icons/blocks';
@@ -25,6 +26,19 @@ interface LeftPanelProps {
   onAddEdges?: (edges: any[]) => void;
   onUpdateNode?: (nodeId: string, updates: any) => void;
   onUpdateEdge?: (edgeId: string, updates: any) => void;
+  onValidateSupplyChain?: () => void;
+  onUpdateMultipleNodes?: (nodeIds: string[], properties: object) => void;
+  onFindAndSelectNode?: (nodeId: string) => void;
+  onFindAndSelectEdges?: (edgeIds: string[]) => void;
+  onApplyLayout?: (layoutType: string) => void;
+  onHighlightNodes?: (nodeIds: string[]) => void;
+  onFocusNode?: (nodeId: string) => void;
+  onZoomToNodes?: (nodeIds: string[]) => void;
+  onGetNodeConnections?: (nodeId: string) => any[];
+  onAnalyzeNetworkPaths?: (sourceId: string, targetId: string) => void;
+  onBulkUpdateEdges?: (edgeIds: string[], properties: object) => void;
+  onCreateNodeGroup?: (nodeIds: string[], groupName: string) => void;
+  onExportSubgraph?: (nodeIds: string[]) => void;
 }
 
 const LeftPanel: FC<LeftPanelProps> = ({ 
@@ -39,17 +53,32 @@ const LeftPanel: FC<LeftPanelProps> = ({
   onAddMultipleNodes,
   onAddEdges,
   onUpdateNode,
-  onUpdateEdge
+  onUpdateEdge,
+  onValidateSupplyChain,
+  onUpdateMultipleNodes,
+  onFindAndSelectNode,
+  onFindAndSelectEdges,
+  onApplyLayout,
+  onHighlightNodes,
+  onFocusNode,
+  onZoomToNodes,
+  onGetNodeConnections,
+  onAnalyzeNetworkPaths,
+  onBulkUpdateEdges,
+  onCreateNodeGroup,
+  onExportSubgraph,
 }) => {
   const [expandedSection, setExpandedSection] = useState<string | null>('');
-  const [isImmersiveMode, setIsImmersiveMode] = useState(false);
+  const [chatMode, setChatMode] = useQueryState('chat');
+
+  const isImmersiveMode = chatMode === 'immersive';
+
+  const handleImmersiveModeChange = (immersive: boolean) => {
+    setChatMode(immersive ? 'immersive' : null);
+  };
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
-  };
-
-  const handleImmersiveModeChange = (immersive: boolean) => {
-    setIsImmersiveMode(immersive);
   };
 
   const SectionHeader = ({ 
@@ -120,7 +149,7 @@ const LeftPanel: FC<LeftPanelProps> = ({
               <motion.button
                 onClick={() => {
                   setIsCollapsed(false);
-                  setIsImmersiveMode(true);
+                  handleImmersiveModeChange(true);
                 }}
                 className="w-full p-4 hover:bg-muted transition-colors group flex items-center justify-center"
                 title="Supply Chain Assistant"
@@ -164,6 +193,19 @@ const LeftPanel: FC<LeftPanelProps> = ({
               onClearCanvas={onClearAllNodes}
               onUpdateNode={onUpdateNode}
               onUpdateEdge={onUpdateEdge}
+              onValidateSupplyChain={onValidateSupplyChain}
+              onUpdateMultipleNodes={onUpdateMultipleNodes}
+              onFindAndSelectNode={onFindAndSelectNode}
+              onFindAndSelectEdges={onFindAndSelectEdges}
+              onApplyLayout={onApplyLayout}
+              onHighlightNodes={onHighlightNodes}
+              onFocusNode={onFocusNode}
+              onZoomToNodes={onZoomToNodes}
+              onGetNodeConnections={onGetNodeConnections}
+              onAnalyzeNetworkPaths={onAnalyzeNetworkPaths}
+              onBulkUpdateEdges={onBulkUpdateEdges}
+              onCreateNodeGroup={onCreateNodeGroup}
+              onExportSubgraph={onExportSubgraph}
             />
           </motion.div>
         ) : (

@@ -2,8 +2,15 @@ import { useCopilotAction } from "@copilotkit/react-core";
 import { toast } from "sonner";
 import { ActionContext } from './types';
 
+type NodeDataWithLocation = {
+  label: string;
+  location?: Record<string, any>;
+  [key: string]: any;
+};
+
 export const useNodeActions = ({ nodes, panelId, props }: ActionContext) => {
   const { onAddNode, onUpdateNode, onUpdateMultipleNodes, onFindAndSelectNode } = props;
+  console.log("onUpdateNode",onUpdateNode , "onAddNode",onAddNode, "onUpdateMultipleNodes",onUpdateMultipleNodes, "onFindAndSelectNode",onFindAndSelectNode)
 
   // Add single node action with copilot-generated properties
   useCopilotAction({
@@ -107,28 +114,90 @@ export const useNodeActions = ({ nodes, panelId, props }: ActionContext) => {
     name: `updateNodeProperties_${panelId}`,
     description: "Update properties of a specific node on the canvas.",
     parameters: [
-      { name: "nodeId", type: "string", description: "The ID of the node to update.", required: false },
-      { name: "nodeLabel", type: "string", description: "The label of the node to update.", required: false },
+      { name: "nodeId", type: "string", description: "The ID of the node to update.", required: true },
+      { name: "nodeLabel", type: "string", description: "The label of the node to update.", required: true },
       { name: "properties", type: "object", description: "An object with properties to update.", required: true },
     ],
     handler: ({ nodeId, nodeLabel, properties }) => {
+      console.log("🔍 Starting node update handler with:", { nodeId, nodeLabel, properties });
+      console.log(onUpdateNode)
       if (onUpdateNode) {
+
+        console.log("on update node properties")
         let targetNodeId = nodeId;
-        if (!targetNodeId && nodeLabel) {
-          const foundNode = nodes.find(n => n.data?.label === nodeLabel);
-          if (foundNode) {
-            targetNodeId = foundNode.id;
+        let targetNode = null;
+
+        if (nodeId) {
+          console.log("🔍 Looking for node with ID:", nodeId);
+          targetNode = nodes.find(n => n.id === nodeId);
+          if (targetNode) {
+            targetNodeId = targetNode.id;
+            console.log("✅ Found node by ID:", targetNode);
           } else {
-            toast.error(`Node with label "${nodeLabel}" not found.`);
-            return;
+            console.log("❌ No node found with ID:", nodeId);
+          }
+        }
+        
+        if (!targetNode && nodeLabel) {
+          targetNode = nodes.find(n => n.data?.label === nodeLabel);
+          if (targetNode) {
+            targetNodeId = targetNode.id;
           }
         }
 
-        if (targetNodeId) {
-          onUpdateNode(targetNodeId, properties);
-          toast.success(`Updated properties for node ${nodeLabel || targetNodeId}.`);
+        if (targetNode && targetNodeId) {
+          console.log("--- Debug: updateNodeProperties ---");
+          console.log("Received arguments:", { nodeId, nodeLabel, properties });
+          console.log("Found target node:", targetNode);
+          
+          const processedProperties: Record<string, any> = { ...properties };
+          const data = targetNode.data as NodeDataWithLocation;
+          const newLocation = { ...(data.location || {}) };
+          let locationUpdated = false;
+
+          console.log("Initial data for processing:", { processedProperties, newLocation });
+
+          if ('country' in processedProperties) {
+            newLocation.country = processedProperties.country;
+            delete processedProperties.country;
+            locationUpdated = true;
+            console.log("`country` property found. newLocation is now:", newLocation);
+          }
+
+          if ('countryName' in processedProperties) {
+            newLocation.countryName = processedProperties.countryName;
+            delete processedProperties.countryName;
+            locationUpdated = true;
+            console.log("`countryName` property found. newLocation is now:", newLocation);
+          }
+
+          if ('latitude' in processedProperties) {
+            newLocation.lat = processedProperties.latitude;
+            delete processedProperties.latitude;
+            locationUpdated = true;
+            console.log("`latitude` property found. newLocation is now:", newLocation);
+          }
+
+          if ('longitude' in processedProperties) {
+            newLocation.lng = processedProperties.longitude;
+            delete processedProperties.longitude;
+            locationUpdated = true;
+            console.log("`longitude` property found. newLocation is now:", newLocation);
+          }
+          
+          if (locationUpdated) {
+            processedProperties.location = newLocation;
+            console.log("Location was updated. Final `processedProperties` to be sent:", processedProperties);
+          } else {
+            console.log("No location properties were updated. Final `processedProperties`:", processedProperties);
+          }
+
+          onUpdateNode(targetNodeId, processedProperties);
+          toast.success(`Updated properties for node ${data.label}.`);
         } else {
-          toast.error("Please provide either a node ID or a node label.");
+          toast.error("Please provide a valid node ID or label.");
+          console.error("--- Debug: updateNodeProperties ---");
+          console.error("Could not find target node with:", { nodeId, nodeLabel });
         }
       }
     },

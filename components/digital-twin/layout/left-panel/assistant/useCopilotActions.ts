@@ -45,7 +45,7 @@ interface UseCopilotActionsProps {
 
 export const useCopilotActions = (props: UseCopilotActionsProps) => {
   const { nodes, edges } = props;
-  
+  console.log("useCopilotActions props:", props);
   // Generate unique action names to prevent conflicts
   const panelId = useMemo(() => Math.random().toString(36).substr(2, 9), []);
 
@@ -141,7 +141,7 @@ export const useCopilotActions = (props: UseCopilotActionsProps) => {
     }
   };
   
-  console.log("🔍 CopilotReadable - Enhanced Nodes Data:", nodesData);
+  // console.log("🔍 CopilotReadable - Enhanced Nodes Data:", nodesData);
   
   useCopilotReadable({
     description: "Current supply chain canvas nodes with their comprehensive configurations and validation status",
@@ -172,7 +172,7 @@ export const useCopilotActions = (props: UseCopilotActionsProps) => {
     chokepointRoutes: edges.filter(e => e.data?.passesThroughChokepoint).length
   };
   
-  console.log("🔍 CopilotReadable - Enhanced Edges Data:", edgesData);
+  // console.log("🔍 CopilotReadable - Enhanced Edges Data:", edgesData);
   
   useCopilotReadable({
     description: "Current supply chain connections with transportation routes and risk assessments",
@@ -208,4 +208,3 @@ export const useCopilotActions = (props: UseCopilotActionsProps) => {
   };
 };
 
-// Helper function moved to validation-actions.ts 
