@@ -24,6 +24,7 @@ When I request complex(not simple changes) **refactors** or **new features**, yo
 3. Use **`framer-motion`** (already installed) to add **subtle, smooth animations**. Avoid over-animating.
 4. Use **`nuqs`** for **URL persistence** to retain state and user context (e.g., filters, forms, views), already is installed and setup is done.
 5. **Shadow Guidelines**: Apply **`shadow-md`** to all UI elements (cards, modals, dropdowns, panels) when creating new components. Use **`shadow-sm`** for subtle elevation where lighter shadows are required (buttons, inputs, minor interactive elements).
+6. Lucide React: Already installed. Use Lucide React icons (import { IconName } from "lucide-react") for all new iconography.
 
 ### 👤 User Store Management
 

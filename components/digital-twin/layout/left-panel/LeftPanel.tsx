@@ -12,7 +12,7 @@ import { NODE_TYPES, SUPPLY_CHAIN_TEMPLATES } from '@/constants/digital-twin';
 import AIChatPanel from './ai-chat-panel';
 
 interface LeftPanelProps {
-  onAddNode: (nodeType: string) => void;
+  onAddNode: (nodeType: string, label: string, enhancedData?: any) => void;
   onClearAllNodes: () => void;
   onLoadTemplate?: (templateId: string) => void;
   simulationMode: boolean;
@@ -115,11 +115,23 @@ const LeftPanel: FC<LeftPanelProps> = ({
               </motion.div>
             </div>
             
-            {/* Expand button fixed at bottom */}
+            {/* Buttons fixed at bottom */}
             <div className="mt-auto border-t border-border">
               <motion.button
-                onClick={() => setIsCollapsed(false)}
+                onClick={() => {
+                  setIsCollapsed(false);
+                  setIsImmersiveMode(true);
+                }}
                 className="w-full p-4 hover:bg-muted transition-colors group flex items-center justify-center"
+                title="Supply Chain Assistant"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <MessageSquare className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              </motion.button>
+              <motion.button
+                onClick={() => setIsCollapsed(false)}
+                className="w-full p-4 hover:bg-muted transition-colors group flex items-center justify-center border-t border-border"
                 title="Expand Builder Panel"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -142,6 +154,7 @@ const LeftPanel: FC<LeftPanelProps> = ({
               simulationMode={simulationMode}
               onImmersiveModeChange={handleImmersiveModeChange}
               isImmersiveMode={true}
+              onCollapse={() => setIsCollapsed(true)}
               nodes={nodes}
               edges={edges}
               onAddNode={onAddNode}
@@ -217,7 +230,7 @@ const LeftPanel: FC<LeftPanelProps> = ({
                               >
                                 <Button
                                   variant="outline"
-                                  onClick={() => onAddNode(node.id)}
+                                  onClick={() => onAddNode(node.id, `New ${node.id}`)}
                                   disabled={simulationMode}
                                   className={`w-full h-auto p-3 justify-start ${node.color} dark:bg-card dark:hover:bg-muted/50 dark:border-border shadow-md ${
                                     simulationMode ? 'opacity-50 cursor-not-allowed' : ''

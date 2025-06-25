@@ -3,8 +3,10 @@ import { Node, Edge } from 'reactflow';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
+import Cookies from 'js-cookie';
 import { DeleteIcon } from '@/components/icons';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import NodeConfiguration from './NodeConfiguration';
 import EdgeConfiguration from './EdgeConfiguration';
 import TemplateGroupConfiguration from './TemplateGroupConfiguration';
@@ -28,9 +30,17 @@ const RightPanel: FC<RightPanelProps> = ({
   const [longitude, setLongitude] = useState('')
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
+  const [dontAskAgain, setDontAskAgain] = useState(false);
+  const [shouldSkipConfirmation, setShouldSkipConfirmation] = useState(false);
   
   // Create debounced save function
   const { debouncedSave } = createDebouncedSave(onSave, setSaveStatus);
+
+  // Check cookie on component mount
+  useEffect(() => {
+    const skipConfirmation = Cookies.get('deleteNodeSkipConfirmation') === 'true';
+    setShouldSkipConfirmation(skipConfirmation);
+  }, []);
 
   // Update form values when selected element changes
   useEffect(() => {
@@ -52,6 +62,20 @@ const RightPanel: FC<RightPanelProps> = ({
 
   // Handle delete action
   const handleDelete = () => {
+    if (selectedElement && onDelete) {
+      // Save preference to cookie if "don't ask again" was checked
+      if (dontAskAgain) {
+        Cookies.set('deleteNodeSkipConfirmation', 'true', { 
+          expires: 365, // 1 year
+          path: '/' 
+        });
+      }
+      onDelete(selectedElement.id);
+    }
+  };
+
+  // Handle direct delete without confirmation
+  const handleDirectDelete = () => {
     if (selectedElement && onDelete) {
       onDelete(selectedElement.id);
     }
@@ -280,32 +304,59 @@ const RightPanel: FC<RightPanelProps> = ({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-destructive border-destructive/20 hover:bg-destructive/10 hover:border-destructive/30 shadow-md"
-                >
-                  <DeleteIcon size={12} className="w-3 h-3 mr-1 " />
-                  Delete
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Node</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete "{formValues.label || selectedElement.id}"? This action cannot be undone and will also remove all connected edges.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            {shouldSkipConfirmation ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDirectDelete}
+                className="text-destructive border-destructive/20 hover:bg-destructive/10 hover:border-destructive/30 shadow-md"
+              >
+                <DeleteIcon size={12} className="w-3 h-3 mr-1" />
+                Delete
+              </Button>
+            ) : (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-destructive border-destructive/20 hover:bg-destructive/10 hover:border-destructive/30 shadow-md"
+                  >
+                    <DeleteIcon size={12} className="w-3 h-3 mr-1 " />
                     Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Node</AlertDialogTitle>
+                    <AlertDialogDescription className="space-y-4">
+                      <div>
+                        Are you sure you want to delete "{formValues.label || selectedElement.id}"? This action cannot be undone and will also remove all connected edges.
+                      </div>
+                      <div className="flex items-center space-x-2 pt-4">
+                        <Checkbox 
+                          id="dont-ask-again-main" 
+                          checked={dontAskAgain}
+                          onCheckedChange={(checked) => setDontAskAgain(checked as boolean)}
+                        />
+                        <label 
+                          htmlFor="dont-ask-again-main" 
+                          className="text-sm text-muted-foreground cursor-pointer select-none"
+                        >
+                          Don't ask again
+                        </label>
+                      </div>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </motion.div>
         )}
         

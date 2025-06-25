@@ -5,6 +5,8 @@
 5. use less colour veriations 
 6. back button issue in creation form 
 7. change view work flow to see how it works
+8. some time copilot is generatting same nodes  multiple times need to fix it 
+
 
 //suman improvment list :
 1. scenario :

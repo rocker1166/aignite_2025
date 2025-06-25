@@ -70,17 +70,28 @@ export const isNodeElement = (selectedElement: any): boolean => {
 };
 
 /**
- * Maps node types to their default colors
+ * Maps node types to their default colors - synchronized with node-actions.ts
  * @param nodeType - The type of the node
  * @returns The default color as a hex string
  */
 export const getDefaultColorFromNodeType = (nodeType: string): string => {
   const nodeTypeMap: { [key: string]: string } = {
-    'supplier': '#dbeafe', // bg-blue-100
-    'factory': '#f3e8ff', // bg-purple-100
-    'port': '#cffafe', // bg-cyan-100
-    'warehouse': '#fef3c7', // bg-amber-100
-    'distribution': '#d1fae5' // bg-emerald-100
+    'supplier': '#3B82F6', // Blue for suppliers (matches node-actions.ts)
+    'suppliernode': '#3B82F6', // Blue for suppliers
+    'factory': '#EF4444', // Red for factories
+    'factorynode': '#EF4444', // Red for factories  
+    'manufacturer': '#EF4444', // Red for manufacturers
+    'port': '#06B6D4', // Cyan for ports
+    'portnode': '#06B6D4', // Cyan for ports
+    'warehouse': '#F59E0B', // Orange for warehouses
+    'warehousenode': '#F59E0B', // Orange for warehouses
+    'distribution': '#10B981', // Green for distribution
+    'distributionnode': '#10B981', // Green for distribution
+    'distributor': '#10B981', // Green for distribution
+    'retailer': '#8B5CF6', // Purple for retail
+    'retailernode': '#8B5CF6', // Purple for retail
+    'customer': '#8B5CF6', // Purple for customers
+    '3pl': '#84CC16' // Lime for 3PL
   };
   return nodeTypeMap[nodeType?.toLowerCase()] || '#ffffff';
 };
