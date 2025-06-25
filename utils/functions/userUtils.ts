@@ -2,19 +2,19 @@ import { supabaseClient } from "@/lib/supabase/client";
 
 const getUserData = async () => {
   try {
-    console.log("Fetching session data...");
+    // console.log("Fetching session data...");
     const { data } = await supabaseClient.auth.getSession();
-    console.log("Session data fetched:", data);
+    // console.log("Session data fetched:", data);
 
-    console.log("Fetching user details...");
+    // console.log("Fetching user details...");
     const userdetails = await supabaseClient
       .from('users')
       .select('*')
       .eq('id', data?.session?.user?.id);
-    console.log("User details fetched:", userdetails);
+    // console.log("User details fetched:", userdetails);
 
     if (userdetails && userdetails.data && userdetails.data.length > 0) {
-      console.log("User data found:", userdetails.data[0]);
+      // console.log("User data found:", userdetails.data[0]);
       return userdetails.data[0];
     } else {
       console.log("No user data found.");

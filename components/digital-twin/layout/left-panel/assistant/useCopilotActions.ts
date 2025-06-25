@@ -45,7 +45,7 @@ interface UseCopilotActionsProps {
 
 export const useCopilotActions = (props: UseCopilotActionsProps) => {
   const { nodes, edges } = props;
-  console.log("useCopilotActions props:", props);
+  // console.log("useCopilotActions props:", props);  
   // Generate unique action names to prevent conflicts
   const panelId = useMemo(() => Math.random().toString(36).substr(2, 9), []);
 
@@ -154,7 +154,7 @@ export const useCopilotActions = (props: UseCopilotActionsProps) => {
       id: edge.id,
       source: edge.source,
       target: edge.target,
-      transportMode: edge.data?.mode || 'road',
+      mode: edge.data?.mode || 'road',
       cost: edge.data?.cost || 0,
       transitTime: edge.data?.transitTime || 0,
       riskMultiplier: edge.data?.riskMultiplier || 1,

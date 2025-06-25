@@ -5,6 +5,7 @@ import { ActionContext } from './types';
 
 export const useEdgeActions = ({ edges, panelId, props }: ActionContext) => {
   const { onUpdateEdge, onFindAndSelectEdges } = props;
+  // console.log("onFindAndSelectEdges", onFindAndSelectEdges)
 
   // Update edge properties
   useCopilotAction({
@@ -17,12 +18,15 @@ export const useEdgeActions = ({ edges, panelId, props }: ActionContext) => {
       { name: "properties", type: "object", description: "Properties to update.", required: true },
     ],
     handler: ({ edgeId, sourceNodeId, targetNodeId, properties }) => {
+      console.log("Attempting to update edge properties with received arguments:", { edgeId, sourceNodeId, targetNodeId, properties });
       if (onUpdateEdge) {
         let targetEdgeId = edgeId;
         if (!targetEdgeId && sourceNodeId && targetNodeId) {
+          console.log("No edgeId provided, attempting to find edge via source and target nodes.");
           const foundEdge = edges.find(e => e.source === sourceNodeId && e.target === targetNodeId);
           if (foundEdge) {
             targetEdgeId = foundEdge.id;
+            console.log(`Found edge with ID: ${targetEdgeId}`);
           } else {
             toast.error(`Edge between ${sourceNodeId} and ${targetNodeId} not found.`);
             return;
@@ -30,6 +34,7 @@ export const useEdgeActions = ({ edges, panelId, props }: ActionContext) => {
         }
 
         if (targetEdgeId) {
+          console.log(`Updating edge ${targetEdgeId} with properties:`, properties);
           onUpdateEdge(targetEdgeId, properties);
           toast.success(`Updated properties for edge ${targetEdgeId}.`);
         } else {
