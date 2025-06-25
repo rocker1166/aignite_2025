@@ -253,32 +253,20 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
     }
   }, [isImmersiveMode, debouncedContextualSuggestions]);
 
-    // Handle pending AI messages from validation dialog
+  // Handle pending AI messages from validation dialog
   useEffect(() => {
     if (pendingAIMessage && setPendingAIMessage) {
-      const timer = setTimeout(async () => {
-        console.log('🤖 Sending pending AI message:', pendingAIMessage);
+      const timer = setTimeout(() => {
+        console.log('🤖 Setting pending AI message in input:', pendingAIMessage);
         setInput(pendingAIMessage);
         
-        // Auto-submit the message
-        try {
-          await handleAISubmit(pendingAIMessage);
-          console.log('✅ Pending AI message sent successfully');
-          
-          // Clear the input field after successful submission
-          setInput('');
-        } catch (error) {
-          console.error('❌ Failed to send pending AI message:', error);
-          // Keep the message in input on error so user can retry
-        }
-        
-        // Clear the pending message
+        // Clear the pending message - AutocompleteInput will handle auto-submission
         setPendingAIMessage(null);
       }, 500); // Small delay to ensure UI is ready
       
       return () => clearTimeout(timer);
     }
-   }, [pendingAIMessage, setPendingAIMessage, setInput]);
+  }, [pendingAIMessage, setPendingAIMessage, setInput]);
 
   // Global error handler for CopilotKit
   useEffect(() => {
