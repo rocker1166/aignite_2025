@@ -5,10 +5,16 @@ import { ChatError } from './types';
  * @param error - The error to parse (can be GraphQL response, Response object, Error instance, or string)
  * @returns A standardized ChatError object with type, message, code, and retryability info
  */
-export const parseError = (error: any): ChatError => {
+export const parseError = (error: any): ChatError | null => {
   console.log('🔍 Error Parser: Parsing error:', error);
   console.log('🔍 Error type:', typeof error);
   console.log('🔍 Error keys:', error ? Object.keys(error) : 'null');
+  
+  // Ignore specific, non-critical errors
+  if (error?.message?.includes('signal is aborted without reason')) {
+    console.log('🔍 Ignoring abort error');
+    return null; // Don't show a toast for this
+  }
   
   // Handle GraphQL error responses (CopilotKit format)
   if (error && typeof error === 'object' && error.errors && Array.isArray(error.errors)) {

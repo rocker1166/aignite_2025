@@ -39,6 +39,8 @@ interface LeftPanelProps {
   onBulkUpdateEdges?: (edgeIds: string[], properties: object) => void;
   onCreateNodeGroup?: (nodeIds: string[], groupName: string) => void;
   onExportSubgraph?: (nodeIds: string[]) => void;
+  pendingAIMessage?: string | null;
+  setPendingAIMessage?: (message: string | null) => void;
 }
 
 const LeftPanel: FC<LeftPanelProps> = ({ 
@@ -67,6 +69,8 @@ const LeftPanel: FC<LeftPanelProps> = ({
   onBulkUpdateEdges,
   onCreateNodeGroup,
   onExportSubgraph,
+  pendingAIMessage,
+  setPendingAIMessage,
 }) => {
   const [expandedSection, setExpandedSection] = useState<string | null>('');
   const [chatMode, setChatMode] = useQueryState('chat');
@@ -206,6 +210,8 @@ const LeftPanel: FC<LeftPanelProps> = ({
               onBulkUpdateEdges={onBulkUpdateEdges}
               onCreateNodeGroup={onCreateNodeGroup}
               onExportSubgraph={onExportSubgraph}
+              pendingAIMessage={pendingAIMessage}
+              setPendingAIMessage={setPendingAIMessage}
             />
           </motion.div>
         ) : (

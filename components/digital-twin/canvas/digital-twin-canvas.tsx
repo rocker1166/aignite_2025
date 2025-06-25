@@ -3,7 +3,9 @@ import React from 'react';
 import ReactFlow, {
   MiniMap,
   Controls,
-  Background
+  Background,
+  Node,
+  Edge
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
@@ -14,6 +16,12 @@ import ValidationDialog from '../forms/ValidationDialog';
 import { nodeTypes } from "./CustomNodes";
 import { edgeTypes } from "./CustomEdges";
 import { useDigitalTwinManager, DigitalTwinManagerProps } from './hooks/useDigitalTwinManager';
+
+// Add nodes and edges to the props for SimulationToolbar
+interface CustomSimulationToolbarProps extends Omit<React.ComponentProps<typeof SimulationToolbar>, 'nodes' | 'edges'> {
+  nodes: Node[];
+  edges: Edge[];
+}
 
 export default function DigitalTwinCanvas({ initialNodes, initialEdges }: DigitalTwinManagerProps) {
   const {
@@ -34,7 +42,8 @@ export default function DigitalTwinCanvas({ initialNodes, initialEdges }: Digita
     isSaving,
     simulationToolbarProps,
     leftPanelProps,
-    rightPanelProps
+    rightPanelProps,
+    handleAIFixRequest
   } = useDigitalTwinManager({ initialNodes, initialEdges });
 
   if (!isHydrated) {
@@ -90,6 +99,7 @@ export default function DigitalTwinCanvas({ initialNodes, initialEdges }: Digita
         issues={validationIssues}
         onFocusElement={handleFocusElement}
         onSaveWithWarnings={performSave}
+        onFixWithAI={handleAIFixRequest}
         isLoading={isSaving}
       />
     </div>

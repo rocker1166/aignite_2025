@@ -5,7 +5,8 @@ import SessionProvider from "@/lib/context/SessionProvider";
 import { Toaster } from "@/components/ui/sonner"
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Poppins } from 'next/font/google'
-import { CopilotKit } from "@copilotkit/react-core"; 
+import { CopilotProvider } from "@/components/copilot/copilot-provider";
+import "@copilotkit/react-textarea/styles.css";
 
 
 const poppins = Poppins({
@@ -21,9 +22,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="min-h-screen flex flex-col">
         <NuqsAdapter>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <CopilotKit runtimeUrl="/api/copilotkit"> 
+          <CopilotProvider> 
             {children}
-            </CopilotKit>
+            </CopilotProvider>
             <Toaster position="top-right" richColors />
             <SessionProvider />
           </ThemeProvider>
