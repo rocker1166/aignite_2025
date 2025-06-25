@@ -5,3 +5,82 @@
 5. use less colour veriations 
 6. back button issue in creation form 
 7. change view work flow to see how it works
+
+//suman improvment list :
+1. scenario :
+  #1add ai scenario suggestion panwl : totaly removed. (list 3 sugggestion, a box to write and llm will generate the scenario.)
+  templates to choose.
+  #2Risk Tagging System
+  #Add field: “Disruption Tags” (multi-select)
+   Examples:
+     #geo-political, #logistics, #supplier-risk, #weather, #labor
+  #3“Export Scenario to PDF/CSV”   
+2. Scenario Impact : 
+   #1 box to list all impact in human simple language in bullets.
+   #2node level impact :
+     📌 For each node (Primary Supplier, Warehouse, etc.):
+        Show:
+        % output drop
+        Suggested mitigation
+        Risk type (e.g. geopolitical, labor, weather)
+   #3. Export to Report + Action Plan : 📌 Button: 📄 “Generate Executive Report” : 
+       PDF with:
+            Scenario summary
+            Risk levels
+            Production curve
+            Strategy suggestions
+    #4. improve dissruption Strategy button bigger and noticeable.
+3. Strategy page of any dissruption scenario :
+    #1.🚀 Double down: allow side-by-side simulation comparison with 1-click toggle
+    #2. AI Strategy Synthesizer
+       Instead of picking strategies manually…
+        📌 Button: “Recommend Best Strategy Bundle”
+        Auto-selects best combo using:
+        Highest ROI
+        Shortest recovery
+        Least cost per TEU
+        🤖 Source: Your AI Strategy Agent + historical strategy effectiveness
+    #3. Strategy Dependency Warnings
+        📌 If two selected strategies:
+        Conflict (e.g., rerouting & air triage for same cargo)
+        Are mutually exclusive
+        🚫 Show red badge: "Conflicts with selected strategy"
+    #5. Cost Breakdown
+    📌 Expandable details:
+            Freight cost
+            Warehousing fees
+            Contract negotiation buffer
+    #6. Strategy Selection process: 
+         Strategy consist of diff strategies and mixing them to make perfect planing and final it.
+    #6. Post-Strategy Simulation Preview (complex will do it later)
+        📌 After selecting a strategy set:
+                Update “Impact Output” simulation graph
+                Recalculate risk score and node recovery
+    #7. Finalize Strategy and things to do:
+        . add to on going implementation plan ui .
+        . Notify people of diff node what to do .
+        📍flowchart TD
+            A[Finalize Strategy] --> B[Generate Action Plan]
+            B --> C[Trigger Notifications]
+            //(advance later implementation feature.)
+            C --> D[Start Execution Monitoring]
+            D --> E[Collect Real-World Data]
+            E --> F[Compare Simulation vs Reality]
+            F --> G[Rate Strategy Effectiveness]
+            G --> H[Archive Case File]
+            F --> I[Trigger Secondary Mitigation if Needed]
+4. Strategy page:
+   (have to redesign it, eii page will focus on implementation of any finalized strategy, and history of previously implemented strategies)
+   #1. Contains, finalized strategy detailed implementation steps.
+   #2. Asssign task  to people (kind of zira board for supplychain strategy implementation)
+   #3. History for previously implementation strategies.
+   #4. List Diff strategies for diff supplychain (only one strategies can be onboarded for one supplychain)
+   #5.  Thing your self.
+
+
+Contraints : 1. A forecase scenario -> Impact analize -> Strategy Selection --> Finalizing Strategy -> onboarded implementation Started.
+             2. A Synthetic Scenario -> Impact analize -> Strategy Selection --> Finalizing Strategy (cannot onboard this Strategy as it is Synthetic scenario not a real one )
+             3. Book Mark Page, can book mark (scenario,impact,Strategy) 
+             thing overall picture .. and make the product.
+
+ 5. News Room : News panel to see whats going on around the supplychain, latest news, suggestions , can bookmark news, can comment , tag like nodes , suplychain tag from where is it happening.
