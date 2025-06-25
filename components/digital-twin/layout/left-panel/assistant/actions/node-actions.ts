@@ -158,25 +158,66 @@ export const useNodeActions = ({ nodes, edges, panelId, props }: ActionContext) 
   // Find and select node
   useCopilotAction({
     name: `findAndSelectNode_${panelId}`,
-    description: "Finds and selects a node on the canvas by its label or type.",
+    description: "Finds and selects a node on the canvas by its ID.",
     parameters: [
-      { name: "query", type: "string", description: "The label, type, or other property to search for.", required: true },
+      { name: "nodeId", type: "string", description: "The ID of the node to find and select.", required: true },
     ],
-    handler: ({ query }) => {
-      if (onFindAndSelectNode) {
-        const lowerCaseQuery = query.toLowerCase();
-        const foundNode = nodes.find(n => 
-          n.data?.label.toLowerCase().includes(lowerCaseQuery) ||
-          n.type?.toLowerCase().includes(lowerCaseQuery)
-        );
+    handler: ({ nodeId }) => {
+      console.log("🔍 === FIND AND SELECT NODE BY ID DEBUG ===");
+      console.log("📋 Input nodeId:", nodeId);
+      console.log("🔧 Panel ID:", panelId);
+      console.log("📊 Total nodes available:", nodes.length);
+      console.log("🎯 onFindAndSelectNode function available:", !!onFindAndSelectNode);
+      
+      if (!onFindAndSelectNode) {
+        console.error("❌ onFindAndSelectNode function is not available!");
+        toast.error("Node selection function is not available.");
+        return;
+      }
+
+      if (!nodeId || typeof nodeId !== 'string') {
+        console.error("❌ Invalid nodeId:", nodeId);
+        toast.error("Please provide a valid node ID.");
+        return;
+      }
+      
+      // Log all available node IDs for debugging
+      console.log("📝 Available node IDs:");
+      nodes.forEach((node, index) => {
+        console.log(`  ${index + 1}. ID: "${node.id}", Type: "${node.type}", Label: "${node.data?.label || 'No label'}"`);
+      });
+
+      try {
+        console.log(`🔎 Searching for node with ID: "${nodeId}"`);
+        
+        const foundNode = nodes.find(n => n.id === nodeId);
 
         if (foundNode) {
+          console.log("✅ Found matching node:", {
+            id: foundNode.id,
+            type: foundNode.type,
+            label: foundNode.data?.label,
+            position: foundNode.position,
+            data: foundNode.data
+          });
+          
+          console.log("🎯 Calling onFindAndSelectNode with ID:", foundNode.id);
           onFindAndSelectNode(foundNode.id);
-          // toast.success(`Found and selected node: ${foundNode.data.label}`);
+          toast.success(`Found and selected node: ${foundNode.data?.label || foundNode.id}`);
+          
+          console.log("✅ Node selection completed successfully");
         } else {
-          toast.error(`Could not find a node matching "${query}".`);
+          console.log("❌ No node found with ID:", nodeId);
+          console.log("💡 Available node IDs are:", nodes.map(n => n.id));
+          
+          toast.error(`Could not find a node with ID "${nodeId}".`);
         }
+      } catch (error) {
+        console.error("💥 Error during node search:", error);
+        toast.error("An error occurred while searching for the node.");
       }
+      
+      console.log("🏁 === END FIND AND SELECT NODE BY ID DEBUG ===");
     },
   });
 

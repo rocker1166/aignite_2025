@@ -230,7 +230,7 @@ export const useAdvancedRiskActions = ({ nodes, edges, panelId, props }: ActionC
       }
 
       toast.info(`Generated ${limitedStrategies.length} risk mitigation strategies. Highlighted ${limitedNodes.length} affected nodes.`);
-      console.log('Risk Mitigation Strategies:', limitedStrategies);
+      // console.log('Risk Mitigation Strategies:', limitedStrategies);
     }
   });
 
@@ -359,7 +359,7 @@ export const useAdvancedRiskActions = ({ nodes, edges, panelId, props }: ActionC
       else if (enhancedResilienceScore >= 40) resilienceLevel = 'Weak';
 
       if (includeRecommendations && resilience.recommendations.length > 0) {
-        console.log('Resilience Improvement Recommendations:', resilience.recommendations.slice(0, 8));
+        // console.log('Resilience Improvement Recommendations:', resilience.recommendations.slice(0, 8));
       }
 
       // Highlight vulnerable areas
@@ -525,12 +525,12 @@ export const useAdvancedRiskActions = ({ nodes, edges, panelId, props }: ActionC
       //   `with ${impactAnalysis.severity} severity over ${duration} days.`
       // );
 
-      console.log('Scenario Simulation Results:', {
-        scenario: scenarioType,
-        intensity,
-        duration,
-        impact: impactAnalysis
-      });
+      // console.log('Scenario Simulation Results:', {
+      //   scenario: scenarioType,
+      //   intensity,
+      //   duration,
+      //   impact: impactAnalysis
+      // });
     }
   });
 }; 
