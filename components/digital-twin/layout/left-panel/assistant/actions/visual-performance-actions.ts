@@ -7,13 +7,13 @@ import { LayoutManager } from '@/lib/layout/layout-algorithms';
 export const useVisualPerformanceActions = ({ nodes, edges, panelId, props }: ActionContext) => {
   const { onUpdateMultipleNodes, onUpdateNodePositions } = props;
   
-  console.log("🔧 VISUAL PERFORMANCE ACTIONS INIT", {
-    onUpdateMultipleNodesAvailable: !!onUpdateMultipleNodes,
-    onUpdateNodePositionsAvailable: !!onUpdateNodePositions,
-    onUpdateMultipleNodesType: typeof onUpdateMultipleNodes,
-    propsKeys: Object.keys(props || {}),
-    panelId
-  });
+  // console.log("🔧 VISUAL PERFORMANCE ACTIONS INIT", {
+  //   onUpdateMultipleNodesAvailable: !!onUpdateMultipleNodes,
+  //   onUpdateNodePositionsAvailable: !!onUpdateNodePositions,
+  //   onUpdateMultipleNodesType: typeof onUpdateMultipleNodes,
+  //   propsKeys: Object.keys(props || {}),
+  //   panelId
+  // });
 
   // Intelligent layout optimization
   useCopilotAction({
