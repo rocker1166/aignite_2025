@@ -259,36 +259,30 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
       const timer = setTimeout(async () => {
         console.log('🤖 Sending pending AI message:', pendingAIMessage);
         
-        // Set the input to show the message briefly
-        setInput(pendingAIMessage);
+        // Save the query for history
+        saveQuery(pendingAIMessage);
         
-        // Auto-submit the message after a short delay
-        const submitTimer = setTimeout(async () => {
-          try {
-            await handleAISubmit(pendingAIMessage);
-            console.log('✅ Pending AI message sent successfully');
-            
-            // Clear the input field after successful submission
-            setTimeout(() => {
-              setInput('');
-              console.log('🧹 Input field cleared');
-            }, 100);
-            
-          } catch (error) {
-            console.error('❌ Failed to send pending AI message:', error);
-            // Keep the message in input on error so user can retry
-          }
-        }, 200);
+        // Send the message using CopilotKit
+        try {
+          await appendMessage(new TextMessage({ 
+            content: pendingAIMessage, 
+            role: Role.User 
+          }));
+          console.log('✅ Pending AI message sent successfully');
+        } catch (error) {
+          console.error('❌ Failed to send pending AI message:', error);
+        }
         
-        // Clear the pending message
+        // Clear input and pending message
+        setInput('');
         setPendingAIMessage(null);
         
-        return () => clearTimeout(submitTimer);
+        console.log('🧹 Input cleared and pending message removed');
       }, 300); // Small delay to ensure UI is ready
       
       return () => clearTimeout(timer);
     }
-   }, [pendingAIMessage, setPendingAIMessage, setInput]);
+   }, [pendingAIMessage, setPendingAIMessage, setInput, saveQuery, appendMessage]);
 
   // Global error handler for CopilotKit
   useEffect(() => {
@@ -516,6 +510,8 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
         onSubmit={message => {
           saveQuery(message);
           handleAISubmit(message);
+          // Clear input immediately after submitting
+          setInput('');
         }}
         isLoading={isLoading}
         autocompleteSuggestions={autocompleteSuggestions}
