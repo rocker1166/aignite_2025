@@ -23,11 +23,13 @@ interface LeftPanelProps {
   nodes?: any[];
   edges?: any[];
   onAddMultipleNodes?: (nodes: any[]) => void;
+  onAddMultipleEdges?: (edges: any[]) => void;
   onAddEdges?: (edges: any[]) => void;
   onUpdateNode?: (nodeId: string, updates: any) => void;
   onUpdateEdge?: (edgeId: string, updates: any) => void;
   onValidateSupplyChain?: () => void;
   onUpdateMultipleNodes?: (nodeIds: string[], properties: object) => void;
+  onUpdateNodePositions?: (nodePositions: { [nodeId: string]: { x: number; y: number } }) => void;
   onFindAndSelectNode?: (nodeId: string) => void;
   onFindAndSelectEdges?: (edgeIds: string[]) => void;
 
@@ -53,11 +55,13 @@ const LeftPanel: FC<LeftPanelProps> = ({
   nodes = [],
   edges = [],
   onAddMultipleNodes,
+  onAddMultipleEdges,
   onAddEdges,
   onUpdateNode,
   onUpdateEdge,
   onValidateSupplyChain,
   onUpdateMultipleNodes,
+  onUpdateNodePositions,
   onFindAndSelectNode,
   onFindAndSelectEdges,
 
@@ -192,6 +196,7 @@ const LeftPanel: FC<LeftPanelProps> = ({
               edges={edges}
               onAddNode={onAddNode}
               onAddMultipleNodes={onAddMultipleNodes}
+              onAddMultipleEdges={onAddMultipleEdges}
               onAddEdges={onAddEdges}
               onLoadTemplate={onLoadTemplate}
               onClearCanvas={onClearAllNodes}
@@ -199,6 +204,7 @@ const LeftPanel: FC<LeftPanelProps> = ({
               onUpdateEdge={onUpdateEdge}
               onValidateSupplyChain={onValidateSupplyChain}
               onUpdateMultipleNodes={onUpdateMultipleNodes}
+              onUpdateNodePositions={onUpdateNodePositions}
               onFindAndSelectNode={onFindAndSelectNode}
               onFindAndSelectEdges={onFindAndSelectEdges}
 

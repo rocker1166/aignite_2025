@@ -104,7 +104,6 @@ export const useNodeActions = ({ nodes, panelId, props }: ActionContext) => {
         // Create the node with the generated data - use nodeType directly
         onAddNode(nodeType, label, nodeData);
         
-        toast.success(`Added ${label} (${nodeType}) to your supply chain canvas.`);
       }
     }
   });
@@ -193,7 +192,7 @@ export const useNodeActions = ({ nodes, panelId, props }: ActionContext) => {
           }
 
           onUpdateNode(targetNodeId, processedProperties);
-          toast.success(`Updated properties for node ${data.label}.`);
+          // toast.success(`Updated properties for node ${data.label}.`);
         } else {
           toast.error("Please provide a valid node ID or label.");
           console.error("--- Debug: updateNodeProperties ---");
@@ -225,7 +224,7 @@ export const useNodeActions = ({ nodes, panelId, props }: ActionContext) => {
         if (filteredNodes.length > 0) {
           const nodeIds = filteredNodes.map(n => n.id);
           onUpdateMultipleNodes(nodeIds, properties);
-          toast.success(`Updated ${nodeIds.length} nodes.`);
+          // toast.success(`Updated ${nodeIds.length} nodes.`);
         } else {
           toast.info("No nodes matched the filter criteria.");
         }
@@ -250,7 +249,7 @@ export const useNodeActions = ({ nodes, panelId, props }: ActionContext) => {
 
         if (foundNode) {
           onFindAndSelectNode(foundNode.id);
-          toast.success(`Found and selected node: ${foundNode.data.label}`);
+          // toast.success(`Found and selected node: ${foundNode.data.label}`);
         } else {
           toast.error(`Could not find a node matching "${query}".`);
         }

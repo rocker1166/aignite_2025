@@ -65,7 +65,7 @@ export function useNodeEdgeActions({
       setTimeout(() => setSelectedElement(updatedNode), 50);
     }
     // @ts-ignore
-    toast.success(`Node ${updatedNode?.data?.label || nodeId} updated.`);
+    // toast.success(`Node ${updatedNode?.data?.label || nodeId} updated.`);
   }, [setNodes, setSelectedElement]);
 
   const handleDeleteNode = useCallback((nodeId: string) => {
@@ -75,7 +75,7 @@ export function useNodeEdgeActions({
         const childNodes = currentNodes.filter(node => node.parentId === nodeId);
         const remainingNodes = currentNodes.filter(node => node.id !== nodeId && node.parentId !== nodeId);
         setEdges(currentEdges => currentEdges.filter(edge => !childNodes.some(child => edge.source === child.id || edge.target === child.id)));
-        toast.success(`Deleted template group`);
+        // toast.success(`Deleted template group`);
         return remainingNodes;
       } else {
         setEdges(currentEdges => currentEdges.filter(edge => edge.source !== nodeId && edge.target !== nodeId));
@@ -94,7 +94,7 @@ export function useNodeEdgeActions({
       ...n
     }));
     setNodes(nds => nds.concat(fullyFormedNodes));
-    toast.success(`${newNodes.length} nodes added.`);
+    // toast.success(`${newNodes.length} nodes added.`);
   }, [setNodes]);
 
   const handleUpdateEdge = useCallback((edgeId: string, properties: object) => {
@@ -106,21 +106,45 @@ export function useNodeEdgeActions({
         return edge;
       })
     );
-    toast.success(`Edge ${edgeId} updated.`);
+    // toast.success(`Edge ${edgeId} updated.`);
+  }, [setEdges]);
+
+  const handleAddMultipleEdges = useCallback((newEdges: Partial<Edge>[]) => {
+    const fullyFormedEdges = newEdges.map((e, i) => ({
+      id: `e-${Date.now()}-${i}`,
+      type: 'transportEdge',
+      ...e,
+    }));
+    // @ts-ignore
+    setEdges(eds => eds.concat(fullyFormedEdges));
+    // toast.success(`${newEdges.length} edges added.`);
   }, [setEdges]);
 
   const handleAddEdges = useCallback((newEdges: Edge[]) => {
     setEdges((eds) => eds.concat(newEdges));
-    toast.success(`${newEdges.length} edges added.`);
+    //  toast.success(`${newEdges.length} edges added.`);
   }, [setEdges]);
 
   const handleUpdateMultipleNodes = useCallback((nodeIds: string[], properties: object) => {
+    console.log("handleUpdateMultipleNodes", nodeIds, properties);
     setNodes(nds =>
       nds.map(n =>
         nodeIds.includes(n.id) ? { ...n, data: { ...n.data, ...properties } } : n
       )
     );
-    toast.success(`Updated ${nodeIds.length} nodes.`);
+    // toast.success(`Updated ${nodeIds.length} nodes.`);
+  }, [setNodes]);
+
+  // Add new function to update node positions and data
+  const handleUpdateNodePositions = useCallback((updatedNodes: Node[]) => {
+    console.log("handleUpdateNodePositions", updatedNodes.length, "nodes");
+    setNodes(currentNodes => {
+      const updatedMap = new Map(updatedNodes.map(n => [n.id, n]));
+      return currentNodes.map(node => {
+        const updated = updatedMap.get(node.id);
+        return updated || node;
+      });
+    });
   }, [setNodes]);
 
   const handleClearAllNodes = useCallback(() => {
@@ -137,7 +161,11 @@ export function useNodeEdgeActions({
     handleAddMultipleNodes,
     handleUpdateEdge,
     handleAddEdges,
+    handleAddMultipleEdges,
     handleUpdateMultipleNodes,
+    handleUpdateNodePositions,
     handleClearAllNodes,
+    // Expose setNodes for direct layout algorithm usage
+    setNodes,
   };
 } 

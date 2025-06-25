@@ -96,8 +96,6 @@ This documentation covers all available AI assistant actions for the Digital Twi
 
 ## 🎨 Canvas & Layout Actions
 
-
-
 ### `clearCanvas`
 **Description**: Clear all nodes and edges from the canvas
 
@@ -106,6 +104,19 @@ This documentation covers all available AI assistant actions for the Digital Twi
 **Context**: Canvas state management
 
 **Test Prompt**: `"Clear the entire canvas"`
+
+---
+
+### `optimizeLayout`
+**Description**: Automatically select and apply the best layout algorithm based on network characteristics
+
+**Parameters**:
+- `priority` (string, optional): Layout priority (clarity, performance, aesthetics)
+- `preservePositions` (boolean, optional): Whether to preserve some existing positions
+
+**Context**: Layout algorithm selection, network analysis
+
+**Test Prompt**: `"Optimize the supply chain layout for clarity while preserving positions"`
 
 ---
 
@@ -368,48 +379,6 @@ This documentation covers all available AI assistant actions for the Digital Twi
 
 ---
 
-## 🎨 Visual Performance Actions
-
-### `enhancedHighlight`
-**Description**: Apply advanced multi-level highlighting with color-coded risk levels
-
-**Parameters**:
-- `highlightType` (string, required): Type of highlighting (risk, performance, connectivity, geographic)
-- `intensity` (string, optional): Highlight intensity (subtle, normal, strong)
-- `animated` (boolean, optional): Whether to use animated highlighting
-- `duration` (number, optional): Animation duration in seconds
-
-**Context**: Visual effects system, animation controls
-
-**Test Prompt**: `"Apply strong risk-based highlighting with animations for 5 seconds"`
-
----
-
-### `optimizePerformance`
-**Description**: Apply performance optimizations for large supply chain networks
-
-**Parameters**:
-- `optimizationType` (string, optional): Type of optimization (rendering, memory, interaction, all)
-- `targetFPS` (number, optional): Target frames per second for animations
-
-**Context**: Performance monitoring, virtualization, rendering optimization
-
-**Test Prompt**: `"Optimize performance for rendering with target 60 FPS"`
-
----
-
-### `clearVisualEffects`
-**Description**: Clear all highlighting, overlays, and visual effects from the canvas
-
-**Parameters**:
-- `effectType` (string, optional): Type of effects to clear (highlight, overlay, animation, all)
-
-**Context**: Visual state management, effect cleanup
-
-**Test Prompt**: `"Clear all visual effects and highlighting"`
-
----
-
 ## 🚀 Usage Guidelines
 
 ### Action Naming Convention
@@ -467,14 +436,6 @@ Use the provided test prompts with the AI assistant. Each action is designed to:
 4. "Suggest risk mitigation strategies for operational risks"
 ```
 
-#### Visual Analysis Workflow
-```
-1. "Apply strong risk-based highlighting with animations"
-2. "Find and highlight tightly connected node clusters"
-3. "Optimize performance for large networks"
-4. "Clear all visual effects when done"
-```
-
 ---
 
 ## 📋 Action Categories Summary
@@ -491,6 +452,5 @@ Use the provided test prompts with the AI assistant. Each action is designed to:
 | **Advanced Nodes** | 7 actions | Complex node operations |
 | **Advanced Edges** | 3 actions | Route optimization, analysis |
 | **Advanced Risk** | 3 actions | Comprehensive risk management |
-| **Visual Performance** | 3 actions | Rendering optimization, effects |
 
-**Total: 28 Actions** providing comprehensive supply chain digital twin management capabilities. 
+**Total: 25 Actions** providing comprehensive supply chain digital twin management capabilities. 
