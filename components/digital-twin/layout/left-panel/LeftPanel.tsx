@@ -26,6 +26,7 @@ interface LeftPanelProps {
   onAddMultipleEdges?: (edges: any[]) => void;
   onAddEdges?: (edges: any[]) => void;
   onUpdateNode?: (nodeId: string, updates: any) => void;
+  onDeleteNode?: (nodeId: string) => void;
   onUpdateEdge?: (edgeId: string, updates: any) => void;
   onValidateSupplyChain?: () => void;
   onUpdateMultipleNodes?: (nodeIds: string[], properties: object) => void;
@@ -58,6 +59,7 @@ const LeftPanel: FC<LeftPanelProps> = ({
   onAddMultipleEdges,
   onAddEdges,
   onUpdateNode,
+  onDeleteNode,
   onUpdateEdge,
   onValidateSupplyChain,
   onUpdateMultipleNodes,
@@ -207,6 +209,7 @@ const LeftPanel: FC<LeftPanelProps> = ({
               onUpdateNodePositions={onUpdateNodePositions}
               onFindAndSelectNode={onFindAndSelectNode}
               onFindAndSelectEdges={onFindAndSelectEdges}
+              onDeleteNode={onDeleteNode}
 
               onHighlightNodes={onHighlightNodes}
               onFocusNode={onFocusNode}

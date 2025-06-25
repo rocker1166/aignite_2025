@@ -18,7 +18,7 @@ type NodeDataWithLocation = {
 };
 
 export const useNodeActions = ({ nodes, edges, panelId, props }: ActionContext) => {
-  const { onAddNode, onUpdateNode, onUpdateMultipleNodes, onFindAndSelectNode, onAddMultipleEdges } = props;
+  const {  onUpdateNode, onUpdateMultipleNodes, onFindAndSelectNode, onAddMultipleEdges, onDeleteNode } = props;
   
   // Initialize all node-specific actions
   useSupplierActions({ panelId, props });
@@ -346,6 +346,40 @@ export const useNodeActions = ({ nodes, edges, panelId, props }: ActionContext) 
       onAddMultipleEdges([newEdge]);
       toast.success(`Connected "${sourceNode.data?.label}" to "${targetNode.data?.label}" via ${mode}.`);
     }
+  });
+
+  // Delete a node
+  useCopilotAction({
+    name: `deleteNode_${panelId}`,
+    description: "Deletes a specific node from the canvas.",
+    parameters: [
+      { name: "nodeId", type: "string", description: "The ID of the node to delete.", required: false },
+      { name: "nodeLabel", type: "string", description: "The label of the node to delete.", required: false },
+    ],
+    handler: ({ nodeId, nodeLabel }) => {
+      if (!onDeleteNode) {
+        toast.error("Node deletion is not available.");
+        return;
+      }
+      if (!nodeId && !nodeLabel) {
+        toast.error("Please provide a node ID or label to delete.");
+        return;
+      }
+
+      let nodeToDelete = null;
+      if (nodeId) {
+        nodeToDelete = nodes.find(n => n.id === nodeId);
+      } else if (nodeLabel) {
+        nodeToDelete = nodes.find(n => n.data?.label?.toLowerCase() === nodeLabel.toLowerCase());
+      }
+
+      if (nodeToDelete) {
+        onDeleteNode(nodeToDelete.id);
+        toast.success(`Node "${nodeToDelete.data?.label || nodeToDelete.id}" has been deleted.`);
+      } else {
+        toast.error(`Could not find node with ${nodeId ? `ID "${nodeId}"` : `label "${nodeLabel}"`}.`);
+      }
+    },
   });
 };
 
