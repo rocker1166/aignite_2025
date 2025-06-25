@@ -19,9 +19,9 @@ export const useValidationActions = ({ nodes, edges, panelId, props }: ActionCon
       const warningMessages = issues.filter(i => i.severity === 'warning').map(i => i.message);
       
       if (summary.errors === 0) {
-        toast.success(`✅ Validation passed! ${summary.warnings} warnings found. Supply chain is ready for simulation.`);
+        toast.success(`Validation passed! ${summary.warnings} warnings found. Supply chain is ready for simulation.`);
       } else {
-        toast.error(`❌ Validation failed! ${summary.errors} errors and ${summary.warnings} warnings found. Please fix errors before proceeding.`);
+        toast.error(`Validation failed! ${summary.errors} errors and ${summary.warnings} warnings found. Please fix errors before proceeding.`);
       }
       
       if (onValidateSupplyChain) {
@@ -85,8 +85,8 @@ export const useValidationActions = ({ nodes, edges, panelId, props }: ActionCon
       const topRecommendations = recommendations.slice(0, 3);
       
       const message = topRecommendations.length > 0 
-        ? `🎯 Top optimization suggestions: ${topRecommendations.join(', ')}`
-        : '✨ Your supply chain structure looks optimized!';
+        ? `Top optimization suggestions: ${topRecommendations.join(', ')}`
+        : 'Your supply chain structure looks optimized!';
         
       toast.success(message);
     }

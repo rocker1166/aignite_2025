@@ -55,7 +55,7 @@ export const useTemplateActions = ({ panelId, props }: ActionContext) => {
         const templateInfo = getTemplateInfo(formData);
         
         onAddMultipleNodes(templateData.nodes);
-        toast.success(`🏗️ Built ${templateInfo.templateName} with ${templateData.nodes.length} nodes. Reason: ${templateInfo.reason}`);
+        toast.success(`Built ${templateInfo.templateName} with ${templateData.nodes.length} nodes. Reason: ${templateInfo.reason}`);
       }
     }
   });
@@ -96,10 +96,10 @@ export const useTemplateActions = ({ panelId, props }: ActionContext) => {
         const templateId = templateMap[templateName.toLowerCase()];
         if (templateId) {
           onLoadTemplate(templateId);
-          toast.success(`📋 Loaded ${templateName} supply chain template successfully!`);
+          toast.success(`Loaded ${templateName} supply chain template successfully!`);
         } else {
           const availableTemplates = Object.keys(templateMap).join(', ');
-          toast.error(`❌ Template "${templateName}" not found. Available templates: ${availableTemplates}`);
+          toast.error(`Template "${templateName}" not found. Available templates: ${availableTemplates}`);
         }
       }
     }

@@ -30,7 +30,7 @@ interface LeftPanelProps {
   onUpdateMultipleNodes?: (nodeIds: string[], properties: object) => void;
   onFindAndSelectNode?: (nodeId: string) => void;
   onFindAndSelectEdges?: (edgeIds: string[]) => void;
-  onApplyLayout?: (layoutType: string) => void;
+
   onHighlightNodes?: (nodeIds: string[]) => void;
   onFocusNode?: (nodeId: string) => void;
   onZoomToNodes?: (nodeIds: string[]) => void;
@@ -58,7 +58,7 @@ const LeftPanel: FC<LeftPanelProps> = ({
   onUpdateMultipleNodes,
   onFindAndSelectNode,
   onFindAndSelectEdges,
-  onApplyLayout,
+
   onHighlightNodes,
   onFocusNode,
   onZoomToNodes,
@@ -197,7 +197,7 @@ const LeftPanel: FC<LeftPanelProps> = ({
               onUpdateMultipleNodes={onUpdateMultipleNodes}
               onFindAndSelectNode={onFindAndSelectNode}
               onFindAndSelectEdges={onFindAndSelectEdges}
-              onApplyLayout={onApplyLayout}
+
               onHighlightNodes={onHighlightNodes}
               onFocusNode={onFocusNode}
               onZoomToNodes={onZoomToNodes}

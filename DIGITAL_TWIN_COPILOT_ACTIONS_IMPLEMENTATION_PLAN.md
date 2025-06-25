@@ -7,7 +7,7 @@ Based on examination of the codebase, here's what's already implemented and what
 ### ✅ Currently Implemented Actions:
 - **Node Actions**: `addSupplyChainNode`, `updateNodeProperties`, `updateMultipleNodeProperties`, `findAndSelectNode`
 - **Edge Actions**: `updateEdgeProperties`, `findRiskiestConnections`
-- **Canvas Actions**: `applyLayout`, `highlightNodesByProperty`, `clearCanvas`
+- **Canvas Actions**: `highlightNodesByProperty`, `clearCanvas`
 - **Risk Actions**: `identifySinglePointsOfFailure`
 - **Validation Actions**: Supply chain validation
 - **Template Actions**: Loading predefined templates

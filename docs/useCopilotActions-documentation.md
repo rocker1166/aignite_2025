@@ -4,6 +4,8 @@
 
 The `useCopilotActions` hook is a powerful React hook that integrates CopilotKit AI capabilities into the supply chain digital twin canvas. It provides intelligent actions that users can trigger through natural language commands to build, validate, and optimize supply chain networks.
 
+> **Note**: The `applyLayout` action has been removed from the system. Layout management is now handled through other mechanisms.
+
 ## Architecture
 
 ### Core Dependencies
@@ -24,6 +26,7 @@ interface UseCopilotActionsProps {
   onLoadTemplate?: (templateId: string) => void;
   onClearCanvas?: () => void;
   onValidateSupplyChain?: () => void;
+  // Note: onApplyLayout has been removed
 }
 ```
 

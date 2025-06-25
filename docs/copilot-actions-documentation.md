@@ -96,19 +96,7 @@ This documentation covers all available AI assistant actions for the Digital Twi
 
 ## 🎨 Canvas & Layout Actions
 
-### `applyLayout`
-**Description**: Automatically arranges nodes using advanced layout algorithms
 
-**Parameters**:
-- `layoutType` (string, optional): Layout algorithm ('dagre-TB', 'dagre-LR', 'elk', 'hierarchical', 'auto')
-- `spacing` (object, optional): Node spacing configuration
-- `animation` (boolean, optional): Whether to animate the layout transition
-
-**Context**: Node positions, layout algorithms (dagre, elk, hierarchical)
-
-**Test Prompt**: `"Apply a hierarchical layout with top-to-bottom flow"`
-
----
 
 ### `clearCanvas`
 **Description**: Clear all nodes and edges from the canvas

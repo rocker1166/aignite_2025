@@ -57,15 +57,7 @@ Based on the analysis of the `components/digital-twin` directory, here are some 
 
 ## Canvas and View Management
 
-### 1. Apply Layout
-
-*   **Action:** `applyLayout`
-*   **Description:** Automatically arranges the nodes and edges on the canvas for better visualization using a specified layout algorithm. This would require integrating a layouting library like Dagre or ELK.
-*   **Parameters:**
-    *   `layoutType: string` (e.g., 'dagre-top-to-bottom', 'elk-layered')
-*   **Rationale:** A clean and organized layout is essential for understanding complex supply chain graphs. Automating this is a huge time-saver.
-
-### 2. Highlight Nodes by Property
+### 1. Highlight Nodes by Property
 
 *   **Action:** `highlightNodesByProperty`
 *   **Description:** Highlights all nodes that match certain criteria. For example, highlight all nodes in a specific country, or all nodes with a high risk score.

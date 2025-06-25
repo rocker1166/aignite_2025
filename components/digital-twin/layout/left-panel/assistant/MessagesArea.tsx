@@ -46,22 +46,29 @@ export const MessagesArea: React.FC<MessagesAreaProps> = ({
         </div>
       ) : (
         <>
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-            >
+          {messages.map((message) => {
+            // Don't render if message has no content
+            if (!message.content || !message.content.trim()) {
+              return null;
+            }
+            
+            return (
               <div
-                className={`rounded-lg p-3 text-sm ${
-                  message.role === "user" 
-                    ? "bg-primary text-primary-foreground max-w-[75%]" 
-                    : "bg-background border border-border text-foreground shadow-sm max-w-[95%]"
-                }`}
+                key={message.id}
+                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
-                <MemoizedMarkdown content={message.content} id={message.id} />
+                <div
+                  className={`rounded-lg p-3 text-sm ${
+                    message.role === "user" 
+                      ? "bg-primary text-primary-foreground max-w-[75%]" 
+                      : "bg-background border border-border text-foreground shadow-sm max-w-[95%]"
+                  }`}
+                >
+                  <MemoizedMarkdown content={message.content} id={message.id} />
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           <div ref={messagesEndRef} />
         </>
       )}

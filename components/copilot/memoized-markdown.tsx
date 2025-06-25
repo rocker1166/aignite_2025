@@ -344,15 +344,7 @@ export const MemoizedMarkdown = memo(
 
     // Handle empty or invalid content gracefully
     if (!content && content !== '') {
-      return (
-        <div 
-          className="text-muted-foreground text-xs italic"
-          role="note"
-          aria-label="Empty content"
-        >
-          No content to display
-        </div>
-      );
+      return null;
     }
 
     return (

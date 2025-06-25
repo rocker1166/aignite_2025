@@ -357,7 +357,6 @@ aignite_2025/
 - **`components/`** - Reusable React components organized by feature
 - **`lib/`** - Core business logic, utilities, and configurations
 - **`constants/`** - Application constants and template definitions
-- **`migrations/`** - Database schema migrations
 - **`docs/`** - Project documentation and technical specs
 
 

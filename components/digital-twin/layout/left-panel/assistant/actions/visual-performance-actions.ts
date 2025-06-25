@@ -4,7 +4,7 @@ import { ActionContext } from './types';
 import debounce from 'lodash.debounce';
 
 export const useVisualPerformanceActions = ({ nodes, edges, panelId, props }: ActionContext) => {
-  const { onHighlightNodes, onUpdateMultipleNodes, onApplyLayout } = props;
+  const { onHighlightNodes, onUpdateMultipleNodes } = props;
 
   // Enhanced multi-level highlighting system
   useCopilotAction({
@@ -389,9 +389,7 @@ export const useVisualPerformanceActions = ({ nodes, edges, panelId, props }: Ac
       }
 
       // Apply the recommended layout
-      if (onApplyLayout) {
-        onApplyLayout(recommendedLayout);
-      }
+      // Layout application removed - direct layout management no longer available
 
       // Update nodes with layout metadata
       if (onUpdateMultipleNodes) {
