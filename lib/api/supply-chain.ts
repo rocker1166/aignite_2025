@@ -212,6 +212,11 @@ export async function saveSupplyChainToDatabase(supplyChainData: {
   edges: any[];
 }) {
 
+  // Validate that supply chain is not empty
+  if (!supplyChainData.nodes || supplyChainData.nodes.length === 0) {
+    throw new Error('Cannot save empty supply chain. Please add at least one node.');
+  }
+
   console.log("supplyChainData", supplyChainData);
   try {
     const { data, error } = await supabaseClient.functions.invoke('bright-processor', {
