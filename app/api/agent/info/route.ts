@@ -310,13 +310,6 @@ Historical event pattern suggests ${riskTrend > 10 ? 'significant deterioration'
     const startTime = Date.now();
     const context = await this.buildSearchContext(node, supplyChainData);
 
-    // Check quota first
-    if (!QuotaManager.canMakeCall()) {
-      const status = QuotaManager.getStatus();
-      console.log(`Quota exceeded. ${status.callsRemaining} calls remaining, resets in ${status.resetsIn}`);
-      return this.generateFallbackIntelligence(node, startTime);
-    }
-
     // Check API keys availability
     const googleApiMissing = !process.env.GOOGLE_GENERATIVE_AI_API_KEY;
     const tavilyApiMissing = !process.env.TAVILY_API_KEY;
@@ -328,14 +321,12 @@ Historical event pattern suggests ${riskTrend > 10 ? 'significant deterioration'
       weather: !weatherApiMissing,
       memory: process.env.MEM0_API_KEY ? true : false
     };
-      // If all critical APIs are missing, use fallback mode
+    // If all critical APIs are missing, use fallback mode
     if (googleApiMissing && tavilyApiMissing && weatherApiMissing) {
       console.log('Using complete fallback mode - all critical API keys missing');
       return this.generateFallbackIntelligence(node, startTime, supplyChainData);
     }
 
-    // Record that we're making an API call
-    QuotaManager.recordCall();
       // Data collection object to track what we've obtained
     const collectedData: {
       tavilyResults: any[];
@@ -1136,37 +1127,6 @@ Demand Shifts: ${intelligenceData.intelligence.marketIntelligence.demandShifts.j
 }
 
 // Quota Manager Class
-class QuotaManager {
-  private static callCount = 0;
-  private static lastReset = Date.now();
-  private static readonly MAX_CALLS_PER_HOUR = 5; // Limit to 5 calls per hour
-  
-  static canMakeCall(): boolean {
-    const now = Date.now();
-    const hoursSinceReset = (now - this.lastReset) / (1000 * 60 * 60);
-    
-    if (hoursSinceReset >= 1) {
-      this.callCount = 0;
-      this.lastReset = now;
-    }
-    
-    return this.callCount < this.MAX_CALLS_PER_HOUR;
-  }
-  
-  static recordCall(): void {
-    this.callCount++;
-  }
-  
-  static getStatus(): { callsRemaining: number; resetsIn: string } {
-    const now = Date.now();
-    const minutesUntilReset = Math.ceil(60 - ((now - this.lastReset) / (1000 * 60)));
-    
-    return {
-      callsRemaining: Math.max(0, this.MAX_CALLS_PER_HOUR - this.callCount),
-      resetsIn: `${minutesUntilReset} minutes`
-    };  }
-}
-
 // API Key Validation System
 interface ApiKeyStatus {
   name: string;
@@ -1721,7 +1681,6 @@ export async function GET(request: NextRequest) {
           issues: validation.issues,
           recommendations: validation.recommendations
         },
-        quota: QuotaManager.getStatus(),
         processingTime: Date.now() - startTime
       });
     }
@@ -1842,7 +1801,6 @@ export async function GET(request: NextRequest) {
         issues: validation.issues,
         recommendations: validation.recommendations
       },
-      quota: QuotaManager.getStatus(),
       processingTime: Date.now() - startTime,
       timestamp: new Date().toISOString()
     });
@@ -1940,7 +1898,7 @@ export async function POST(request: NextRequest) {
               }
             }),
             storeIntelligence: tool({
-            description: 'Store gathered intelligence in the database and memory system',
+            description: 'Store gathered intelligence in the database and memory system. IMPORTANT: This is NOT the final step - you must continue to provide a detailed analysis response after storing.',
             parameters: z.object({              intelligence: z.object({
                 nodeId: z.string(),
                 riskScore: z.number(),
@@ -2088,60 +2046,171 @@ export async function POST(request: NextRequest) {
             })
           },
           prompt: `
-            You are an advanced AI supply chain intelligence analyst with real-time access to web search and memory systems. 
+            You are an elite AI supply chain intelligence analyst with advanced real-time research capabilities. Your mission is to provide comprehensive, evidence-based analysis of supply chain disruptions and risks using real-time data and historical intelligence.
             
-            Current Task: ${query || 'Gather comprehensive supply chain intelligence'}
-              Supply Chain Context:
+            USER QUERY: "${query || 'Comprehensive supply chain intelligence analysis'}"
+            
+            SUPPLY CHAIN CONTEXT:
             - Supply Chain ID: ${supply_chain_id}
-            ${node ? `- Node: ${node.name} (${node.type}) in ${node.address || 'unknown location'}` : '- Analyzing entire supply chain'}
+            ${node ? `- Target Node: ${node.name} (${node.type})` : '- Analyzing entire supply chain'}
+            ${node?.address ? `- Location: ${node.address}` : ''}
+            ${node?.location_lat && node?.location_lng ? `- Coordinates: ${node.location_lat}, ${node.location_lng}` : ''}
             ${supplyChain?.form_data ? `- Company: ${typeof supplyChain.form_data === 'string' ? JSON.parse(supplyChain.form_data).companyName : supplyChain.form_data.companyName || supplyChain.name}` : `- Organization: ${supplyChain.organisation || 'Unknown'}`}
             
-            INSTRUCTIONS:
+            CRITICAL EXECUTION SEQUENCE - FOLLOW EXACTLY:
             
-            1. MANDATORY TOOL USAGE - YOU MUST USE THESE TOOLS:
-               - ALWAYS start with getNodeContext to retrieve historical intelligence and memory data
-               - ALWAYS conduct at least 2-3 Tavily web searches with specific search queries about the supply chain
-                 - Use search for comprehensive results on industry events
-                 - Use searchQNA for targeted questions
-                 - Use extract for detailed analysis of relevant URLs
-               - ALWAYS store your final intelligence with storeIntelligence
+            ═══════════════════════════════════════════════
+            PHASE 1: CONTEXT GATHERING (MANDATORY FIRST STEP)
+            ═══════════════════════════════════════════════
+            🔸 IMMEDIATELY call getNodeContext to retrieve historical intelligence and memory data
+            🔸 Analyze the retrieved context to understand past patterns, risks, and vulnerabilities
+            🔸 Use this data to inform your search strategy and risk assessment
             
-            2. INTELLIGENCE PRIORITIES:
-               - Critical disruptions affecting operations (severity >70)
-               - Weather events impacting transportation
-               - Port congestions, strikes, or closures
-               - Regulatory changes affecting trade
-               - Market shifts and price fluctuations
-               - Geopolitical events affecting supply routes
+            ═══════════════════════════════════════════════
+            PHASE 2: COMPREHENSIVE INTELLIGENCE GATHERING
+            ═══════════════════════════════════════════════
+            You MUST execute ALL of these search operations:
             
-            3. EVIDENCE-BASED ANALYSIS:
-               - Search for recent news (last 7 days) about supply chain disruptions
-               - Focus on specific locations and industries relevant to this supply chain
-               - ALWAYS cite specific evidence from your web searches and memory retrieval
-               - Cross-reference multiple sources for accuracy
-               - Make clear distinctions between facts from sources and your assessment
-               - Support all risk assessments with specific evidence
+            🔍 SEARCH SET A - Recent Disruptions (MANDATORY):
+            - Search: "${node?.name || 'supply chain'} disruption risks current ${new Date().getFullYear()}"
+            - Search: "${node?.address || supplyChain?.organisation || 'supply chain'} logistics issues recent"
+            - Search: "${node?.type || 'manufacturing'} industry supply chain problems ${new Date().toISOString().slice(0, 7)}"
             
-            4. FINAL RESPONSE FORMAT:
-               - Start with "## Supply Chain Intelligence Summary"
-               - Provide a concise, evidence-based summary with specific data points
-               - Include "## Key Findings" with bullet points of major discoveries from your searches
-               - Include "## Risk Assessment" with specific risks identified and confidence level
-               - Include "## Sources" that lists the top sources you used from Tavily searches
-               - Your entire response should be factual, precise and directly tied to evidence
+            🔍 SEARCH SET B - Targeted Analysis (MANDATORY):
+            - searchQNA: "What supply chain disruptions are currently affecting ${node?.address || 'the region'}?"
+            - searchQNA: "Are there any port delays, strikes, or transportation issues in ${node?.address || 'the area'}?"
+            - searchQNA: "What weather events or natural disasters could impact logistics in ${node?.address || 'this location'}?"
             
-            5. SEARCH STRATEGY:
-               - Start with broad search: "[company/organization name] supply chain disruptions"
-               - Follow with location-specific search: "[location] logistics issues current"
-               - Add industry-specific search: "[industry] supply chain risks [current month/year]"
-               - Use searchQNA for specific questions about impacts
+            🔍 SEARCH SET C - Deep Intelligence (MANDATORY):
+            - Search for weather alerts and natural disasters in the region
+            - Search for economic indicators and market disruptions
+            - Search for regulatory changes affecting the industry
+            - If you find relevant URLs during searches, use extract tool for detailed analysis
             
-            YOU MUST use the search tools to gather real evidence before providing your answer. Your response MUST cite specific facts, figures, events, or developments discovered through your searches. Generic summaries without specific evidence are unacceptable.
+            ═══════════════════════════════════════════════
+            PHASE 3: EVIDENCE-BASED RISK ANALYSIS
+            ═══════════════════════════════════════════════
+            Based on your comprehensive searches, identify and analyze:
+            🎯 Current disruptions (last 7 days) with specific impacts
+            🎯 Emerging risks (next 30 days) with probability assessments
+            🎯 Historical patterns from memory data showing trends
+            🎯 Geographic threats (weather, natural disasters, infrastructure)
+            🎯 Industry-specific vulnerabilities and market conditions
+            🎯 Regulatory, political, and economic factors
+            🎯 Cross-reference findings across multiple sources for accuracy
             
-            IMPORTANT: When using storeIntelligence tool, always include a properly formatted marketIntelligence object with at least empty arrays for priceFluctuations, demandShifts, and competitorActivities. NEVER send null for marketIntelligence.
+            ═══════════════════════════════════════════════
+            PHASE 4: DATA STORAGE (MANDATORY)
+            ═══════════════════════════════════════════════
+            🔸 Call storeIntelligence with comprehensive structured data including:
+            - Risk score (0-100) based on evidence from your searches
+            - Critical events with severity levels and probability assessments
+            - Market intelligence with specific data points from research
+            - Risk factors with evidence-based probability calculations
+            - Mitigation suggestions derived from your analysis
+            
+            ⚠️ CRITICAL: The storeIntelligence tool is for data persistence ONLY. After calling it, you MUST continue with Phase 5.
+            
+            ═══════════════════════════════════════════════
+            PHASE 5: COMPREHENSIVE INTELLIGENCE REPORT
+            ═══════════════════════════════════════════════
+            
+            You MUST provide your final analysis in this EXACT format with ALL sections completed:
+            
+            # 🚨 Supply Chain Intelligence Report
+            
+            ## Executive Summary
+            [Write 2-3 sentences summarizing the most critical findings from your comprehensive research, including specific risk levels and key threats discovered]
+            
+            ## 📊 Current Risk Assessment
+            **Overall Risk Level:** [LOW/MEDIUM/HIGH/CRITICAL] (Risk Score: X/100)
+            **Confidence Level:** [X%] based on [number] verified sources from real-time research
+            **Assessment Date:** ${new Date().toISOString()}
+            
+            ## 🔍 Key Intelligence from Research
+            [List 5-7 specific findings with evidence from your web searches - include dates, sources, and specific data]
+            • **Critical Finding 1:** [Specific detail with source reference and date]
+            • **Critical Finding 2:** [Specific detail with source reference and date]
+            • **Critical Finding 3:** [Specific detail with source reference and date]
+            • **Critical Finding 4:** [Specific detail with source reference and date]
+            • **Critical Finding 5:** [Specific detail with source reference and date]
+            
+            ## ⚠️ Disruption Risk Matrix
+            
+            ### 🚨 Immediate Risks (0-7 days):
+            - [Specific risk with XX% probability and impact level - based on evidence]
+            - [Specific risk with XX% probability and impact level - based on evidence]
+            
+            ### ⏰ Short-term Risks (1-4 weeks):
+            - [Specific risk with XX% probability and impact level - based on evidence]
+            - [Specific risk with XX% probability and impact level - based on evidence]
+            
+            ### 📅 Medium-term Risks (1-3 months):
+            - [Specific risk with XX% probability and impact level - based on evidence]
+            - [Specific risk with XX% probability and impact level - based on evidence]
+            
+            ## 🛡️ Actionable Recommendations
+            
+            ### Priority 1 (Execute Immediately):
+            1. [Specific actionable recommendation based on your research]
+            2. [Specific actionable recommendation based on your research]
+            
+            ### Priority 2 (Execute within 1 week):
+            1. [Specific preventive measure based on identified risks]
+            2. [Specific monitoring protocol based on threats found]
+            
+            ### Priority 3 (Strategic - 1-3 months):
+            1. [Long-term mitigation strategy based on trend analysis]
+            2. [Resilience improvement based on vulnerability assessment]
+            
+            ## 📈 Market & Economic Intelligence
+            [Include specific price fluctuations, demand shifts, economic indicators, or competitor activities discovered in your research]
+            
+            ## 🌍 Geographic & Environmental Factors
+            [Detail location-specific threats, weather patterns, infrastructure status, and regional economic conditions found in your searches]
+            
+            ## 📚 Sources & Evidence Base
+            [List the key sources from your Tavily searches with credibility assessment and specific data extracted]
+            1. [Source 1 with URL if available and key data point]
+            2. [Source 2 with URL if available and key data point]
+            3. [Source 3 with URL if available and key data point]
+            
+            ## 🔄 Continuous Monitoring Protocol
+            **Key Indicators to Track:** [Specific metrics from your research]
+            **Update Frequency:** [Based on risk level and volatility found]
+            **Alert Thresholds:** [Specific trigger points for escalation]
+            **Next Review Date:** [Recommended next assessment timing]
+            
+            ---
+            *Intelligence Report Generated: ${new Date().toISOString()}*
+            *Sources: Real-time web research + Historical pattern analysis*
+            *Confidence: Evidence-based assessment with multiple source verification*
+            
+            ═══════════════════════════════════════════════
+            NON-NEGOTIABLE REQUIREMENTS:
+            ═══════════════════════════════════════════════
+            ✅ Your response MUST be based on actual web search results, not generic knowledge
+            ✅ ALWAYS cite specific facts, dates, numbers, company names, and sources from your searches
+            ✅ NEVER provide generic analysis without evidence from your tool calls
+            ✅ Use specific risk percentages and impact assessments based on evidence found
+            ✅ Include geographic and temporal specificity in all findings
+            ✅ Cross-reference multiple sources for accuracy and confidence scoring
+            ✅ Minimum 800 words in your final comprehensive response
+            ✅ Include at least 5 specific recent events or data points from searches
+            ✅ Reference specific dates, locations, companies, and quantitative data
+            ✅ The storeIntelligence tool stores data - your main response must be the full analysis
+            
+            ⛔ FORBIDDEN RESPONSES:
+            ⛔ "I have stored the gathered intelligence" (without full analysis)
+            ⛔ Generic risk assessments without specific evidence
+            ⛔ Responses without citing specific search results
+            ⛔ Analysis based solely on general knowledge
+            ⛔ Incomplete reports missing required sections
+            
+            BEGIN COMPREHENSIVE ANALYSIS NOW - Execute all phases in exact sequence and provide the complete formatted intelligence report.
           `,
-          maxSteps: 25,
-          temperature: 0.2
+          maxSteps: 50,
+          temperature: 0.05
         });
         
         // Return only the final answer without streaming intermediate steps
