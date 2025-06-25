@@ -1,10 +1,12 @@
 "use client"
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Send, Loader2, Sparkles, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AutocompleteInputProps } from './types';
+import { useAutoResizeTextarea } from '@/hooks/use-auto-resize-textarea';
+
 
 export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   input,
@@ -18,10 +20,33 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
 }) => {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const { textareaRef, adjustHeight } = useAutoResizeTextarea({ minHeight: 36, maxHeight: 150 });
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      adjustHeight();
+    }
+  }, [input, adjustHeight, textareaRef]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && e.shiftKey) {
+      setInput((typeof input === 'string' ? input : '') + '\n');
+      return;
+    }
+    
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (showAutocomplete && selectedIndex >= 0) {
+          onAutocompleteSelect(autocompleteSuggestions[selectedIndex]);
+        } else if (input && typeof input === 'string' && input.trim()) {
+          onSubmit(input);
+          setInput("");
+        }
+        return;
+    }
+
     if (!showAutocomplete) return;
 
     switch (e.key) {
@@ -32,15 +57,6 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
       case 'ArrowUp':
         e.preventDefault();
         setSelectedIndex(prev => Math.max(prev - 1, -1));
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (selectedIndex >= 0) {
-          onAutocompleteSelect(autocompleteSuggestions[selectedIndex]);
-        } else if (input && typeof input === 'string' && input.trim()) {
-          onSubmit(input);
-          setInput("");
-        }
         break;
       case 'Escape':
         setShowAutocomplete(false);
@@ -55,7 +71,7 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value || "";
     setInput(newValue);
     setSelectedIndex(-1);
@@ -76,12 +92,12 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
 
   return (
     <div className="p-2 border-t border-border bg-background">
-      <div className="relative">
+      <div className="flex flex-col-reverse gap-2">
         <form onSubmit={onSubmitForm} className="flex items-center gap-2">
           <div className="relative flex-1">
             <div className="border-input bg-background rounded-lg border p-1.5 shadow-xs">
-              <input
-                ref={inputRef}
+              <textarea
+                ref={textareaRef}
                 value={input}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
@@ -91,6 +107,7 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
                 onFocus={() => {
                   setShowAutocomplete(true);
                 }}
+                rows={1}
               />
             </div>
           </div>
@@ -109,8 +126,8 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
         </form>
 
         {/* Autocomplete Pills */}
-        {(autocompleteSuggestions.length > 0 || recentQueries.length > 0) && (
-          <div className="absolute bottom-full mb-2 w-full z-50 space-y-2">
+        {((showAutocomplete && autocompleteSuggestions.length > 0) || (!input && recentQueries.length > 0)) && (
+          <div className="w-full space-y-2">
             <div className="space-y-2">
               <div className="text-xs text-muted-foreground flex items-center gap-1 px-1">
                 <Sparkles className="h-3 w-3" />

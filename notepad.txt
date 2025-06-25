@@ -6,7 +6,8 @@
 6. back button issue in creation form 
 7. change view work flow to see how it works
 8. some time copilot is generatting same nodes  multiple times need to fix it 
-
+9. add custom instructuctions for the copilot kit
+10.problem in connecting nodes nodes not being connceted when it is in the end 
 
 //suman improvment list :
 1. scenario :

@@ -35,11 +35,24 @@ export interface AIChatPanelProps {
   edges?: Edge[];
   onAddNode?: (nodeType: string, label: string, enhancedData?: any) => void;
   onAddMultipleNodes?: (nodes: Partial<Node>[]) => void;
-  onAddEdges?: (edges: Partial<Edge>[]) => void;
+  onAddEdges?: (edges: Edge[]) => void;
   onLoadTemplate?: (templateId: string) => void;
   onClearCanvas?: () => void;
-  onUpdateNode?: (nodeId: string, updates: Partial<Node>) => void;
-  onUpdateEdge?: (edgeId: string, updates: Partial<Edge>) => void;
+  onUpdateNode?: (nodeId: string, updates: any) => void;
+  onUpdateEdge?: (edgeId: string, updates: any) => void;
+  onValidateSupplyChain?: () => void;
+  onUpdateMultipleNodes?: (nodeIds: string[], properties: object) => void;
+  onFindAndSelectNode?: (nodeId: string) => void;
+  onFindAndSelectEdges?: (edgeIds: string[]) => void;
+  onApplyLayout?: (layoutType: string) => void;
+  onHighlightNodes?: (nodeIds: string[]) => void;
+  onFocusNode?: (nodeId: string) => void;
+  onZoomToNodes?: (nodeIds: string[]) => void;
+  onGetNodeConnections?: (nodeId: string) => Edge[];
+  onAnalyzeNetworkPaths?: (sourceId: string, targetId: string) => void;
+  onBulkUpdateEdges?: (edgeIds: string[], properties: object) => void;
+  onCreateNodeGroup?: (nodeIds: string[], groupName: string) => void;
+  onExportSubgraph?: (nodeIds: string[]) => void;
 }
 
 export interface MessagesAreaProps {
