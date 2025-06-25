@@ -4,7 +4,7 @@ import { selectTemplate, getTemplateInfo, SupplyChainFormData } from '@/lib/temp
 import { ActionContext } from './types';
 
 export const useTemplateActions = ({ panelId, props }: ActionContext) => {
-  const { onAddMultipleNodes, onLoadTemplate } = props;
+  const { onAddMultipleNodes, onAddMultipleEdges, onLoadTemplate } = props;
 
   // Build industry specific supply chain
   useCopilotAction({
@@ -37,7 +37,7 @@ export const useTemplateActions = ({ panelId, props }: ActionContext) => {
       }
     ],
     handler: ({ industry, productCharacteristics = [], operationsLocation = ['regional'], supplierTiers = 'tier2' }) => {
-      if (onAddMultipleNodes) {
+      if (onAddMultipleNodes && onAddMultipleEdges) {
         // Create form data for template selection
         const formData: SupplyChainFormData = {
           industry,
@@ -54,8 +54,11 @@ export const useTemplateActions = ({ panelId, props }: ActionContext) => {
         const templateData = selectTemplate(formData);
         const templateInfo = getTemplateInfo(formData);
         
+        console.log("Template Data from buildIndustrySpecificSupplyChain:", JSON.stringify(templateData, null, 2));
+        
         onAddMultipleNodes(templateData.nodes);
-        toast.success(`Built ${templateInfo.templateName} with ${templateData.nodes.length} nodes. Reason: ${templateInfo.reason}`);
+        onAddMultipleEdges(templateData.edges);
+        toast.success(`Built ${templateInfo.templateName} with ${templateData.nodes.length} nodes and ${templateData.edges.length} edges. Reason: ${templateInfo.reason}`);
       }
     }
   });
@@ -95,6 +98,7 @@ export const useTemplateActions = ({ panelId, props }: ActionContext) => {
 
         const templateId = templateMap[templateName.toLowerCase()];
         if (templateId) {
+          console.log("Loading template with name:", templateName, "and mapped ID:", templateId);
           onLoadTemplate(templateId);
           toast.success(`Loaded ${templateName} supply chain template successfully!`);
         } else {

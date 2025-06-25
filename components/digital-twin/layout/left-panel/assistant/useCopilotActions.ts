@@ -23,11 +23,13 @@ interface UseCopilotActionsProps {
   edges: Edge[];
   onAddNode?: (nodeType: string, label: string, enhancedData?: any) => void;
   onAddMultipleNodes?: (nodes: Partial<Node>[]) => void;
+  onAddMultipleEdges?: (edges: Partial<Edge>[]) => void;
   onLoadTemplate?: (templateId: string) => void;
   onClearCanvas?: () => void;
   onValidateSupplyChain?: () => void;
   onUpdateNode?: (nodeId: string, properties: object) => void;
   onUpdateMultipleNodes?: (nodeIds: string[], properties: object) => void;
+  onUpdateNodePositions?: (nodePositions: { [nodeId: string]: { x: number; y: number } }) => void;
   onFindAndSelectNode?: (nodeId: string) => void;
   onUpdateEdge?: (edgeId: string, properties: object) => void;
   onFindAndSelectEdges?: (edgeIds: string[]) => void;

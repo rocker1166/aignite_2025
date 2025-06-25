@@ -520,10 +520,10 @@ export const useAdvancedRiskActions = ({ nodes, edges, panelId, props }: ActionC
         onUpdateMultipleNodes(impactAnalysis.affected, scenarioUpdates);
       }
 
-      toast.warning(
-        `${scenarioType} scenario (${intensity} intensity): ${impactAnalysis.affected.length} nodes affected ` +
-        `with ${impactAnalysis.severity} severity over ${duration} days.`
-      );
+      // toast.warning(
+      //   `${scenarioType} scenario (${intensity} intensity): ${impactAnalysis.affected.length} nodes affected ` +
+      //   `with ${impactAnalysis.severity} severity over ${duration} days.`
+      // );
 
       console.log('Scenario Simulation Results:', {
         scenario: scenarioType,

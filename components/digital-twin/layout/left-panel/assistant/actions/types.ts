@@ -18,6 +18,7 @@ export interface ActionContext {
     edges: Edge[];
     onAddNode?: (nodeType: string, label: string, enhancedData?: any) => void;
     onAddMultipleNodes?: (nodes: Partial<Node>[]) => void;
+    onAddMultipleEdges?: (edges: Partial<Edge>[]) => void;
     onLoadTemplate?: (templateId: string) => void;
     onClearCanvas?: () => void;
     onValidateSupplyChain?: () => void;

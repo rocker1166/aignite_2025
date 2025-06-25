@@ -1,81 +1,36 @@
-'use client';
+"use client"
 
-import { FC } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  AlertTriangle, 
-  XCircle, 
-  Info, 
-  Eye, 
-  Save, 
+import { type FC, useState } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import {
+  AlertTriangle,
+  XCircle,
+  Info,
+  Eye,
+  Save,
   X,
+  ChevronLeft,
   ChevronRight,
   Target,
   Link,
   Bot,
-  Sparkles
-} from 'lucide-react';
-import { ValidationIssue, getValidationSummary } from '@/lib/validation/supply-chain-validator';
+  Sparkles,
+} from "lucide-react"
+import { type ValidationIssue, getValidationSummary } from "@/lib/validation/supply-chain-validator"
 
 interface ValidationDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  issues: ValidationIssue[];
-  onFocusElement: (elementId: string, elementType: 'node' | 'edge') => void;
-  onSaveWithWarnings?: () => void;
-  onFixWithAI?: (issue: ValidationIssue) => void;
-  isLoading?: boolean;
+  isOpen: boolean
+  onClose: () => void
+  issues: ValidationIssue[]
+  onFocusElement: (elementId: string, elementType: "node" | "edge") => void
+  onSaveWithWarnings?: () => void
+  onFixWithAI?: (issue: ValidationIssue) => void
+  isLoading?: boolean
 }
 
-// Determine which issues can be fixed by AI based on the validation types
-const getFixableIssues = (issues: ValidationIssue[]): Set<string> => {
-  const fixableTypes = new Set([
-    'missing-country',
-    'missing-supplier-tier',
-    'missing-supply-capacity',
-    'missing-lead-time',
-    'missing-location',
-    'incomplete-node-data',
-    'missing-edge-data',
-    'invalid-capacity',
-    'invalid-coordinates',
-    'duplicate-connections',
-    'orphaned-nodes',
-    'missing-supplier-info',
-    'incomplete-logistics-data'
-  ]);
-
-  return new Set(
-    issues
-      .filter(issue => {
-        // Check if the issue message indicates it's fixable
-        const issueKey = issue.message.toLowerCase().replace(/\s+/g, '-');
-        const messageText = issue.message.toLowerCase();
-        
-        return fixableTypes.has(issueKey) || 
-               messageText.includes('missing') ||
-               messageText.includes('incomplete') ||
-               messageText.includes('invalid') ||
-               (issue.elementType !== 'graph' && ( // Graph-level issues are usually not directly fixable
-                 messageText.includes('country') ||
-                 messageText.includes('tier') ||
-                 messageText.includes('capacity') ||
-                 messageText.includes('lead time') ||
-                 messageText.includes('location') ||
-                 messageText.includes('coordinates') ||
-                 messageText.includes('supplier')
-               ));
-      })
-      .map(issue => issue.id)
-  );
-};
-
-// Generate AI prompt for fixing specific issue types
 const generateAIFixPrompt = (issue: ValidationIssue): string => {
   const elementInfo = issue.elementType !== 'graph' 
     ? `for ${issue.elementType} "${issue.elementId}"` 
@@ -114,6 +69,50 @@ const generateAIFixPrompt = (issue: ValidationIssue): string => {
   }
 };
 
+
+// Determine which issues can be fixed by AI based on the validation types
+const getFixableIssues = (issues: ValidationIssue[]): Set<string> => {
+  const fixableTypes = new Set([
+    "missing-country",
+    "missing-supplier-tier",
+    "missing-supply-capacity",
+    "missing-lead-time",
+    "missing-location",
+    "incomplete-node-data",
+    "missing-edge-data",
+    "invalid-capacity",
+    "invalid-coordinates",
+    "duplicate-connections",
+    "orphaned-nodes",
+    "missing-supplier-info",
+    "incomplete-logistics-data",
+  ])
+
+  return new Set(
+    issues
+      .filter((issue) => {
+        const issueKey = issue.message.toLowerCase().replace(/\s+/g, "-")
+        const messageText = issue.message.toLowerCase()
+
+        return (
+          fixableTypes.has(issueKey) ||
+          messageText.includes("missing") ||
+          messageText.includes("incomplete") ||
+          messageText.includes("invalid") ||
+          (issue.elementType !== "graph" &&
+            (messageText.includes("country") ||
+              messageText.includes("tier") ||
+              messageText.includes("capacity") ||
+              messageText.includes("lead time") ||
+              messageText.includes("location") ||
+              messageText.includes("coordinates") ||
+              messageText.includes("supplier")))
+        )
+      })
+      .map((issue) => issue.id),
+  )
+}
+
 const ValidationDialog: FC<ValidationDialogProps> = ({
   isOpen,
   onClose,
@@ -121,73 +120,84 @@ const ValidationDialog: FC<ValidationDialogProps> = ({
   onFocusElement,
   onSaveWithWarnings,
   onFixWithAI,
-  isLoading = false
+  isLoading = false,
 }) => {
-  const summary = getValidationSummary(issues);
-  const errors = issues.filter(issue => issue.severity === 'error');
-  const warnings = issues.filter(issue => issue.severity === 'warning');
-  const fixableIssueIds = getFixableIssues(issues);
+  const [currentPage, setCurrentPage] = useState(0)
+  const itemsPerPage = 3
 
-  const getSeverityIcon = (severity: 'error' | 'warning') => {
-    return severity === 'error' ? (
+  const summary = getValidationSummary(issues)
+  const errors = issues.filter((issue) => issue.severity === "error")
+  const warnings = issues.filter((issue) => issue.severity === "warning")
+  const fixableIssueIds = getFixableIssues(issues)
+
+  // Paginate issues
+  const totalPages = Math.ceil(issues.length / itemsPerPage)
+  const currentIssues = issues.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
+
+  const getSeverityIcon = (severity: "error" | "warning") => {
+    return severity === "error" ? (
       <XCircle className="h-4 w-4 text-red-500" />
     ) : (
       <AlertTriangle className="h-4 w-4 text-amber-500" />
-    );
-  };
+    )
+  }
 
-  const getSeverityColor = (severity: 'error' | 'warning') => {
-    return severity === 'error' 
-      ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
-      : 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800';
-  };
+  const getSeverityColor = (severity: "error" | "warning") => {
+    return severity === "error"
+      ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800"
+      : "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800"
+  }
 
   const getElementTypeIcon = (elementType: string) => {
     switch (elementType) {
-      case 'node':
-        return <Target className="h-4 w-4" />;
-      case 'edge':
-        return <Link className="h-4 w-4" />;
+      case "node":
+        return <Target className="h-4 w-4" />
+      case "edge":
+        return <Link className="h-4 w-4" />
       default:
-        return <Info className="h-4 w-4" />;
+        return <Info className="h-4 w-4" />
     }
-  };
+  }
 
   const handleFocusElement = (issue: ValidationIssue) => {
-    if (issue.elementType !== 'graph') {
-      onFocusElement(issue.elementId, issue.elementType as 'node' | 'edge');
+    if (issue.elementType !== "graph") {
+      onFocusElement(issue.elementId, issue.elementType as "node" | "edge")
     }
-  };
+  }
 
   const handleFixWithAI = (issue: ValidationIssue) => {
     if (onFixWithAI) {
-      onFixWithAI(issue);
+      onFixWithAI(issue)
     }
-  };
+  }
+
+  const handlePrevPage = () => {
+    setCurrentPage((prev) => Math.max(0, prev - 1))
+  }
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))
+  }
 
   const IssueCard = ({ issue }: { issue: ValidationIssue }) => {
-    const isFixable = fixableIssueIds.has(issue.id);
-    
+    const isFixable = fixableIssueIds.has(issue.id)
+
     return (
-      <div 
-        className={`p-4 rounded-lg border ${getSeverityColor(issue.severity)} transition-all duration-200 hover:shadow-sm`}
+      <div
+        className={`p-3 rounded-lg border ${getSeverityColor(issue.severity)} transition-all duration-200 hover:shadow-sm`}
       >
-        <div className="flex items-start gap-3">
-          {/* Severity Icon */}
-          <div className="flex-shrink-0 mt-0.5">
-            {getSeverityIcon(issue.severity)}
-          </div>
-          
-          {/* Content */}
+        <div className="flex items-start gap-2">
+          <div className="flex-shrink-0 mt-0.5">{getSeverityIcon(issue.severity)}</div>
+
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <Badge variant="outline" className="text-xs">
                 {getElementTypeIcon(issue.elementType)}
                 <span className="ml-1 capitalize">{issue.elementType}</span>
               </Badge>
-              
+
               <div className="flex gap-1">
-                {issue.elementType !== 'graph' && (
+                {issue.elementType !== "graph" && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -198,7 +208,7 @@ const ValidationDialog: FC<ValidationDialogProps> = ({
                     Focus
                   </Button>
                 )}
-                
+
                 {isFixable && onFixWithAI && (
                   <Button
                     variant="ghost"
@@ -212,17 +222,13 @@ const ValidationDialog: FC<ValidationDialogProps> = ({
                 )}
               </div>
             </div>
-            
-            <h4 className="font-medium text-sm text-foreground mb-1">
-              {issue.message}
-            </h4>
-            
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              {issue.suggestion}
-            </p>
+
+            <h4 className="font-medium text-sm text-foreground mb-0.5">{issue.message}</h4>
+
+            <p className="text-xs text-muted-foreground leading-relaxed">{issue.suggestion}</p>
 
             {isFixable && (
-              <div className="mt-2 flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
+              <div className="mt-1.5 flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
                 <Sparkles className="h-3 w-3" />
                 <span>AI can help fix this issue automatically</span>
               </div>
@@ -230,33 +236,41 @@ const ValidationDialog: FC<ValidationDialogProps> = ({
           </div>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] p-0">
-        <DialogHeader className="p-6 pb-4">
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <AlertTriangle className="h-5 w-5 text-amber-500" />
-            Supply Chain Validation
+      <DialogContent className="max-w-2xl h-[80vh] p-0 flex flex-col">
+        <DialogHeader className="p-4 pb-2">
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            Supply Chain Health Check
           </DialogTitle>
         </DialogHeader>
 
         {/* Summary Section */}
-        <div className="px-6">
-          <div className={`grid grid-cols-1 ${fixableIssueIds.size > 0 && onFixWithAI ? 'lg:grid-cols-2' : ''} gap-3 items-start`}>
-            <Alert className={summary.errors > 0 ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20' : 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20'}>
+        <div className="px-4">
+          <div
+            className={`grid grid-cols-1 ${fixableIssueIds.size > 0 && onFixWithAI ? "lg:grid-cols-2" : ""} gap-3 items-start`}
+          >
+            <Alert
+              className={`p-3 ${
+                summary.errors > 0
+                  ? "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20"
+                  : "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20"
+              }`}
+            >
               <AlertDescription className="text-sm">
                 {summary.errors > 0 ? (
                   <>
-                    <strong>Cannot save:</strong> Found {summary.errors} error{summary.errors !== 1 ? 's' : ''}{' '}
-                    {summary.warnings > 0 && `and ${summary.warnings} warning${summary.warnings !== 1 ? 's' : ''} `}
+                    <strong>Cannot save:</strong> Found {summary.errors} error{summary.errors !== 1 ? "s" : ""}{" "}
+                    {summary.warnings > 0 && `and ${summary.warnings} warning${summary.warnings !== 1 ? "s" : ""} `}
                     that need to be addressed.
                   </>
                 ) : summary.warnings > 0 ? (
                   <>
-                    <strong>Ready to save:</strong> Found {summary.warnings} warning{summary.warnings !== 1 ? 's' : ''}{' '}
+                    <strong>Ready to save:</strong> Found {summary.warnings} warning{summary.warnings !== 1 ? "s" : ""}{" "}
                     that you may want to review, but saving is allowed.
                   </>
                 ) : (
@@ -267,105 +281,128 @@ const ValidationDialog: FC<ValidationDialogProps> = ({
               </AlertDescription>
             </Alert>
 
-            {/* AI Fix Info */}
             {fixableIssueIds.size > 0 && onFixWithAI && (
-              <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg h-full">
+              <div className="p-2 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                 <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-400">
                   <Bot className="h-4 w-4" />
                   <span className="font-medium">AI Assistant Available</span>
                 </div>
                 <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                  {fixableIssueIds.size} issue{fixableIssueIds.size !== 1 ? 's' : ''} can be automatically fixed with AI assistance.
+                  {fixableIssueIds.size} issue{fixableIssueIds.size !== 1 ? "s" : ""} can be automatically fixed with AI
+                  assistance.
                 </p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Issues List */}
+        {/* Issues Section with Pagination */}
         {issues.length > 0 && (
-          <div className="px-6 pb-2 flex-1 min-h-0 pt-4">
-            <ScrollArea className="h-full max-h-[400px]">
-              <div className="space-y-6 pr-4 pb-4">
-                {/* Errors Section */}
-                {errors.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <XCircle className="h-4 w-4 text-red-500" />
-                      <h3 className="font-semibold text-sm text-red-700 dark:text-red-400">
-                        Errors ({errors.length})
-                      </h3>
-                      <span className="text-xs text-muted-foreground">
-                        Must be fixed before saving
-                      </span>
-                    </div>
-                    <div className="space-y-3">
-                      {errors.map((issue) => (
-                        <IssueCard key={issue.id} issue={issue} />
-                      ))}
-                    </div>
-                  </div>
+          <div className="px-6 py-1 flex-1 flex flex-col min-h-0">
+            {/* Issue Type Header */}
+            <div className="flex items-center justify-between mb-2 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                {errors.length > 0 && currentIssues.some((issue) => issue.severity === "error") && (
+                  <>
+                    <XCircle className="h-4 w-4 text-red-500" />
+                    <h3 className="font-semibold text-sm text-red-700 dark:text-red-400">Errors ({errors.length})</h3>
+                  </>
                 )}
-
-                {/* Separator between errors and warnings */}
-                {errors.length > 0 && warnings.length > 0 && (
-                  <Separator className="my-4" />
-                )}
-
-                {/* Warnings Section */}
-                {warnings.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-3">
+                {warnings.length > 0 &&
+                  currentIssues.some((issue) => issue.severity === "warning") &&
+                  !currentIssues.some((issue) => issue.severity === "error") && (
+                    <>
                       <AlertTriangle className="h-4 w-4 text-amber-500" />
                       <h3 className="font-semibold text-sm text-amber-700 dark:text-amber-400">
                         Warnings ({warnings.length})
                       </h3>
-                      <span className="text-xs text-muted-foreground">
-                        Recommendations for improvement
-                      </span>
-                    </div>
-                    <div className="space-y-3">
-                      {warnings.map((issue) => (
-                        <IssueCard key={issue.id} issue={issue} />
-                      ))}
-                    </div>
-                  </div>
-                )}
+                    </>
+                  )}
               </div>
-            </ScrollArea>
+
+              {/* Pagination Info */}
+              {totalPages > 1 && (
+                <div className="text-xs text-muted-foreground">
+                  Showing {currentPage * itemsPerPage + 1}-{Math.min((currentPage + 1) * itemsPerPage, issues.length)}{" "}
+                  of {issues.length}
+                </div>
+              )}
+            </div>
+
+            {/* Current Issues */}
+            <div className="space-y-3 flex-1 overflow-y-auto">
+              {currentIssues.map((issue) => (
+                <IssueCard key={issue.id} issue={issue} />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-4 pt-2 border-t border-border flex-shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 0}
+                  className="h-8"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </Button>
+
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <Button
+                      key={i}
+                      variant={currentPage === i ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(i)}
+                      className="h-8 w-8 p-0"
+                    >
+                      {i + 1}
+                    </Button>
+                  ))}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages - 1}
+                  className="h-8"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
         {/* Footer */}
-        <DialogFooter className="p-6 pt-4 border-t border-border">
-          <div className="flex items-center justify-between w-full">
-            <div className="text-xs text-muted-foreground">
-              Click "Focus" to navigate to elements or "Fix with AI" for automatic fixes
-            </div>
-            
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={onClose}>
-                <X className="h-4 w-4 mr-1" />
-                Close
+        <DialogFooter className="p-6 pt-4 border-t border-border flex flex-row justify-between items-center flex-shrink-0">
+          <p className="text-xs text-muted-foreground hidden md:block">
+            Click "Focus" to navigate to elements or "Fix with AI" for automatic fixes
+          </p>
+
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose}>
+              <X className="h-4 w-4 mr-1" />
+              Close
+            </Button>
+
+            {summary.canSave && (
+              <Button onClick={onSaveWithWarnings} disabled={isLoading} className="bg-green-600 hover:bg-green-700">
+                <Save className="h-4 w-4 mr-1" />
+                {isLoading ? "Saving..." : "Save Supply Chain"}
               </Button>
-              
-              {summary.canSave && (
-                <Button 
-                  onClick={onSaveWithWarnings}
-                  disabled={isLoading}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <Save className="h-4 w-4 mr-1" />
-                  {isLoading ? 'Saving...' : 'Save Supply Chain'}
-                </Button>
-              )}
-            </div>
+            )}
           </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}
 
 export { generateAIFixPrompt };
-export default ValidationDialog; 
+export default ValidationDialog;

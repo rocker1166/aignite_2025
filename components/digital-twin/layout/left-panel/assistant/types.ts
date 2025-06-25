@@ -35,6 +35,7 @@ export interface AIChatPanelProps {
   edges?: Edge[];
   onAddNode?: (nodeType: string, label: string, enhancedData?: any) => void;
   onAddMultipleNodes?: (nodes: Partial<Node>[]) => void;
+  onAddMultipleEdges?: (edges: Partial<Edge>[]) => void;
   onAddEdges?: (edges: Edge[]) => void;
   onLoadTemplate?: (templateId: string) => void;
   onClearCanvas?: () => void;
@@ -42,6 +43,7 @@ export interface AIChatPanelProps {
   onUpdateEdge?: (edgeId: string, updates: any) => void;
   onValidateSupplyChain?: () => void;
   onUpdateMultipleNodes?: (nodeIds: string[], properties: object) => void;
+  onUpdateNodePositions?: (nodePositions: { [nodeId: string]: { x: number; y: number } }) => void;
   onFindAndSelectNode?: (nodeId: string) => void;
   onFindAndSelectEdges?: (edgeIds: string[]) => void;
 
