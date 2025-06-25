@@ -104,7 +104,7 @@ export const useNodeActions = ({ nodes, panelId, props }: ActionContext) => {
         // Create the node with the generated data - use nodeType directly
         onAddNode(nodeType, label, nodeData);
         
-        toast.success(`✅ Added ${label} (${nodeType}) to your supply chain canvas.`);
+        toast.success(`Added ${label} (${nodeType}) to your supply chain canvas.`);
       }
     }
   });

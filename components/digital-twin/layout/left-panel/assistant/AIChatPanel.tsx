@@ -36,7 +36,6 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
   onUpdateMultipleNodes,
   onFindAndSelectNode,
   onFindAndSelectEdges,
-  onApplyLayout,
   onHighlightNodes,
   onFocusNode,
   onZoomToNodes,
@@ -154,7 +153,7 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
         // Check if this is a CopilotKit API request
         const url = args[0] as string;
         if (url.includes('/api/copilotkit') || url.includes('copilot')) {
-          console.log('🔍 Intercepted CopilotKit request:', url);
+          // console.log('🔍 Intercepted CopilotKit request:', url);
           
           // Clone response to read it without consuming the original
           const responseClone = response.clone();
@@ -217,7 +216,6 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
     onUpdateMultipleNodes,
     onFindAndSelectNode,
     onFindAndSelectEdges,
-    onApplyLayout,
     onHighlightNodes,
     onFocusNode,
     onZoomToNodes,

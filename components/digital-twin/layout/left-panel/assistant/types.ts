@@ -44,7 +44,7 @@ export interface AIChatPanelProps {
   onUpdateMultipleNodes?: (nodeIds: string[], properties: object) => void;
   onFindAndSelectNode?: (nodeId: string) => void;
   onFindAndSelectEdges?: (edgeIds: string[]) => void;
-  onApplyLayout?: (layoutType: string) => void;
+
   onHighlightNodes?: (nodeIds: string[]) => void;
   onFocusNode?: (nodeId: string) => void;
   onZoomToNodes?: (nodeIds: string[]) => void;

@@ -267,6 +267,11 @@ export const MemoizedMarkdown = memo(
       }
     }, [content]);
 
+    // Handle empty or invalid content gracefully
+    if (!content && content !== '') {
+      return null;
+    }
+
     return (
       <MarkdownErrorBoundary 
         fallback={

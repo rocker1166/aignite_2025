@@ -31,7 +31,7 @@ interface UseCopilotActionsProps {
   onFindAndSelectNode?: (nodeId: string) => void;
   onUpdateEdge?: (edgeId: string, properties: object) => void;
   onFindAndSelectEdges?: (edgeIds: string[]) => void;
-  onApplyLayout?: (layoutType: string) => void;
+
   onHighlightNodes?: (nodeIds: string[]) => void;
   // Additional handlers for advanced actions
   onFocusNode?: (nodeId: string) => void;

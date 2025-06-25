@@ -1,11 +1,6 @@
 import { Node, Edge } from 'reactflow';
 
-export interface LayoutConfiguration {
-  algorithm: 'dagre' | 'elk' | 'hierarchical' | 'force';
-  direction: 'TB' | 'BT' | 'LR' | 'RL';
-  spacing: { node: number; rank: number; };
-  animation?: boolean;
-}
+
 
 export interface RiskAnalysisConfig {
   factors: string[];
@@ -28,10 +23,11 @@ export interface ActionContext {
     onValidateSupplyChain?: () => void;
     onUpdateNode?: (nodeId: string, properties: object) => void;
     onUpdateMultipleNodes?: (nodeIds: string[], properties: object) => void;
+    onUpdateNodePositions?: (nodePositions: { [nodeId: string]: { x: number; y: number } }) => void;
     onFindAndSelectNode?: (nodeId: string) => void;
     onUpdateEdge?: (edgeId: string, properties: object) => void;
     onFindAndSelectEdges?: (edgeIds: string[]) => void;
-    onApplyLayout?: (layoutType: string) => void;
+
     onHighlightNodes?: (nodeIds: string[]) => void;
     onFocusNode?: (nodeId: string) => void;
     onZoomToNodes?: (nodeIds: string[]) => void;

@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme"
 import SessionProvider from "@/lib/context/SessionProvider";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/sonner"
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Poppins } from 'next/font/google'
 import { CopilotKit } from "@copilotkit/react-core"; 
@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <CopilotKit runtimeUrl="/api/copilotkit"> 
             {children}
             </CopilotKit>
-            <Toaster position="top-right" />
+            <Toaster position="top-right" richColors />
             <SessionProvider />
           </ThemeProvider>
         </NuqsAdapter>
