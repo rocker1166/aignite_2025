@@ -13,6 +13,7 @@
 13. find and select not working 
 14 . fix input box  not clearing but
 15. add small url functionalitu 
+16 . implement view of digital twin 
 
 //suman improvment list :
 1. scenario :
