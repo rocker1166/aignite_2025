@@ -1,6 +1,15 @@
 import { useCopilotAction } from "@copilotkit/react-core";
 import { toast } from "sonner";
 import { ActionContext } from './types';
+import { useSupplierActions } from './node-actions/supplier-actions';
+import { useManufacturerActions } from './node-actions/manufacturer-actions';
+import { useFactoryActions } from './node-actions/factory-actions';
+import { useWarehouseActions } from './node-actions/warehouse-actions';
+import { useDistributorActions } from './node-actions/distributor-actions';
+import { useRetailerActions } from './node-actions/retailer-actions';
+import { useCustomerActions } from './node-actions/customer-actions';
+import { useThirdPartyLogisticsActions } from './node-actions/3pl-actions';
+import { usePortActions } from './node-actions/port-actions';
 
 type NodeDataWithLocation = {
   label: string;
@@ -8,105 +17,19 @@ type NodeDataWithLocation = {
   [key: string]: any;
 };
 
-export const useNodeActions = ({ nodes, panelId, props }: ActionContext) => {
-  const { onAddNode, onUpdateNode, onUpdateMultipleNodes, onFindAndSelectNode } = props;
-  // console.log("onUpdateNode",onUpdateNode , "onAddNode",onAddNode, "onUpdateMultipleNodes",onUpdateMultipleNodes, "onFindAndSelectNode",onFindAndSelectNode)
-
-  // Add single node action with copilot-generated properties
-  useCopilotAction({
-    name: `addSupplyChainNode_${panelId}`,
-    description: "Add a single node to the supply chain canvas. Generate appropriate values for all properties based on the node type and label.",
-    parameters: [
-      {
-        name: "nodeType",
-        type: "string",
-        description: "Type of node to add (supplier, manufacturer, factory, warehouse, distributor, distribution, retailer, customer, 3pl, port)",
-        required: true
-      },
-      {
-        name: "label",
-        type: "string", 
-        description: "Display name/label for the node",
-        required: true
-      },
-      {
-        name: "description",
-        type: "string",
-        description: "Detailed description of what this node does in the supply chain. Should be specific to the node type and label provided.",
-        required: true
-      },
-      {
-        name: "address",
-        type: "string",
-        description: "Physical location/address (e.g., 'California, USA', 'Shanghai, China', 'Texas, USA'). Choose realistic locations based on the node type and label.",
-        required: true
-      },
-      {
-        name: "country",
-        type: "string",
-        description: "The 3-letter ISO 3166-1 alpha-3 code for the country of the address (e.g., USA, CHN). This should match the address.",
-        required: true
-      },
-      {
-        name: "capacity",
-        type: "number",
-        description: "Production or storage capacity. Typical ranges: Suppliers (1000-2000), Factories (500-1000), Warehouses (1500-3000), Distributors (800-1500), Retailers (200-500), Ports (3000-5000)",
-        required: true
-      },
-      {
-        name: "leadTime",
-        type: "number",
-        description: "Lead time in days. Typical ranges: Suppliers (10-21), Factories (7-14), Warehouses (2-5), Distributors (3-7), Retailers (1-3), Ports (5-10)",
-        required: true
-      },
-      {
-        name: "riskScore",
-        type: "number",
-        description: "Risk assessment score between 0.1 and 0.9. Lower is better. Consider factors like location, node type, and geopolitical stability.",
-        required: true
-      },
-      {
-        name: "nodeColor",
-        type: "string",
-        description: "Hex color code for the node. Use distinct colors: Suppliers (#3B82F6 blue), Factories (#EF4444 red), Warehouses (#F59E0B orange), Distributors (#10B981 green), Retailers (#8B5CF6 purple), Ports (#06B6D4 cyan)",
-        required: true
-      },
-      {
-        name: "latitude",
-        type: "number",
-        description: "Latitude coordinate for the location. Should match the provided address.",
-        required: true
-      },
-      {
-        name: "longitude",
-        type: "number",
-        description: "Longitude coordinate for the location. Should match the provided address.",
-        required: true
-      }
-    ],
-    handler: ({ nodeType, label, description, address, capacity, leadTime, riskScore, nodeColor, latitude, longitude, country }) => {
-      if (onAddNode) {
-        // Create node data object
-        const nodeData = {
-          label,
-          description,
-          type: nodeType,
-          capacity,
-          leadTime,
-          riskScore,
-          location: { lat: latitude, lng: longitude, country },
-          address,
-          nodeColor
-        };
-
-        console.log("🔍 Node Data:", nodeData); 
-        
-        // Create the node with the generated data - use nodeType directly
-        onAddNode(nodeType, label, nodeData);
-        
-      }
-    }
-  });
+export const useNodeActions = ({ nodes, edges, panelId, props }: ActionContext) => {
+  const { onAddNode, onUpdateNode, onUpdateMultipleNodes, onFindAndSelectNode, onAddMultipleEdges } = props;
+  
+  // Initialize all node-specific actions
+  useSupplierActions({ panelId, props });
+  useManufacturerActions({ panelId, props });
+  useFactoryActions({ panelId, props });
+  useWarehouseActions({ panelId, props });
+  useDistributorActions({ panelId, props });
+  useRetailerActions({ panelId, props });
+  useCustomerActions({ panelId, props });
+  useThirdPartyLogisticsActions({ panelId, props });
+  usePortActions({ panelId, props });
 
   // Update single node properties
   useCopilotAction({
@@ -256,4 +179,172 @@ export const useNodeActions = ({ nodes, panelId, props }: ActionContext) => {
       }
     },
   });
-}; 
+
+  // Connect two nodes by creating an edge
+  useCopilotAction({
+    name: `connectNodes_${panelId}`,
+    description: "Connect two nodes by creating a new edge/connection between them. This creates a transportation route or supply flow between the nodes.",
+    parameters: [
+      {
+        name: "sourceNodeId",
+        type: "string",
+        description: "The ID of the source node (where the connection starts from)",
+        required: false
+      },
+      {
+        name: "targetNodeId", 
+        type: "string",
+        description: "The ID of the target node (where the connection goes to)",
+        required: false
+      },
+      {
+        name: "sourceNodeLabel",
+        type: "string",
+        description: "The label of the source node (alternative to sourceNodeId)",
+        required: false
+      },
+      {
+        name: "targetNodeLabel",
+        type: "string", 
+        description: "The label of the target node (alternative to targetNodeId)",
+        required: false
+      },
+      {
+        name: "mode",
+        type: "string",
+        description: "Transportation mode for the connection (road, sea, air, rail). Default is 'road'",
+        required: false
+      },
+      {
+        name: "cost",
+        type: "number",
+        description: "Transportation cost for this route. Generate realistic values based on distance and mode",
+        required: false
+      },
+      {
+        name: "transitTime",
+        type: "number", 
+        description: "Transit time in days for this route. Generate realistic values based on distance and mode",
+        required: false
+      },
+      {
+        name: "riskMultiplier",
+        type: "number",
+        description: "Risk multiplier for this route (1.0 = normal risk, higher = more risky). Default is 1.0",
+        required: false
+      }
+    ],
+    handler: ({ sourceNodeId, targetNodeId, sourceNodeLabel, targetNodeLabel, mode = "road", cost, transitTime, riskMultiplier = 1.0 }) => {
+      if (!onAddMultipleEdges) {
+        toast.error("Edge creation is not available.");
+        return;
+      }
+
+      // Find source node
+      let sourceNode = null;
+      if (sourceNodeId) {
+        sourceNode = nodes.find(n => n.id === sourceNodeId);
+      } else if (sourceNodeLabel) {
+        sourceNode = nodes.find(n => n.data?.label?.toLowerCase() === sourceNodeLabel.toLowerCase());
+      }
+
+      // Find target node  
+      let targetNode = null;
+      if (targetNodeId) {
+        targetNode = nodes.find(n => n.id === targetNodeId);
+      } else if (targetNodeLabel) {
+        targetNode = nodes.find(n => n.data?.label?.toLowerCase() === targetNodeLabel.toLowerCase());
+      }
+
+      // Validate nodes exist
+      if (!sourceNode) {
+        toast.error(`Source node not found. Please provide a valid sourceNodeId or sourceNodeLabel.`);
+        return;
+      }
+
+      if (!targetNode) {
+        toast.error(`Target node not found. Please provide a valid targetNodeId or targetNodeLabel.`);
+        return;
+      }
+
+      // Check if connection already exists
+      const existingConnection = nodes.find(edge => 
+        (edge as any).source === sourceNode!.id && (edge as any).target === targetNode!.id
+      );
+
+      if (existingConnection) {
+        toast.warning(`A connection already exists between "${sourceNode.data?.label}" and "${targetNode.data?.label}".`);
+        return;
+      }
+
+      // Generate realistic values if not provided
+      const finalCost = cost || generateRealisticCost(mode, sourceNode, targetNode);
+      const finalTransitTime = transitTime || generateRealisticTransitTime(mode, sourceNode, targetNode);
+
+      // Create new edge
+      const newEdge = {
+        id: `edge-${sourceNode.id}-${targetNode.id}-${Date.now()}`,
+        source: sourceNode.id,
+        target: targetNode.id,
+        type: 'customEdge',
+        data: {
+          mode,
+          cost: finalCost,
+          transitTime: finalTransitTime,
+          riskMultiplier,
+          label: `${sourceNode.data?.label} → ${targetNode.data?.label}`,
+          // Additional default properties
+          avgDelayDays: mode === 'sea' ? 2 : mode === 'air' ? 0.5 : 1,
+          frequencyOfDisruptions: riskMultiplier > 1.5 ? 3 : riskMultiplier > 1.2 ? 2 : 1,
+          hasAltRoute: false,
+          passesThroughChokepoint: mode === 'sea' ? true : false
+        }
+      };
+
+      // Add the edge
+      onAddMultipleEdges([newEdge]);
+      toast.success(`Connected "${sourceNode.data?.label}" to "${targetNode.data?.label}" via ${mode}.`);
+    }
+  });
+};
+
+// Helper functions to generate realistic values
+function generateRealisticCost(mode: string, sourceNode: any, targetNode: any): number {
+  const baseCosts = {
+    road: 500,
+    sea: 1200, 
+    air: 2500,
+    rail: 800
+  };
+  
+  const baseCost = baseCosts[mode as keyof typeof baseCosts] || baseCosts.road;
+  
+  // Add some randomness and factor in risk
+  const sourceRisk = sourceNode.data?.riskScore || 0.5;
+  const targetRisk = targetNode.data?.riskScore || 0.5;
+  const riskFactor = 1 + (sourceRisk + targetRisk) * 0.3;
+  
+  return Math.round(baseCost * riskFactor * (0.8 + Math.random() * 0.4));
+}
+
+function generateRealisticTransitTime(mode: string, sourceNode: any, targetNode: any): number {
+  const baseTimes = {
+    road: 3,
+    sea: 14,
+    air: 1, 
+    rail: 5
+  };
+  
+  const baseTime = baseTimes[mode as keyof typeof baseTimes] || baseTimes.road;
+  
+  // Factor in locations if available
+  const sourceCountry = sourceNode.data?.location?.country || sourceNode.data?.country;
+  const targetCountry = targetNode.data?.location?.country || targetNode.data?.country;
+  
+  let distanceFactor = 1;
+  if (sourceCountry && targetCountry && sourceCountry !== targetCountry) {
+    distanceFactor = 1.5; // International routes take longer
+  }
+  
+  return Math.round(baseTime * distanceFactor * (0.7 + Math.random() * 0.6));
+} 

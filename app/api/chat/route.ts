@@ -1,34 +1,92 @@
 import { google } from "@ai-sdk/google"
-import { streamText } from "ai"
+import { generateObject } from "ai"
 import { NextResponse } from "next/server"
+import { z } from "zod"
 
-// Allow streaming responses up to 30 seconds
+// Allow processing up to 30 seconds
 export const maxDuration = 30
 
-const SUPPLY_CHAIN_AGENT_SYSTEM_PROMPT = `
-You are Inteli a domain-specific AI agent focused exclusively on supply chain management and resilience planning.
+// Zod schema for supply chain suggestions
+const SupplyChainSuggestionSchema = z.object({
+  suggestions: z.array(
+    z.object({
+      id: z.string().describe("Unique identifier for the suggestion"),
+      title: z.string()
+        .min(1)
+        .max(50)
+        .transform(val => {
+          // Automatically truncate to 3 words if longer
+          const words = val.trim().split(/\s+/);
+          return words.length > 3 ? words.slice(0, 3).join(' ') : val;
+        })
+        .describe("Brief title of the suggestion (max 3 words)"),
+      description: z.string().describe("Detailed description of the suggestion that explains the supply chain context, current situation analysis, potential impact, and reasoning behind the recommendation. Should include relevant supply chain metrics, risk factors, and operational implications where applicable."),
+      action: z.string().describe("Specific action to take"),
+      confidence: z.number().min(0).max(100).describe("Confidence score from 0-100"),
+      category: z.enum(["optimization", "risk", "efficiency", "cost", "planning"]).describe("Category of the suggestion")
+    })
+  )
+})
 
-Your purpose is to help businesses:
-- Analyze supply chain disruptions
-- Recommend mitigation and continuity strategies
-- Optimize logistics, inventory, and node resilience
-- Interpret simulation outputs (e.g. Monte Carlo runs, failure cascades)
-- Plan for operational risks including geopolitical, climate, and supplier issues
+const SUPPLY_CHAIN_SUGGESTION_SYSTEM_PROMPT = `
+You are an AI suggestion generator for supply chain management and optimization.
 
-Strict Rules:
-1. Do NOT answer queries unrelated to supply chain topics. Respond with:
-   "I'm a supply chain resilience agent. Please ask something within that domain."
-2. Be concise, data-driven, and strategy-focused. Use industry terms (e.g. lead time, buffer %, throughput, disruption index).
-3. Prefer structured formats (e.g., bullet points, strategy cards, or tables) when possible.
-4. Reference relevant resilience metrics: cost impact, recovery time, risk score, inventory days of coverage, etc.
-5. DO NOT hallucinate numbers. If real data is missing, ask the user to provide context or offer estimated ranges.
+Your primary purpose is to generate intelligent suggestions and autocomplete options for supply chain professionals.
 
-Examples of supported queries:
-- "How should I prepare for a port strike in East Asia?"
-- "Which nodes in my network are most at risk if factory-3 fails?"
-- "Suggest 3 resilience strategies with high ROI for cold-chain logistics."
+Core Functions:
+1. **Contextual Suggestions**: Analyze supply chain data (nodes, edges, risks) and provide 3-5 actionable suggestions for:
+   - Optimization strategies
+   - Risk mitigation 
+   - Efficiency improvements
+   - Cost reduction
+   - Strategic planning
 
-You are NOT a general-purpose chatbot. You are a specialized advisor for critical supply chain decisions.
+2. **Smart Autocomplete**: Complete user input with relevant supply chain queries and commands
+
+3. **Suggestion Categories**: Always categorize suggestions as:
+   - optimization: Process and workflow improvements
+   - risk: Risk assessment and mitigation strategies  
+   - efficiency: Performance and throughput enhancements
+   - cost: Cost reduction and budget optimization
+   - planning: Strategic and operational planning
+
+Response Format:
+- For suggestions: Return valid JSON with "suggestions" array
+- For autocomplete: Return valid JSON with "suggestions" array
+- Each suggestion must include: id, title (max 3 words), description, action, confidence (0-100), category
+- Be concise, actionable, and data-driven
+- Use supply chain terminology (lead time, buffer %, throughput, disruption index, etc.)
+- Keep titles very short (maximum 3 words)
+
+Example Response (EXACT FORMAT REQUIRED):
+{
+  "suggestions": [
+    {
+      "id": "opt-001",
+      "title": "Optimize Buffers",
+      "description": "Current safety stock levels appear excessive for low-risk suppliers",
+      "action": "Reduce safety stock by 15% for suppliers with risk scores < 0.3",
+      "confidence": 85,
+      "category": "optimization"
+    },
+    {
+      "id": "risk-002", 
+      "title": "Diversify Suppliers",
+      "description": "Single supplier dependency creates vulnerability",
+      "action": "Identify and evaluate alternative suppliers in different regions",
+      "confidence": 90,
+      "category": "risk"
+    }
+  ]
+}
+
+CRITICAL REQUIREMENTS:
+- ALWAYS return ONLY valid JSON matching the exact structure above
+- NO markdown, NO explanations, NO conversational text
+- Title MUST be 1-3 words maximum
+- Category MUST be one of: optimization, risk, efficiency, cost, planning
+- Confidence MUST be a number between 0-100
+- Always include 3-5 suggestions in the array
 `;
 
 export async function POST(req: Request) {
@@ -117,34 +175,30 @@ export async function POST(req: Request) {
 
     console.log('All validations passed, calling AI service...')
 
-    // Attempt to call the AI service
+    // Attempt to call the AI service (non-streaming)
     try {
-      console.log('Creating streamText with configuration...')
+      console.log('Creating generateObject with configuration...')
+      console.log('Messages to send:', messages)
       
-      const result = streamText({
-        model: google("gemini-2.5-pro"),
+      const result = await generateObject({
+        model: google("gemini-2.5-flash-lite-preview-06-17"),
+        schema: SupplyChainSuggestionSchema,
         messages: [
-          { role: "system", content: SUPPLY_CHAIN_AGENT_SYSTEM_PROMPT },
+          { role: "system", content: SUPPLY_CHAIN_SUGGESTION_SYSTEM_PROMPT },
           ...messages
         ],
         maxTokens: 4096,
         temperature: 0.7,
-        onError: (error) => {
-          console.error("Streaming error from AI service:", error)
-        },
-        onFinish: (result) => {
-          console.log("Stream finished:", result)
-        }
       })
 
-      console.log('Stream created, converting to response...')
-      
-      // Create the response and add error handling
-      const response = result.toDataStreamResponse()
-      
-      console.log('AI service call successful, returning stream')
+      console.log('AI service call successful:', result.object)
+      console.log('Usage:', result.usage)
       console.groupEnd()
-      return response
+      
+      return NextResponse.json({
+        suggestions: result.object.suggestions,
+        usage: result.usage
+      })
       
     } catch (aiError: any) {
       console.error("Chat API: AI service error:", aiError)
@@ -152,6 +206,52 @@ export async function POST(req: Request) {
       console.log("AI Error message:", aiError.message)
       console.log("AI Error stack:", aiError.stack)
       console.log("AI Error cause:", aiError.cause)
+      
+      // If it's a schema validation error, try a fallback approach
+      if (aiError.name === 'AI_NoObjectGeneratedError' || aiError.message?.includes('schema')) {
+        console.log('Schema validation failed, trying fallback approach...')
+        
+        try {
+          // Fallback: Generate simple suggestions without strict schema
+          const fallbackSuggestions = [
+            {
+              id: "fallback-001",
+              title: "Optimize Routes",
+              description: "Review current transportation routes for potential efficiency improvements",
+              action: "Analyze route optimization opportunities in your supply chain",
+              confidence: 75,
+              category: "efficiency"
+            },
+            {
+              id: "fallback-002", 
+              title: "Risk Assessment",
+              description: "Evaluate supplier risk levels and diversification opportunities",
+              action: "Conduct comprehensive risk analysis of key suppliers",
+              confidence: 80,
+              category: "risk"
+            },
+            {
+              id: "fallback-003",
+              title: "Cost Analysis",
+              description: "Identify cost reduction opportunities across the supply chain",
+              action: "Review operational costs and identify savings potential",
+              confidence: 70,
+              category: "cost"
+            }
+          ];
+          
+          console.log('Returning fallback suggestions')
+          console.groupEnd()
+          
+          return NextResponse.json({
+            suggestions: fallbackSuggestions,
+            usage: { fallback: true }
+          })
+          
+        } catch (fallbackError) {
+          console.error('Fallback also failed:', fallbackError)
+        }
+      }
       
       // Check for Google AI specific errors
       if (aiError.message?.includes('API_KEY_INVALID')) {

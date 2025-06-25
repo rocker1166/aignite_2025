@@ -453,4 +453,88 @@ Use the provided test prompts with the AI assistant. Each action is designed to:
 | **Advanced Edges** | 3 actions | Route optimization, analysis |
 | **Advanced Risk** | 3 actions | Comprehensive risk management |
 
-**Total: 25 Actions** providing comprehensive supply chain digital twin management capabilities. 
+**Total: 25 Actions** providing comprehensive supply chain digital twin management capabilities.
+
+---
+
+## 🧪 Complete Test Prompts Collection
+
+### Node Management Actions
+1. **addSupplyChainNode**: `"Add a supplier node called Tesla Battery Supplier"`
+2. **updateNodeProperties**: `"Update the Tesla Battery Supplier to have a capacity of 10000 and risk score of 0.3"`
+3. **updateMultipleNodeProperties**: `"Update all supplier nodes in China to have a risk score of 0.8"`
+4. **findAndSelectNode**: `"Find and select the Tesla factory"`
+
+### Edge Management Actions
+5. **updateEdgeProperties**: `"Update the connection between Tesla factory and distribution center to have cost 5000 and transit time 3 days"`
+
+### Canvas & Layout Actions
+6. **clearCanvas**: `"Clear the entire canvas"`
+7. **optimizeLayout**: `"Optimize the supply chain layout for clarity while preserving positions"`
+
+### Validation & Analysis Actions
+8. **validateAndAnalyzeSupplyChain**: `"Validate my supply chain and check for any issues"`
+9. **optimizeSupplyChainStructure**: `"Analyze my supply chain and suggest improvements"`
+
+### Template Actions
+10. **buildIndustrySpecificSupplyChain**: `"Build an automotive supply chain with global operations and tier 3+ suppliers"`
+
+### Search Actions
+11. **search_web**: `"Search for information about lithium battery supply chain risks"`
+
+### Risk Analysis Actions
+12. **identifySinglePointsOfFailure**: `"Identify any single points of failure in my supply chain"`
+
+### Advanced Node Actions
+13. **createNodeGroup**: `"Group all Chinese suppliers together as 'China Operations'"`
+14. **updateNodeGroup**: `"Update all nodes in China Operations group to have risk score 0.7"`
+15. **dissolveNodeGroup**: `"Dissolve the China Operations group"`
+16. **selectNodesByGroup**: `"Select and highlight all nodes in the China Operations group"`
+17. **analyzeNodeDependencies**: `"Analyze the dependencies for Tesla Gigafactory with depth 3"`
+18. **findNodeClusters**: `"Find node clusters with minimum 4 nodes and connection threshold 3"`
+19. **calculateNodeCentrality**: `"Calculate centrality for all nodes and highlight the top 5 most critical ones"`
+20. **filterNodesByCriteria**: `"Filter and highlight all nodes with type supplier and country China"`
+
+### Advanced Edge Actions
+21. **bulkUpdateEdges**: `"Update all sea transport routes to have risk multiplier 1.5"`
+22. **analyzeRouteResilience**: `"Analyze route resilience for weather disruptions at high severity"`
+23. **optimizeMultiModalTransport**: `"Optimize transport modes for routes over 1000km with cost threshold 2000"`
+
+### Advanced Risk Actions
+24. **calculateComprehensiveRisk**: `"Calculate comprehensive risk focusing on geographic and operational factors"`
+25. **suggestRiskMitigation**: `"Suggest mitigation strategies for geographic risks with max 5 suggestions"`
+26. **simulateRiskScenario**: `"Simulate a high-intensity node failure scenario for 14 days"`
+
+---
+
+## 📝 Quick Reference for Testing
+
+### Copy-Paste Ready Commands
+```
+Add a supplier node called Tesla Battery Supplier
+Update the Tesla Battery Supplier to have a capacity of 10000 and risk score of 0.3
+Update all supplier nodes in China to have a risk score of 0.8
+Find and select the Tesla factory
+Update the connection between Tesla factory and distribution center to have cost 5000 and transit time 3 days
+Clear the entire canvas
+Optimize the supply chain layout for clarity while preserving positions
+Validate my supply chain and check for any issues
+Analyze my supply chain and suggest improvements
+Build an automotive supply chain with global operations and tier 3+ suppliers
+Search for information about lithium battery supply chain risks
+Identify any single points of failure in my supply chain
+Group all Chinese suppliers together as 'China Operations'
+Update all nodes in China Operations group to have risk score 0.7
+Dissolve the China Operations group
+Select and highlight all nodes in the China Operations group
+Analyze the dependencies for Tesla Gigafactory with depth 3
+Find node clusters with minimum 4 nodes and connection threshold 3
+Calculate centrality for all nodes and highlight the top 5 most critical ones
+Filter and highlight all nodes with type supplier and country China
+Update all sea transport routes to have risk multiplier 1.5
+Analyze route resilience for weather disruptions at high severity
+Optimize transport modes for routes over 1000km with cost threshold 2000
+Calculate comprehensive risk focusing on geographic and operational factors
+Suggest mitigation strategies for geographic risks with max 5 suggestions
+Simulate a high-intensity node failure scenario for 14 days
+``` 
