@@ -90,58 +90,6 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
     setShowAutocomplete(false);
   };
 
-  // Helper function to handle manual submission (e.g., from AI suggestions)
-  const handleManualSubmit = useCallback((message: string) => {
-    console.log('📤 handleManualSubmit called with:', {
-      message: message.substring(0, 50) + '...',
-      messageLength: message.length,
-      isString: typeof message === 'string',
-      hasTrim: !!message.trim()
-    });
-    
-    if (!message || typeof message !== 'string' || !message.trim()) {
-      console.log('❌ handleManualSubmit: Invalid message, not submitting');
-      return;
-    }
-    
-    console.log('✅ handleManualSubmit: Calling onSubmit and clearing input');
-    onSubmit(message);
-    setInput(""); // Clear input after manual submission too
-    setShowAutocomplete(false);
-    console.log('✅ handleManualSubmit: Completed - input should be cleared');
-  }, [onSubmit, setInput]);
-
-  // Use effect to handle when input matches a pending message that should be auto-submitted
-  useEffect(() => {
-    if (input && typeof input === 'string' && input.trim()) {
-      console.log('🔍 AutocompleteInput: Checking input for auto-submission:', {
-        length: input.length,
-        startsWithFix: input.startsWith('Fix the'),
-        firstWords: input.substring(0, 30),
-        fullInput: input
-      });
-      
-      // Check if this looks like an AI-generated validation fix message
-      // All AI fix messages start with "Fix the" and are typically longer
-      const isLikelyAIMessage = input.length > 50 && input.startsWith('Fix the');
-      
-      if (isLikelyAIMessage) {
-        console.log('🤖 Detected AI validation fix message, auto-submitting in 300ms:', input.substring(0, 50) + '...');
-        const timer = setTimeout(() => {
-          console.log('🚀 Auto-submitting now...');
-          handleManualSubmit(input);
-        }, 300); // Slightly longer delay to ensure visibility
-        
-        return () => {
-          console.log('🚫 Auto-submit timer cancelled');
-          clearTimeout(timer);
-        };
-      } else {
-        console.log('❌ Not an AI message - no auto-submit');
-      }
-    }
-  }, [input, handleManualSubmit]);
-
   return (
     <div className="p-2 border-t border-border bg-background">
       <div className="flex flex-col-reverse gap-2">
