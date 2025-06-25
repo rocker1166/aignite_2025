@@ -780,6 +780,7 @@ Generated at: ${new Date().toISOString()}`
         }
       }      return {
         ...result.object,
+        nodeId: node.node_id, // Ensure we always use the correct node_id from database
         metadata: {
           ...result.object.metadata,
           processingTime,
@@ -845,6 +846,9 @@ Generated at: ${new Date().toISOString()}`
     if (error) throw error;
     if (!nodes?.length) return [];
 
+    console.log(`Processing intelligence for ${nodes.length} nodes in supply chain ${supplyChainId}`);
+    console.log(`Node IDs to process: ${nodes.map(n => `${n.node_id} (${n.name})`).join(', ')}`);
+
     // Process nodes with intelligent prioritization
     const highPriorityNodes = nodes.filter(n => 
       ['port', 'factory', 'warehouse'].includes(n.type?.toLowerCase() || '')
@@ -853,18 +857,44 @@ Generated at: ${new Date().toISOString()}`
       !['port', 'factory', 'warehouse'].includes(n.type?.toLowerCase() || '')
     );
 
+    console.log(`High priority nodes: ${highPriorityNodes.length}, Regular nodes: ${regularNodes.length}`);
+
     // Process high-priority nodes first
     for (const node of highPriorityNodes) {
       try {
+        console.log(`Processing high-priority node: ${node.node_id} (${node.name})`);
+        
         // Check cache first unless force refresh
         let intelligence = !forceRefresh ? await this.getCachedIntelligence(node.node_id) : null;
         
         if (!intelligence) {
+          console.log(`Gathering fresh intelligence for node ${node.node_id}`);
           intelligence = await this.gatherComprehensiveIntelligence(node, supplyChainData);
           await this.cacheIntelligence(node.node_id, intelligence);
+        } else {
+          console.log(`Using cached intelligence for node ${node.node_id}`);
+        }
+        
+        // Ensure nodeId is set correctly and validate the result
+        if (intelligence) {
+          if (!intelligence.nodeId) {
+            console.warn(`Setting missing nodeId for node ${node.node_id}`);
+            intelligence.nodeId = node.node_id;
+          }
+          
+          // Validate the nodeId matches
+          if (intelligence.nodeId !== node.node_id) {
+            console.error(`NodeId mismatch! Expected: ${node.node_id}, Got: ${intelligence.nodeId}`);
+            intelligence.nodeId = node.node_id; // Force correct nodeId
+          }
+          
+          console.log(`Validated intelligence for node ${node.node_id}, nodeId: ${intelligence.nodeId}`);
+        } else {
+          console.error(`No intelligence generated for node ${node.node_id}`);
         }
         
         results.push(intelligence);
+        console.log(`Successfully processed node ${node.node_id}, total results: ${results.length}`);
         
         // Rate limiting between calls
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -882,14 +912,38 @@ Generated at: ${new Date().toISOString()}`
     // Process regular nodes
     for (const node of regularNodes) {
       try {
+        console.log(`Processing regular node: ${node.node_id} (${node.name})`);
+        
         let intelligence = !forceRefresh ? await this.getCachedIntelligence(node.node_id) : null;
         
         if (!intelligence) {
+          console.log(`Gathering fresh intelligence for node ${node.node_id}`);
           intelligence = await this.gatherComprehensiveIntelligence(node, supplyChainData);
           await this.cacheIntelligence(node.node_id, intelligence);
+        } else {
+          console.log(`Using cached intelligence for node ${node.node_id}`);
+        }
+        
+        // Ensure nodeId is set correctly and validate the result
+        if (intelligence) {
+          if (!intelligence.nodeId) {
+            console.warn(`Setting missing nodeId for node ${node.node_id}`);
+            intelligence.nodeId = node.node_id;
+          }
+          
+          // Validate the nodeId matches
+          if (intelligence.nodeId !== node.node_id) {
+            console.error(`NodeId mismatch! Expected: ${node.node_id}, Got: ${intelligence.nodeId}`);
+            intelligence.nodeId = node.node_id; // Force correct nodeId
+          }
+          
+          console.log(`Validated intelligence for node ${node.node_id}, nodeId: ${intelligence.nodeId}`);
+        } else {
+          console.error(`No intelligence generated for node ${node.node_id}`);
         }
         
         results.push(intelligence);
+        console.log(`Successfully processed node ${node.node_id}, total results: ${results.length}`);
         
         // Longer delay for regular nodes
         await new Promise(resolve => setTimeout(resolve, 3000));
@@ -903,6 +957,10 @@ Generated at: ${new Date().toISOString()}`
         });
       }
     }
+
+    console.log(`Completed processing ${results.length} nodes for supply chain ${supplyChainId}`);
+    console.log(`Results summary: ${results.filter(r => !r.error).length} successful, ${results.filter(r => r.error).length} failed`);
+    console.log(`Final result nodeIds: ${results.map(r => r?.nodeId || 'NO_NODE_ID').join(', ')}`);
 
     return results;
   }
@@ -1759,24 +1817,81 @@ export async function GET(request: NextRequest) {
     }
 
     // Store results in database with proper user association
-    const dbResults = results.filter(r => !r.error).map(result => ({
-      user_id: supplyChain.user_id,
-      supply_chain_id: supplyChainId,
-      node_id: result.nodeId,
-      intelligence_data: result,
-      risk_score: result.intelligence?.riskAssessment?.overallRiskScore || 0,
-      quality_score: result.metadata?.qualityScore || 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }));
+    const validResults = results.filter(r => !r.error && r.nodeId); // Ensure nodeId exists
+    console.log(`Filtering results: ${results.length} total, ${validResults.length} valid (with nodeId)`);
+    
+    // Log detailed information about invalid results
+    const invalidResults = results.filter(r => r.error || !r.nodeId);
+    if (invalidResults.length > 0) {
+      console.warn(`Found ${invalidResults.length} invalid results:`);
+      invalidResults.forEach((result, index) => {
+        console.warn(`  Invalid result ${index + 1}: nodeId=${result?.nodeId || 'MISSING'}, hasError=${!!result?.error}, error=${result?.error || 'none'}`);
+      });
+    }
+    
+    const dbResults = validResults.map(result => {
+      console.log(`Preparing DB record for node ${result.nodeId}`);
+      
+      // Ensure risk_score is an integer (database constraint)
+      const rawRiskScore = result.intelligence?.riskAssessment?.overallRiskScore || 0;
+      const riskScore = Math.round(Number(rawRiskScore)); // Convert to integer
+      
+      // Quality score can be decimal (numeric type in DB)
+      const qualityScore = Number(result.metadata?.qualityScore || 0);
+      
+      console.log(`Node ${result.nodeId}: risk_score=${riskScore} (from ${rawRiskScore}), quality_score=${qualityScore}`);
+      
+      return {
+        user_id: supplyChain.user_id,
+        supply_chain_id: supplyChainId,
+        node_id: result.nodeId,
+        intelligence_data: result,
+        risk_score: riskScore,
+        quality_score: qualityScore,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+    });
+
+    console.log(`Attempting to store ${dbResults.length} intelligence records in database`);
+    console.log(`DB Results nodeIds: ${dbResults.map(r => r.node_id).join(', ')}`);
 
     if (dbResults.length > 0) {
-      await supabaseServer
-        .from('supply_chain_intel')
-        .upsert(dbResults, { 
-          onConflict: 'supply_chain_id,node_id',
-          ignoreDuplicates: false 
+      try {
+        console.log(`Starting database upsert for ${dbResults.length} records...`);
+        
+        const { data: insertedData, error: insertError } = await supabaseServer
+          .from('supply_chain_intel')
+          .upsert(dbResults, { 
+            onConflict: 'supply_chain_id,node_id',
+            ignoreDuplicates: false 
+          });
+
+        if (insertError) {
+          console.error('Database insertion error:', insertError);
+          console.error('Failed records data:', JSON.stringify(dbResults.map(r => ({
+            node_id: r.node_id,
+            supply_chain_id: r.supply_chain_id,
+            user_id: r.user_id
+          })), null, 2));
+          throw insertError;
+        }
+
+        console.log(`Successfully stored ${dbResults.length} intelligence records in database`);
+        console.log(`Database operation completed successfully`);
+        
+      } catch (dbError) {
+        console.error('Failed to store intelligence in database:', dbError);
+        console.error('Database error details:', {
+          error: dbError,
+          recordCount: dbResults.length,
+          nodeIds: dbResults.map(r => r.node_id)
         });
+        // Don't throw here to avoid failing the entire request
+      }
+    } else {
+      console.warn('No valid intelligence data to store in database');
+      console.warn('This means either no nodes were processed or all processing failed');
     }
 
     const summary = {
