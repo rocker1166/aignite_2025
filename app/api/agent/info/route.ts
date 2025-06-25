@@ -781,6 +781,8 @@ Generated at: ${new Date().toISOString()}`
       }      return {
         ...result.object,
         nodeId: node.node_id, // Ensure we always use the correct node_id from database
+        weatherForecast: collectedData.weatherForecast, // Include weather data for separate storage
+        tavilyResults: collectedData.tavilyResults, // Include search results for separate storage
         metadata: {
           ...result.object.metadata,
           processingTime,
@@ -1839,13 +1841,41 @@ export async function GET(request: NextRequest) {
       // Quality score can be decimal (numeric type in DB)
       const qualityScore = Number(result.metadata?.qualityScore || 0);
       
+      // Extract weather data from the intelligence result
+      const weatherData = {
+        forecast: result.weatherForecast || null,
+        lastUpdated: new Date().toISOString(),
+        source: result.weatherForecast?.source || 'unknown'
+      };
+      
+      // Extract news/search data from Tavily results
+      const newsData = {
+        searches: result.tavilyResults || [],
+        criticalEvents: result.intelligence?.criticalEvents || [],
+        marketIntelligence: result.intelligence?.marketIntelligence || {},
+        lastUpdated: new Date().toISOString(),
+        sourcesChecked: result.metadata?.sourcesChecked || 0
+      };
+      
+      // Store core intelligence data (without weather and news which are now separate)
+      const coreIntelligenceData = {
+        nodeId: result.nodeId,
+        timestamp: result.timestamp,
+        riskAssessment: result.intelligence?.riskAssessment || {},
+        relationshipMapping: result.intelligence?.relationshipMapping || [],
+        metadata: result.metadata || {}
+      };
+      
       console.log(`Node ${result.nodeId}: risk_score=${riskScore} (from ${rawRiskScore}), quality_score=${qualityScore}`);
+      console.log(`Node ${result.nodeId}: weather_data=${weatherData.forecast ? 'present' : 'null'}, news_items=${newsData.criticalEvents.length}`);
       
       return {
         user_id: supplyChain.user_id,
         supply_chain_id: supplyChainId,
         node_id: result.nodeId,
-        intelligence_data: result,
+        intelligence_data: coreIntelligenceData, // Core intelligence without weather/news
+        weather: weatherData, // Weather data in separate column
+        news: newsData, // News and search data in separate column
         risk_score: riskScore,
         quality_score: qualityScore,
         created_at: new Date().toISOString(),
