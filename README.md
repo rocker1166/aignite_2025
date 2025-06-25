@@ -28,19 +28,30 @@ aignite_2025/
 │   │       └── page.tsx
 │   ├── 📁 api/                       # API routes
 │   │   ├── 📁 agent/
-│   │   │   └── 📁 info/
+│   │   │   ├── 📁 info/
+│   │   │   │   └── route.ts
+│   │   │   └── 📁 scenario/
 │   │   │       └── route.ts
 │   │   ├── 📁 autocomplete/
 │   │   │   └── route.ts
 │   │   ├── 📁 chat/
+│   │   │   └── route.ts
+│   │   ├── 📁 copilotkit/
+│   │   │   ├── 📁 tools/
+│   │   │   └── route.ts
+│   │   ├── 📁 copilotkitlitemodel/
 │   │   │   └── route.ts
 │   │   ├── 📁 generateNotifications/
 │   │   ├── 📁 impact/
 │   │   │   └── route.ts
 │   │   ├── 📁 news/
 │   │   │   └── route.ts
-│   │   └── 📁 scenario/
-│   │       └── route.ts
+│   │   ├── 📁 scenario/
+│   │   │   └── route.ts
+│   │   ├── 📁 search/
+│   │   │   └── route.ts
+│   │   └── 📁 supply-chain/
+│   │       └── 📁 save/
 │   ├── globals.css
 │   ├── layout.tsx
 │   ├── page.tsx
@@ -71,50 +82,103 @@ aignite_2025/
 │   │   └── supply-chain-health-chart.tsx
 │   ├── 📁 digital-twin/              # Digital Twin components
 │   │   ├── 📁 canvas/                # Canvas and visual components
-│   │   │   ├── digital-twin-canvas.tsx # Main canvas component
-│   │   │   ├── CustomNodes.tsx       # Custom node definitions
-│   │   │   ├── CustomEdges.tsx       # Custom edge definitions
-│   │   │   └── index.ts              # Canvas exports
+│   │   │   ├── CustomEdges.tsx
+│   │   │   ├── CustomNodes.tsx
+│   │   │   ├── digital-twin-canvas.tsx
+│   │   │   ├── 📁 hooks/
+│   │   │   │   ├── useCanvasView.ts
+│   │   │   │   ├── useDigitalTwinManager.ts
+│   │   │   │   ├── useDigitalTwinState.ts
+│   │   │   │   ├── useInteraction.ts
+│   │   │   │   ├── useNodeEdgeActions.ts
+│   │   │   │   ├── useSaveAndValidate.ts
+│   │   │   │   └── useTemplateManager.ts
+│   │   │   ├── index.ts
+│   │   │   └── 📁 lib/
+│   │   │       └── utils.ts
+│   │   ├── 📁 display/               # Display and card components
+│   │   │   ├── dashboard.tsx
+│   │   │   ├── digital-twin-card.tsx
+│   │   │   ├── DigitalTwinSkeleton.tsx
+│   │   │   └── index.ts
 │   │   ├── 📁 forms/                 # Form and dialog components
-│   │   │   ├── creation-form.tsx     # Main creation form
-│   │   │   ├── 📁 creation-form/     # Form step components
+│   │   │   ├── creation-form.tsx
+│   │   │   ├── 📁 creation-form/
 │   │   │   │   ├── CountrySelectionDialog.tsx
 │   │   │   │   ├── form-schema.ts
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── LogisticsStep.tsx
 │   │   │   │   ├── RiskFactorsStep.tsx
 │   │   │   │   └── SupplyChainInfoStep.tsx
-│   │   │   ├── DynamicFormField.tsx  # Dynamic form fields
-│   │   │   ├── ValidationDialog.tsx  # Validation dialogs
-│   │   │   ├── SaveSupplyChainDialog.tsx # Save dialogs
-│   │   │   └── index.ts              # Form exports
+│   │   │   ├── DynamicFormField.tsx
+│   │   │   ├── index.ts
+│   │   │   ├── SaveSupplyChainDialog.tsx
+│   │   │   └── ValidationDialog.tsx
+│   │   ├── index.ts
 │   │   ├── 📁 layout/                # Layout and UI components
-│   │   │   ├── LeftPanel.tsx         # Left sidebar panel
-│   │   │   ├── 📁 RightPanel/        # Right panel components
+│   │   │   ├── FloatingSaveButton.tsx
+│   │   │   ├── index.ts
+│   │   │   ├── 📁 left-panel/
+│   │   │   │   ├── 📁 assistant/
+│   │   │   │   │   ├── 📁 actions/
+│   │   │   │   │   │   ├── advanced-edge-actions.ts
+│   │   │   │   │   │   ├── advanced-node-actions.ts
+│   │   │   │   │   │   ├── advanced-risk-actions.ts
+│   │   │   │   │   │   ├── canvas-actions.ts
+│   │   │   │   │   │   ├── edge-actions.ts
+│   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   ├── node-actions.ts
+│   │   │   │   │   │   ├── 📁 node-actions/
+│   │   │   │   │   │   │   ├── 3pl-actions.ts
+│   │   │   │   │   │   │   ├── customer-actions.ts
+│   │   │   │   │   │   │   ├── distributor-actions.ts
+│   │   │   │   │   │   │   ├── factory-actions.ts
+│   │   │   │   │   │   │   ├── manufacturer-actions.ts
+│   │   │   │   │   │   │   ├── port-actions.ts
+│   │   │   │   │   │   │   ├── retailer-actions.ts
+│   │   │   │   │   │   │   ├── supplier-actions.ts
+│   │   │   │   │   │   │   └── warehouse-actions.ts
+│   │   │   │   │   │   ├── risk-actions.ts
+│   │   │   │   │   │   ├── search-actions.ts
+│   │   │   │   │   │   ├── template-actions.ts
+│   │   │   │   │   │   ├── types.ts
+│   │   │   │   │   │   └── validation-actions.ts
+│   │   │   │   │   ├── AIChatPanel.tsx
+│   │   │   │   │   ├── AutocompleteInput.tsx
+│   │   │   │   │   ├── ErrorComponent.tsx
+│   │   │   │   │   ├── error-parser.ts
+│   │   │   │   │   ├── ImmersiveHeader.tsx
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── InternetSearchIcon.tsx
+│   │   │   │   │   ├── MessagesArea.tsx
+│   │   │   │   │   ├── types.ts
+│   │   │   │   │   ├── useAISuggestions.ts
+│   │   │   │   │   └── useCopilotActions.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   └── LeftPanel.tsx
+│   │   │   ├── 📁 RightPanel/
+│   │   │   │   ├── animations.ts
+│   │   │   │   ├── CollapsedState.tsx
 │   │   │   │   ├── EdgeConfiguration.tsx
-│   │   │   │   ├── functions.tsx     # Pure functions (JSX-compatible)
+│   │   │   │   ├── EmptyState.tsx
+│   │   │   │   ├── functions.tsx
 │   │   │   │   ├── index.tsx
-│   │   │   │   ├── 📁 node-configuration/ # Node configuration components
-│   │   │   │   │   ├── AppearanceSection.tsx # Color picker and styling
-│   │   │   │   │   ├── GeneralSection.tsx # Label, description, external company fields
-│   │   │   │   │   ├── index.ts      # Export all components
-│   │   │   │   │   ├── LocationSection.tsx # Country and address selection
-│   │   │   │   │   ├── NodeTypeHeader.tsx # Node type display with icon
-│   │   │   │   │   ├── RiskAssessmentSection.tsx # Risk assessment fields
-│   │   │   │   │   └── TypeSpecificSection.tsx # Dynamic type-specific properties
-│   │   │   │   └── NodeConfiguration.tsx # Main component (now much cleaner)
-│   │   │   ├── SimulationToolbar.tsx # Simulation toolbar
-│   │   │   ├── FloatingSaveButton.tsx # Floating action button
-│   │   │   └── index.ts              # Layout exports
-│   │   ├── 📁 display/               # Display and card components
-│   │   │   ├── dashboard.tsx         # Dashboard component
-│   │   │   ├── digital-twin-card.tsx # Card components
-│   │   │   ├── DigitalTwinSkeleton.tsx # Loading skeleton
-│   │   │   └── index.ts              # Display exports
-│   │   ├── 📁 utils/                 # Utility functions
-│   │   │   ├── function.ts           # Utility functions
-│   │   │   └── index.ts              # Utils exports
-│   │   └── index.ts                  # Main exports file
+│   │   │   │   ├── NodeConfiguration.tsx
+│   │   │   │   ├── 📁 node-configuration/
+│   │   │   │   │   ├── AppearanceSection.tsx
+│   │   │   │   │   ├── GeneralSection.tsx
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── LocationSection.tsx
+│   │   │   │   │   ├── NodeTypeHeader.tsx
+│   │   │   │   │   ├── RiskAssessmentSection.tsx
+│   │   │   │   │   └── TypeSpecificSection.tsx
+│   │   │   │   ├── SaveStatusIndicator.tsx
+│   │   │   │   ├── TemplateGroupConfiguration.tsx
+│   │   │   │   └── types.ts
+│   │   │   └── SimulationToolbar.tsx
+│   │   └── 📁 utils/
+│   │       ├── function.ts
+│   │       └── index.ts
 │   ├── footer.tsx
 │   ├── header.tsx
 │   ├── impact-assessment.tsx
