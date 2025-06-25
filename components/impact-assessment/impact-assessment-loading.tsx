@@ -1,6 +1,11 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
+/**
+ * Renders a loading placeholder UI for the impact assessment section using skeleton elements.
+ *
+ * Displays a card with skeleton placeholders for the title, subtitle, button, and a grid of text blocks, along with a large skeleton simulating a chart area, to indicate that impact assessment data is loading.
+ */
 export default function ImpactAssessmentLoading() {
   return (
     <div className="px-4 py-4 space-y-4">

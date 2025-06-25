@@ -20,6 +20,14 @@ interface NodeStatusChartProps {
   colors: string[]
 }
 
+/**
+ * Displays a pie chart of node status data within a styled card.
+ *
+ * Renders each node status as a colored slice, with labels showing the name and percentage. Includes a tooltip for interactive data details.
+ *
+ * @param data - Array of node status objects, each with a name and value representing the status and its count.
+ * @param colors - Array of color strings used to fill the pie slices.
+ */
 export default function NodeStatusChart({ data, colors }: NodeStatusChartProps) {
   return (
     <Card className="bg-background/60 backdrop-blur-sm border-border/50 shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/15 transition-all duration-300">

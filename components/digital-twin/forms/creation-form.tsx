@@ -25,6 +25,14 @@ interface CreationFormProps {
   onCancel: () => void;
 }
 
+/**
+ * Renders a multi-step supply chain creation form with animated transitions, URL query state synchronization, and validation.
+ *
+ * The form guides users through supply chain, logistics, and risk factor data collection steps. Form state is synchronized with URL query parameters, allowing for persistence and sharing of progress. Conditional dialogs and validation ensure required information is collected before advancing. Upon successful submission, all form data is stored in the URL and the provided `onSuccess` callback is invoked.
+ *
+ * @param onSuccess - Callback invoked with the form data upon successful completion.
+ * @param onCancel - Callback invoked when the form is canceled.
+ */
 export default function CreationForm({ onSuccess, onCancel }: CreationFormProps) {
   const [step, setStep] = useQueryState('step', parseAsInteger.withDefault(0));
   const [showCountryDialog, setShowCountryDialog] = useState(false);

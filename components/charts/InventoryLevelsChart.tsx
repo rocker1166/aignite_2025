@@ -21,6 +21,13 @@ interface InventoryLevelsChartProps {
   data: InventoryData[]
 }
 
+/**
+ * Displays a styled card containing an area chart of daily inventory levels as a percentage of capacity.
+ *
+ * Renders an interactive area chart using the provided inventory data, with a header and icon for context.
+ *
+ * @param data - Array of inventory data points, each representing a day's inventory level.
+ */
 export default function InventoryLevelsChart({ data }: InventoryLevelsChartProps) {
   return (
     <Card className="bg-background/60 backdrop-blur-sm border-border/50 shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/15 transition-all duration-300">

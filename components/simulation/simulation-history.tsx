@@ -14,6 +14,14 @@ interface SimulationHistoryProps {
   onRunSimulation: (simulationId: string) => void
 }
 
+/**
+ * Displays a list of simulation history entries with status, scenario type, creation date, and an option to rerun each simulation.
+ *
+ * Renders an empty state if no simulations are available. Each simulation entry shows its name, status badge, scenario type icon, formatted creation date, and a button to trigger the provided rerun callback.
+ *
+ * @param simulations - Array of simulation records to display
+ * @param onRunSimulation - Callback invoked with a simulation ID when the "View Results" button is clicked
+ */
 export function SimulationHistory({ simulations, onRunSimulation }: SimulationHistoryProps) {
   // Format date for display
   const formatDate = (dateString: string) => {

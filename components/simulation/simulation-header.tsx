@@ -64,6 +64,11 @@ const dropdownItem: Variants = {
   },
 }
 
+/**
+ * Renders a sticky header bar with navigation, notifications, and user profile menus for the simulation and scenario generation interface.
+ *
+ * The header includes a sidebar trigger, a title, an animated notifications dropdown with recent alerts, and a user profile dropdown with account options.
+ */
 export function SimulationHeader() {
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-white dark:bg-gray-800 px-6 shadow-sm">

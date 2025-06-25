@@ -338,7 +338,13 @@ function detectCycle(
   return [];
 }
 
-// B. Node-Level Validation Functions
+/**
+ * Validates a supply chain node for completeness, correctness, and domain-specific constraints.
+ *
+ * Aggregates validation issues related to essential data, country information, numeric values, external dependencies, and type-specific requirements for supplier, factory, warehouse, distribution, and retailer nodes.
+ *
+ * @returns An array of validation issues detected for the node.
+ */
 function validateNode(node: Node): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   
@@ -382,6 +388,13 @@ function validateNode(node: Node): ValidationIssue[] {
   return issues;
 }
 
+/**
+ * Validates that a node contains essential information such as label, type, and either country or address.
+ *
+ * Returns an error issue if any required field is missing.
+ *
+ * @returns An array of validation issues for missing essential node data.
+ */
 function validateNodeEssentialData(node: Node): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const missingFields: string[] = [];
@@ -883,6 +896,13 @@ function validateEdgeEssentialData(edge: Edge, sourceNode?: Node, targetNode?: N
   return issues;
 }
 
+/**
+ * Warns if the transport mode used on an edge is inefficient for domestic (same-country) connections.
+ *
+ * If the source and target nodes are in the same country and the transport mode is 'sea' or 'air', a warning is issued suggesting more appropriate domestic transport modes.
+ *
+ * @returns An array of validation issues, or an empty array if no issues are found.
+ */
 function validateTransportMode(edge: Edge, sourceNode?: Node, targetNode?: Node): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   
@@ -910,6 +930,16 @@ function validateTransportMode(edge: Edge, sourceNode?: Node, targetNode?: Node)
   return issues;
 }
 
+/**
+ * Validates risk-related fields on a supply chain edge and returns any detected issues.
+ *
+ * Checks for valid average delay days and disruption frequency, ensures required details are provided when alternative routes or chokepoints are specified, warns about chokepoint selection on domestic routes, and flags high-risk connections lacking alternative routes.
+ *
+ * @param edge - The edge to validate
+ * @param sourceNode - The source node of the edge, if available
+ * @param targetNode - The target node of the edge, if available
+ * @returns An array of validation issues found for the edge's risk fields
+ */
 function validateEdgeRiskFields(edge: Edge, sourceNode?: Node, targetNode?: Node): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   
@@ -1063,7 +1093,12 @@ function isUnconventionalConnection(sourceType: string, targetType: string): boo
   );
 }
 
-// Utility function to get validation summary
+/**
+ * Summarizes validation issues by counting errors and warnings and grouping them by element type.
+ *
+ * @param issues - The list of validation issues to summarize
+ * @returns An object containing the total number of errors and warnings, a flag indicating if saving is allowed (no errors), and counts of errors and warnings by element type
+ */
 export function getValidationSummary(issues: ValidationIssue[]): { 
   errors: number; 
   warnings: number; 
@@ -1093,12 +1128,20 @@ export function getValidationSummary(issues: ValidationIssue[]): {
   };
 }
 
-// Helper function to get country from node data (checking both possible locations)
+/**
+ * Retrieves the country associated with a node, checking both `location.country` and `country` fields.
+ *
+ * @returns The country string if present, otherwise `undefined`.
+ */
 function getNodeCountry(node: Node): string | undefined {
   return node.data.location?.country || node.data.country;
 }
 
-// Helper function to set country in the proper structure for consistency
+/**
+ * Ensures that the country information for a node is present in both `data.country` and `data.location.country` fields for consistency and backward compatibility.
+ *
+ * If a valid country is found in either location, it is copied to the other if missing.
+ */
 function ensureCountryConsistency(node: Node): void {
   const country = getNodeCountry(node);
   if (country) {
@@ -1115,7 +1158,13 @@ function ensureCountryConsistency(node: Node): void {
   }
 }
 
-// Add a specific country validation function
+/**
+ * Validates that a node has valid and consistent country information.
+ *
+ * Reports an error if the country is missing or invalid, and ensures that country data is synchronized across possible locations in the node's data structure.
+ *
+ * @returns An array of validation issues related to the node's country information.
+ */
 function validateNodeCountry(node: Node): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   

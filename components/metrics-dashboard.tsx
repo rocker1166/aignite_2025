@@ -8,6 +8,11 @@ import {
   ImpactByNodeChart
 } from "@/components/charts"
 
+/**
+ * Displays a metrics dashboard with production output and impact by node charts.
+ *
+ * Retrieves impact data from context or falls back to default data, and renders two charts side-by-side: one for production output and one for impact by node. Shows loading placeholders while data is being fetched.
+ */
 export default function MetricsDashboard() {
   // Get data from impact context instead of using the hardcoded data
   const { impactData, isLoading } = useImpact();

@@ -153,7 +153,12 @@ export async function deleteEdge(edgeId: string): Promise<void> {
   }
 }
 
-// Get complete supply chain with nodes and edges
+/**
+ * Retrieves a supply chain along with its associated nodes and edges by supply chain ID.
+ *
+ * @param supplyChainId - The unique identifier of the supply chain to retrieve
+ * @returns An object containing the supply chain, its nodes, and its edges
+ */
 export async function getCompleteSupplyChain(supplyChainId: string): Promise<{
   supplyChain: SupplyChain | null
   nodes: Node[]
@@ -173,7 +178,11 @@ export async function getCompleteSupplyChain(supplyChainId: string): Promise<{
 }
 
 /**
- * Get user supply chains from super-worker edge function
+ * Retrieves supply chains associated with a user by invoking the 'super-worker' Supabase edge function.
+ *
+ * @param userId - The unique identifier of the user whose supply chains are to be fetched.
+ * @returns The supply chains data returned by the edge function.
+ * @throws If the edge function returns an error or no data is received.
  */
 export async function getUserSupplyChains(userId: string) {
   try {
@@ -200,7 +209,11 @@ export async function getUserSupplyChains(userId: string) {
 }
 
 /**
- * Save supply chain data to the database via edge function
+ * Saves a supply chain, including its metadata, nodes, and edges, to the database using a Supabase edge function.
+ *
+ * @param supplyChainData - An object containing the supply chain's name, optional description, timestamp, optional organization and form data, and arrays of nodes and edges.
+ * @returns The response data returned by the edge function after saving the supply chain.
+ * @throws If the edge function returns an error or no data is returned.
  */
 export async function saveSupplyChainToDatabase(supplyChainData: {
   name: string;

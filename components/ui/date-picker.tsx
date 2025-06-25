@@ -22,6 +22,18 @@ interface DatePickerProps {
   disabled?: boolean
 }
 
+/**
+ * Renders a date picker component with optional time selection and customizable appearance.
+ *
+ * Displays a button that shows the selected date (and time if enabled) or a placeholder. When clicked, a popover calendar appears for selecting a date. The component supports disabling interaction and custom styling.
+ *
+ * @param date - The currently selected date, or undefined if none is selected.
+ * @param onSelect - Callback invoked when a date is selected or cleared.
+ * @param placeholder - Text shown when no date is selected. Defaults to "Pick a date".
+ * @param className - Additional CSS classes for the button.
+ * @param showTime - If true, displays time alongside the date. Defaults to false.
+ * @param disabled - If true, disables the date picker button. Defaults to false.
+ */
 export function DatePicker({ 
   date, 
   onSelect, 

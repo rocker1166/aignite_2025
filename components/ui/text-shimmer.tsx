@@ -11,6 +11,18 @@ export type TextShimmerProps = {
   spread?: number;
 };
 
+/**
+ * Renders text with an animated shimmering gradient effect.
+ *
+ * Displays the provided string content as a customizable HTML element with a horizontal shimmer animation applied to the text. The shimmer's spread and animation duration can be adjusted via props, and the effect adapts to the length of the text.
+ *
+ * @param children - The string content to display with the shimmer effect.
+ * @param as - Optional HTML element type to render as (defaults to 'p').
+ * @param className - Optional additional CSS class names.
+ * @param duration - Optional animation duration in seconds (defaults to 2).
+ * @param spread - Optional numeric value controlling the shimmer spread (defaults to 2).
+ * @returns A React element displaying the animated shimmering text.
+ */
 function TextShimmerComponent({
   children,
   as: Component = 'p',

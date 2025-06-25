@@ -39,9 +39,17 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
+/**
+ * Renders a card containing a line chart that visualizes daily production output as actual versus projected percentages.
+ *
+ * Displays a styled card with a header, a line chart comparing actual and projected production capacity for each day, and a footer with descriptive context.
+ *
+ * @param data - Array of production data points, each including the day, actual output (which may be null), and projected output percentage.
+ * @returns A React element displaying the production output chart and related information.
+ */
 export default function ProductionOutputChart({ data }: ProductionOutputChartProps) {
   return (
-    <Card className="bg-transparent  border-border/50 shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/15 transition-all duration-300">
+    <Card className="bg-background/60 backdrop-blur-sm border-border/50 shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/15 transition-all duration-300">
       <CardHeader>
         <CardTitle>Production Output</CardTitle>
         <CardDescription>Daily production capacity (% of normal)</CardDescription>

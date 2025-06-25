@@ -17,6 +17,13 @@ interface ChatError {
   retryable: boolean
 }
 
+/**
+ * Renders an interactive AI-powered chat overlay with draggable minimized input, animated modal, and robust error handling.
+ *
+ * The component manages chat state, user input, message history, and error feedback. It integrates with an AI chat API, supports retrying failed messages, and provides contextual error alerts. Users can open a modal chat interface or interact with a minimized input bar, both supporting message submission and animated transitions.
+ *
+ * @returns The AI chat overlay React component.
+ */
 function AIChatOverlay() {
   const [isOpen, setIsOpen] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)

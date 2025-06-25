@@ -10,6 +10,11 @@ interface ScenarioMetricCardProps {
   iconColor: string
 }
 
+/**
+ * Displays a metric card with an icon, label, value, and tooltip.
+ *
+ * Renders a styled card showing a metric's icon, label, and value, with a tooltip providing additional information when hovered.
+ */
 export default function ScenarioMetricCard({
   icon,
   label,

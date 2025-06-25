@@ -6,23 +6,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import ScenarioMetricCard from "./scenario-metric-card"
 
-// Glassmorphic Card Component
-function GlassmorphicCard({ children, className = "", ...props }: { children: React.ReactNode; className?: string; [key: string]: any }) {
-  return (
-    <Card 
-      className={`border border-white/30 dark:border-slate-700/10 bg-white/70 dark:bg-slate-900/5 backdrop-blur-xl shadow-xl shadow-black/5 dark:shadow-black/20 rounded-xl ${className}`} 
-      {...props}
-    >
-      {children}
-    </Card>
-  )
-}
-
 interface ScenarioInfoCardProps {
   scenario: any
   onOpenSheet: () => void
 }
 
+/**
+ * Displays a detailed information card for a supply chain simulation scenario.
+ *
+ * Shows scenario name, description, type, and key metrics in a structured card layout. Metrics include supply chain ID, affected node, disruption duration, severity, Monte Carlo runs, cascading threshold, inventory buffer, and last updated timestamp. Provides a button to view the associated disruption strategy.
+ *
+ * @param scenario - The scenario data object containing details and metrics to display.
+ * @param onOpenSheet - Callback invoked when the "View Disruption Strategy" button is clicked.
+ */
 export default function ScenarioInfoCard({ scenario, onOpenSheet }: ScenarioInfoCardProps) {
   const firstRowMetrics = [
     {
@@ -95,7 +91,7 @@ export default function ScenarioInfoCard({ scenario, onOpenSheet }: ScenarioInfo
   ]
 
   return (
-    <GlassmorphicCard className=" dark:bg-slate-950 shadow-lg border-0">
+    <Card className="bg-white dark:bg-slate-950 shadow-lg border-0">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="space-y-2">
@@ -136,6 +132,6 @@ export default function ScenarioInfoCard({ scenario, onOpenSheet }: ScenarioInfo
           </Button>
         </div>
       </CardContent>
-    </GlassmorphicCard>
+    </Card>
   )
 } 

@@ -12,6 +12,11 @@ import { type SupplyChainNode, supplyChainImpactData } from "@/lib/data/impactre
 import { useImpact } from "@/lib/context/impact-context"
 import { Skeleton } from "@/components/ui/skeleton"
 
+/**
+ * Displays a sortable grid of supply chain nodes with detailed impact metrics.
+ *
+ * Renders a table showing each node's name, type, status, downtime, output drop, recovery, and risk score. Users can sort the table by any column. If data is loading, a skeleton UI is shown. Falls back to default data if no impact data is available.
+ */
 export default function NodeImpactGrid() {
   const [sortBy, setSortBy] = useState<keyof SupplyChainNode>("riskScore")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
@@ -174,6 +179,9 @@ export default function NodeImpactGrid() {
   )
 }
 
+/**
+ * Displays a skeleton card UI to indicate loading state for the node impact grid.
+ */
 function LoadingState() {
   return (
     <Card className="shadow-xl shadow-black/10 border-border/50">

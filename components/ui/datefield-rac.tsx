@@ -16,6 +16,11 @@ import {
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Renders a styled date field component, wrapping the underlying react-aria DateField and applying custom class names.
+ *
+ * Forwards all props and children to the base DateField component.
+ */
 function DateField<T extends DateValueRac>({
   className,
   children,
@@ -31,6 +36,11 @@ function DateField<T extends DateValueRac>({
   )
 }
 
+/**
+ * Renders a styled time input field by wrapping the base TimeField component from react-aria-components.
+ *
+ * Forwards all props and children to the underlying component, applying composed class names for custom styling.
+ */
 function TimeField<T extends TimeValueRac>({
   className,
   children,
@@ -46,6 +56,11 @@ function TimeField<T extends TimeValueRac>({
   )
 }
 
+/****
+ * Renders a styled date segment for use within date or time input fields.
+ *
+ * Applies conditional styling based on segment state, such as focus, invalid, placeholder, disabled, and literal types.
+ */
 function DateSegment({ className, ...props }: DateSegmentProps) {
   return (
     <DateSegmentRac
@@ -69,6 +84,13 @@ interface DateInputProps extends DateInputPropsRac {
   unstyled?: boolean
 }
 
+/**
+ * Renders a styled date input field using custom segment components.
+ *
+ * Applies default styling unless `unstyled` is set to true. Each date segment is rendered with the `DateSegment` component for consistent appearance and behavior.
+ *
+ * @param unstyled - If true, disables the default container styling.
+ */
 function DateInput({
   className,
   unstyled = false,

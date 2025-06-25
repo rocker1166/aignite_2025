@@ -38,6 +38,15 @@ interface DigitalTwinCanvasProps {
   initialEdges?: Edge[];
 }
 
+/**
+ * Renders the interactive digital twin canvas for supply chain modeling, enabling users to create, edit, group, ungroup, validate, and save supply chain architectures.
+ *
+ * The component manages nodes and edges representing supply chain entities and their connections, supports state hydration from URL parameters, and provides advanced features such as template loading, grouping, ungrouping, validation, and saving to a backend. It integrates with React Flow for visualization and offers UI controls for simulation, editing, and validation dialogs.
+ *
+ * @param initialNodes - Optional initial array of nodes to populate the canvas if no URL state is present.
+ * @param initialEdges - Optional initial array of edges to populate the canvas if no URL state is present.
+ * @returns The rendered digital twin canvas React component.
+ */
 export default function DigitalTwinCanvas({
   initialNodes = [],
   initialEdges = []

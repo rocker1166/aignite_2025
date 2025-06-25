@@ -15,6 +15,13 @@ const poppins = Poppins({
   variable: '--font-poppins',
 })
 
+/**
+ * Root layout component that sets up global providers, theming, font, and integrations for the application.
+ *
+ * Wraps the application with theme management, session context, CopilotKit integration, toast notifications, and applies the Poppins font and dark mode styling.
+ *
+ * @param children - The content to be rendered within the layout
+ */
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`dark ${poppins.variable}`} suppressHydrationWarning>

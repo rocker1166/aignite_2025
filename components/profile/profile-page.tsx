@@ -16,6 +16,13 @@ const defaultPreferences = {
   sms: false
 };
 
+/**
+ * Renders the user profile page with profile details, notification preferences, security settings, and quick access links.
+ *
+ * Displays skeleton placeholders while loading user data. Allows users to update their profile, manage notification preferences, change their password, and navigate to key application sections.
+ *
+ * @returns The profile page React element.
+ */
 export function ProfilePage(): React.ReactElement {
   const { userData, setUserData, userLoading } = useUser();
   

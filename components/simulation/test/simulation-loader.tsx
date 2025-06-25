@@ -29,6 +29,13 @@ const animationPhases: AnimationPhase[] = [
   }
 ]
 
+/**
+ * Displays a multi-phase animated loading screen for a simulation process, updating visuals and text based on progress.
+ *
+ * Shows different Lottie animations, descriptive text, and a progress bar that reflect the current stage of the simulation as indicated by the `progress` prop. The component transitions between phases and updates status indicators to provide real-time feedback during loading.
+ *
+ * @param progress - The current progress percentage (0–100) of the simulation process.
+ */
 export function SimulationLoader({ progress }: Props) {
   const [currentPhase, setCurrentPhase] = useState(0)
 

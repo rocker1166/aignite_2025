@@ -26,6 +26,9 @@ type CalendarProps = ComponentProps<typeof CalendarRac> & BaseCalendarProps
 type RangeCalendarProps = ComponentProps<typeof RangeCalendarRac> &
   BaseCalendarProps
 
+/**
+ * Renders the calendar header with previous and next navigation buttons and a centered month/year heading.
+ */
 function CalendarHeader() {
   return (
     <header className="flex w-full items-center gap-1 pb-1">
@@ -46,6 +49,11 @@ function CalendarHeader() {
   )
 }
 
+/**
+ * Renders the calendar grid with weekday headers and date cells, supporting both single-date and range selection modes.
+ *
+ * @param isRange - If true, enables range selection styling and behavior for the calendar grid.
+ */
 function CalendarGridComponent({ isRange = false }: { isRange?: boolean }) {
   const now = today(getLocalTimeZone())
 
@@ -83,6 +91,11 @@ function CalendarGridComponent({ isRange = false }: { isRange?: boolean }) {
   )
 }
 
+/**
+ * Renders a single-date selection calendar with navigation header and date grid.
+ *
+ * Combines a styled header with month navigation and a grid for selecting individual dates. All props are forwarded to the underlying calendar component.
+ */
 function Calendar({ className, ...props }: CalendarProps) {
   return (
     <CalendarRac
@@ -97,6 +110,11 @@ function Calendar({ className, ...props }: CalendarProps) {
   )
 }
 
+/**
+ * Renders a calendar component for selecting a date range, with navigation controls and a styled grid.
+ *
+ * Combines a header with month navigation and a grid that visually distinguishes range selections, unavailable dates, and the current day.
+ */
 function RangeCalendar({ className, ...props }: RangeCalendarProps) {
   return (
     <RangeCalendarRac

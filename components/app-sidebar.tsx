@@ -40,6 +40,11 @@ import { ThemeToggle, SidebarThemeToggle } from "@/components/theme"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
+/****
+ * Renders the main application sidebar with navigation and footer links, adapting its layout based on the collapsed state.
+ *
+ * The sidebar automatically collapses when viewing a digital twin with a `twinId` query parameter. It displays navigation and footer items with icons and labels, and includes theme toggles. The layout switches between a compact icon-only view and an expanded view with full labels depending on the sidebar state.
+ */
 export function AppSidebar() {
   const pathname = usePathname()
   const searchParams = useSearchParams()

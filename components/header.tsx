@@ -68,6 +68,11 @@ interface HeaderProps {
   title: string
 }
 
+/**
+ * Renders a sticky top navigation header with a title, sidebar trigger, notifications dropdown, and user account menu.
+ *
+ * @param title - The text to display as the header title.
+ */
 export function Header({ title }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b g-background-100/70 dark:bg-[#232325]/70 backdrop-blur-md shadow-sm px-6">

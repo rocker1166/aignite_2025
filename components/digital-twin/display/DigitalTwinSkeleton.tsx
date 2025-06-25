@@ -1,5 +1,10 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
+/**
+ * Renders a full-screen skeleton UI that mimics the digital twin interface layout while content is loading.
+ *
+ * Displays placeholder panels, toolbars, buttons, and content areas using skeleton components to indicate loading state, including support for both light and dark modes.
+ */
 export default function DigitalTwinSkeleton() {
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">

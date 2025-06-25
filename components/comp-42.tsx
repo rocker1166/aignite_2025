@@ -14,6 +14,11 @@ import { cn } from "@/lib/utils"
 import { RangeCalendar } from "@/components/ui/calendar-rac"
 import { DateInput, dateInputStyle } from "@/components/ui/datefield-rac"
 
+/**
+ * Renders an accessible date range picker UI with custom styling and a calendar popover.
+ *
+ * The component includes labeled start and end date inputs, a button to open a calendar popover for visual date selection, and an accessible note referencing React Aria documentation.
+ */
 export default function Component() {
   return (
     <DateRangePicker className="*:not-first:mt-2">

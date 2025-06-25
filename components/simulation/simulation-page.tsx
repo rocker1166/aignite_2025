@@ -7,7 +7,6 @@ import { WorkflowIcon, HistoryIcon, RouteIcon, CalendarDaysIcon } from "@/compon
 import { PlusIcon } from "@/components/icons/plus-icon"
 import { parseAsString, useQueryState } from "nuqs"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
 
@@ -28,18 +27,11 @@ import { FloatingRunButton } from "./floating-run-button"
 import { ScenarioConfigurationForm } from "./scenario-configuration-form"
 import type { ApiResponse, SupplyChainData } from "./types"
 
-// Glassmorphic Card Component
-function GlassmorphicCard({ children, className = "", ...props }: { children: React.ReactNode; className?: string; [key: string]: any }) {
-  return (
-    <Card 
-      className={`border border-white/30 dark:border-slate-700/10 bg-white/70 dark:bg-slate-900/5 backdrop-blur-xl shadow-xl shadow-black/5 dark:shadow-black/20 rounded-xl ${className}`} 
-      {...props}
-    >
-      {children}
-    </Card>
-  )
-}
-
+/**
+ * Renders the main content and workflow for the supply chain simulation page.
+ *
+ * Manages scenario configuration, simulation execution, progress tracking, results display, and simulation history. Integrates with user, scenario, and impact contexts, and provides development utilities for testing. Supports AI scenario suggestions and workflow guidance via UI components.
+ */
 function SimulationPageContent() {
   const [simulationHistory, setSimulationHistory] = useState<Simulation[]>([])
   const [currentSimulation, setCurrentSimulation] = useState<Simulation | null>(null)
@@ -432,31 +424,24 @@ function SimulationPageContent() {
   }
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-cyan-100 dark:from-gray-900 dark:to-slate-900 overflow-x-hidden">
-      {/* Enhanced background blurred elements for light mode */}
-      <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 dark:bg-purple-900 opacity-30 blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-1/3 right-1/3 w-96 h-96 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 dark:bg-blue-900 opacity-25 blur-3xl"></div>
-      <div className="absolute top-1/2 right-1/4 w-48 h-48 rounded-full bg-gradient-to-br from-emerald-300 to-teal-400 dark:bg-emerald-900 opacity-20 blur-2xl"></div>
-      <div className="absolute bottom-1/4 left-1/3 w-72 h-72 rounded-full bg-gradient-to-br from-orange-300 to-amber-400 dark:bg-orange-900 opacity-15 blur-3xl animate-pulse"></div>
-      
-      <div className="relative flex flex-col h-full">
-        <SimulationHeader />
+    <div className="flex flex-col h-full">
+      <SimulationHeader />
 
-        <div className="flex-1 overflow-y-auto">
+      <div className={`flex-1 overflow-y-auto ${view !== 'form' && simulationRunning ? 'bg-white dark:bg-white' : 'bg-slate-50 dark:bg-background'}`}>
         {view === 'form' &&  (
           <div className="relative">
             <div className="p-6 px-10 space-y-6">
               {/* Header Section */}
               <div className="space-y-4">
                 <div>
-                  <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 mb-2">Scenario Builder</h1>
-                  <p className="text-slate-600 dark:text-slate-300 text-lg">Configure scenarios and analyze supply chain resilience</p>
+                  <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-2">Scenario Builder</h1>
+                  <p className="text-muted-foreground text-lg">Configure scenarios and analyze supply chain resilience</p>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <Drawer>
                     <DrawerTrigger asChild>
-                      <Button variant="secondary" className="shadow-md border-white/30 dark:border-slate-700/10 bg-white/70 dark:bg-slate-900/5 backdrop-blur-xl hover:bg-white/80 dark:hover:bg-slate-900/10">
+                      <Button variant="secondary" className="shadow-md">
                         <WorkflowIcon size={16} className="mr-2" />
                         See how it works
                       </Button>
@@ -505,7 +490,7 @@ function SimulationPageContent() {
 
                   <Sheet>
                     <SheetTrigger asChild>
-                      <Button variant="secondary" className="shadow-md border-white/30 dark:border-slate-700/10 bg-white/70 dark:bg-slate-900/5 backdrop-blur-xl hover:bg-white/80 dark:hover:bg-slate-900/10">
+                      <Button variant="secondary" className="shadow-md">
                         <HistoryIcon size={16} className="mr-2" />
                         View History
                       </Button>
@@ -532,7 +517,7 @@ function SimulationPageContent() {
                     </SheetContent>
                   </Sheet>
 
-                  <Button variant="default" onClick={() => setIsAIScenarioOpen(true)} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-xl hover:shadow-2xl transition-all duration-300">
+                  <Button variant="default" onClick={() => setIsAIScenarioOpen(true)} className="shadow-md">
                     <Sparkles className="mr-2 h-4 w-4 text-yellow-500" /> 
                     AI Scenarios
                   </Button>
@@ -543,7 +528,7 @@ function SimulationPageContent() {
                       <Button 
                         variant="outline" 
                         onClick={fillDummyData} 
-                        className="shadow-md border-dashed border-orange-300/50 text-orange-600 hover:bg-orange-50/70 dark:hover:bg-orange-900/10 backdrop-blur-xl bg-white/50 dark:bg-slate-900/20"
+                        className="shadow-md border-dashed border-orange-300 text-orange-600 hover:bg-orange-50"
                       >
                         <RouteIcon size={16} className="mr-2" />
                         Dev: Fill Form
@@ -551,7 +536,7 @@ function SimulationPageContent() {
                       <Button 
                         variant="outline" 
                         onClick={jumpToResults} 
-                        className="shadow-md border-dashed border-green-300/50 text-green-600 hover:bg-green-50/70 dark:hover:bg-green-900/10 backdrop-blur-xl bg-white/50 dark:bg-slate-900/20"
+                        className="shadow-md border-dashed border-green-300 text-green-600 hover:bg-green-50"
                       >
                         <Play size={16} className="mr-2" />
                         Dev: Skip to Results
@@ -572,9 +557,7 @@ function SimulationPageContent() {
 
         {view === 'simulation' && simulationRunning && (
           <div className="p-6 px-10">
-            <GlassmorphicCard className="p-8">
-              <SimulationLoader progress={progress} />
-            </GlassmorphicCard>
+            <SimulationLoader progress={progress} />
           </div>
         )}
 
@@ -583,12 +566,12 @@ function SimulationPageContent() {
             <div className="max-w-7xl mx-auto">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 mb-3">Simulation Results</h1>
-                  <p className="text-slate-600 dark:text-slate-300 text-lg">Analysis complete - review your supply chain impact</p>
+                  <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-3">Simulation Results</h1>
+                  <p className="text-muted-foreground text-lg">Analysis complete - review your supply chain impact</p>
                 </div>
                 <Button 
                   onClick={handleNewSimulation} 
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-xl hover:shadow-2xl transition-all duration-300 h-10 text-base text-white"
+                  className="bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-shadow h-10 text-base text-white"
                 >
                   <PlusIcon size={16} className="mr-2" />
                   New Simulation
@@ -598,7 +581,6 @@ function SimulationPageContent() {
             </div>
           </div>
         )}
-        </div>
       </div>
 
       {/* AI Scenario Suggestions Sheet */}

@@ -14,20 +14,12 @@ import CascadingFailureMap from "@/components/cascading-failure-map"
 import ScenarioInfoCard from "./scenario-info-card"
 import CriticalAlert from "./critical-alert"
 import ImpactAssessmentLoading from "./impact-assessment-loading"
-import { Card } from "../ui/card"
 
-// Glassmorphic Card Component
-function GlassmorphicCard({ children, className = "", ...props }: { children: React.ReactNode; className?: string; [key: string]: any }) {
-  return (
-    <Card 
-      className={`border border-white/30 dark:border-slate-700/10 bg-white/70 dark:bg-slate-900/5 backdrop-blur-xl shadow-xl shadow-black/5 dark:shadow-black/20 rounded-xl ${className}`} 
-      {...props}
-    >
-      {children}
-    </Card>
-  )
-} 
-
+/**
+ * Renders the main interface for supply chain impact assessment, providing real-time analysis, scenario details, and strategy planning views.
+ *
+ * Displays scenario information, a tabbed dashboard for metrics, node impacts, and cascading failure maps, and allows toggling between analysis and strategy dashboards. Integrates loading states and user notifications for simulation runs.
+ */
 export default function ImpactAssessment() {
   const { toast } = useToast()
   const { impactData, isLoading } = useImpact()
@@ -106,7 +98,7 @@ export default function ImpactAssessment() {
     <div className="px-4 py-4 space-y-4">
       <ScenarioInfoCard scenario={scenario} onOpenSheet={handleOpenStrategy} />
 
-      <GlassmorphicCard className="dark:bg-slate-950 backdrop-blur-sm border-0 rounded-xl p-6 shadow-lg shadow-black/5 ">
+      <div className="bg-white dark:bg-slate-950 backdrop-blur-sm border-0 rounded-xl p-6 shadow-lg shadow-black/5">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Impact Analysis</h2>
@@ -135,7 +127,7 @@ export default function ImpactAssessment() {
         </div>
         
         {renderTabContent()}
-      </GlassmorphicCard>
+      </div>
 
       <CriticalAlert />
     </div>

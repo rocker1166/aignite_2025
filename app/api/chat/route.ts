@@ -31,6 +31,13 @@ Examples of supported queries:
 You are NOT a general-purpose chatbot. You are a specialized advisor for critical supply chain decisions.
 `;
 
+/**
+ * Handles POST requests to the supply chain chat API, validating input and streaming AI-generated responses.
+ *
+ * Validates the request body and message format, injects a domain-specific system prompt, and streams responses from the Google Gemini AI model. Returns detailed error responses for invalid input, configuration issues, AI service errors, and rate limiting.
+ *
+ * @returns A streaming AI response or a JSON error response with an appropriate HTTP status code.
+ */
 export async function POST(req: Request) {
   console.group('🌐 Chat API Request Started')
   console.log('Request URL:', req.url)

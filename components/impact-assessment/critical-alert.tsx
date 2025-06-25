@@ -1,6 +1,11 @@
 import { AlertTriangle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 
+/**
+ * Displays a styled card with a critical alert message and recommended mitigation actions.
+ *
+ * Renders an alert icon, a heading, and a descriptive warning about Factory B's projected failure, including suggested steps to address the issue.
+ */
 export default function CriticalAlert() {
   return (
     <Card className="bg-white dark:bg-slate-800 shadow-lg border-0">

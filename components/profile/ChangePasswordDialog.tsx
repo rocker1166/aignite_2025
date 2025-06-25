@@ -11,6 +11,14 @@ interface ChangePasswordDialogProps {
   onClose: () => void;
 }
 
+/**
+ * Renders a modal dialog for changing a user's password.
+ *
+ * Displays a form with fields for the current password, new password, and confirmation of the new password. Each field includes a toggle to show or hide the password text. Validates that the new password and confirmation match before simulating a password update. The dialog can be closed via a cancel button or after a successful update.
+ *
+ * @param isOpen - Whether the dialog is visible
+ * @param onClose - Callback to close the dialog
+ */
 export function ChangePasswordDialog({ isOpen, onClose }: ChangePasswordDialogProps) {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)

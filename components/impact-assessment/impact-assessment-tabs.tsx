@@ -12,6 +12,14 @@ interface ImpactAssessmentTabsProps {
   onTabChange: (tab: string) => void
 }
 
+/**
+ * Renders a tabbed interface for impact assessment views, allowing users to switch between metrics dashboard, node-level impact, and cascading failure map visualizations.
+ *
+ * Displays visually distinct content areas for each tab, with enhanced styling and contextual tooltips where applicable.
+ *
+ * @param activeTab - The identifier of the currently active tab
+ * @param onTabChange - Callback invoked when the user selects a different tab
+ */
 export default function ImpactAssessmentTabs({ activeTab, onTabChange }: ImpactAssessmentTabsProps) {
   const tabs = [
     { value: "metrics", label: "Metrics Dashboard", icon: <BarChart3 className="h-4 w-4" /> },

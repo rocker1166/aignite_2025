@@ -20,6 +20,13 @@ interface DigitalTwinCardProps {
   twin: DigitalTwin;
 }
 
+/**
+ * Renders a clickable card displaying a digital twin's name, description, and associated tags with dynamic styling.
+ *
+ * The card links to a detail page for the specified digital twin. Tags indicating risk levels are styled with color-coded gradients, while date-formatted tags display a clock icon. UI elements include hover-triggered animations and a floating arrow indicator.
+ *
+ * @param twin - The digital twin entity to display in the card
+ */
 export default function DigitalTwinCard({ twin }: DigitalTwinCardProps) {
   const getRiskColor = (tag: string) => {
     if (tag.toLowerCase().includes('high risk')) return 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 dark:from-red-900 dark:to-red-800 dark:text-red-200 shadow-sm';

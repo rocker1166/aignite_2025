@@ -26,6 +26,17 @@ interface AddressAutocompleteMapProps {
     initialLng?: string
 }
 
+/**
+ * Provides an address input with autocomplete suggestions and an interactive map for selecting and editing geographic coordinates.
+ *
+ * Displays a text input with address autocomplete, a dropdown of location suggestions, and a hidden map powered by OlaMaps. Users can select a suggestion, manually edit coordinates, or drag a marker on the map to update the location. The component calls `onCoordinatesChange` whenever the coordinates or address change.
+ *
+ * @param onCoordinatesChange - Callback invoked with updated latitude, longitude, and address when the location changes.
+ * @param initialAddress - Optional initial address to prefill the input.
+ * @param initialLat - Optional initial latitude to set the map and coordinate fields.
+ * @param initialLng - Optional initial longitude to set the map and coordinate fields.
+ * @returns A React component for address autocomplete and map-based coordinate selection.
+ */
 export default function AddressAutocompleteMap({
     onCoordinatesChange,
     initialAddress = '',
