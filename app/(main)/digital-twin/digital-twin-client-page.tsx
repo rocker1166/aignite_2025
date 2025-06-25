@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useQueryState, parseAsString } from 'nuqs';
+import { useQueryState, parseAsString, parseAsInteger, parseAsArrayOf } from 'nuqs';
 import { Header } from '@/components/header';
 import DigitalTwinDashboard from '@/components/digital-twin/display/dashboard';
 import CreationForm from '@/components/digital-twin/forms/creation-form';
@@ -24,8 +24,34 @@ export default function DigitalTwinClientPage() {
   const [activeTwinData, setActiveTwinData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // URL state for form data - to recreate twin from URL parameters
+  const [industryParam] = useQueryState('industry', parseAsString);
+  const [customIndustryParam] = useQueryState('customIndustry', parseAsString);
+  const [productCharacteristicsParam] = useQueryState('productCharacteristics', parseAsArrayOf(parseAsString));
+  const [supplierTiersParam] = useQueryState('supplierTiers', parseAsString);
+  const [operationsLocationParam] = useQueryState('operationsLocation', parseAsArrayOf(parseAsString));
+  const [countryParam] = useQueryState('country', parseAsString);
+  const [currencyParam] = useQueryState('currency', parseAsString);
+  const [shippingMethodsParam] = useQueryState('shippingMethods', parseAsArrayOf(parseAsString));
+  const [annualVolumeTypeParam] = useQueryState('annualVolumeType', parseAsString);
+  const [annualVolumeValueParam] = useQueryState('annualVolumeValue', parseAsInteger);
+  const [risksParam] = useQueryState('risks', parseAsArrayOf(parseAsString));
+
   // Determine if header should be shown (only when neither twinId nor arch are present)
   const shouldShowHeader = !twinId && !archParam;
+
+  // Helper function to check if we have form data in URL
+  const hasFormDataInUrl = () => {
+    return industryParam && 
+           productCharacteristicsParam && 
+           supplierTiersParam && 
+           operationsLocationParam && 
+           currencyParam && 
+           shippingMethodsParam && 
+           annualVolumeTypeParam && 
+           annualVolumeValueParam && 
+           risksParam;
+  };
 
   // Load twin data when twinId changes
   useEffect(() => {
@@ -35,9 +61,47 @@ export default function DigitalTwinClientPage() {
       // If there's an arch parameter, we'll let the canvas handle the state
       // Only load from localStorage if there's no arch parameter
       if (!archParam) {
-        // Note: Since we've moved to database storage, localStorage is now primarily
-        // used for temporary data. In the future, this should be replaced with
-        // a proper API call to fetch twin data from the database.
+        // First, try to recreate twin from URL parameters if available
+        if (hasFormDataInUrl()) {
+          console.log('🔄 Recreating twin from URL parameters...');
+          
+          const formDataFromUrl = {
+            industry: industryParam!,
+            customIndustry: customIndustryParam || "",
+            productCharacteristics: productCharacteristicsParam!,
+            supplierTiers: supplierTiersParam!,
+            operationsLocation: operationsLocationParam!,
+            country: countryParam || "",
+            currency: currencyParam!,
+            shippingMethods: shippingMethodsParam!,
+            annualVolumeType: annualVolumeTypeParam as "units" | "currency",
+            annualVolumeValue: annualVolumeValueParam!,
+            risks: risksParam!
+          };
+
+          try {
+            // Select the appropriate template based on form data
+            const { nodes, edges } = selectTemplate(formDataFromUrl);
+            const templateInfo = getTemplateInfo(formDataFromUrl);
+
+            const twinData = {
+              ...formDataFromUrl,
+              nodes,
+              edges,
+              templateInfo,
+              createdAt: new Date().toISOString()
+            };
+
+            console.log('✅ Twin recreated from URL parameters:', twinData);
+            setActiveTwinData(twinData);
+            setIsLoading(false);
+            return;
+          } catch (error) {
+            console.error('Error recreating twin from URL parameters:', error);
+          }
+        }
+
+        // Fallback to localStorage
         const data = localStorage.getItem(`supplyChain-${twinId}`);
         if (data) {
           try {
@@ -48,7 +112,6 @@ export default function DigitalTwinClientPage() {
             setActiveTwinData(null);
           }
         } else {
-          // TODO: Replace with API call to fetch twin data from database
           console.error('No localStorage data found for twin:', twinId, 'Available keys:', Object.keys(localStorage));
           
           // Check if this might be a newly created twin that hasn't been properly saved yet
@@ -60,6 +123,7 @@ export default function DigitalTwinClientPage() {
               console.log('Found potential twin data in:', possibleTwinKey, 'trying to use it instead');
               const alternativeData = JSON.parse(localStorage.getItem(possibleTwinKey) || '{}');
               setActiveTwinData(alternativeData);
+              setIsLoading(false);
               return;
             } catch (err) {
               console.error('Error parsing alternative twin data:', err);
@@ -78,7 +142,7 @@ export default function DigitalTwinClientPage() {
       setActiveTwinData(null);
       setIsLoading(false);
     }
-  }, [twinId, archParam]);
+  }, [twinId, archParam, industryParam, productCharacteristicsParam, supplierTiersParam, operationsLocationParam, currencyParam, shippingMethodsParam, annualVolumeTypeParam, annualVolumeValueParam, risksParam]);
 
   const handleCreationCancel = () => {
     setView(null, { scroll: false });

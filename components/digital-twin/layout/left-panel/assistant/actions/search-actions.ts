@@ -1,10 +1,8 @@
 import { useCopilotAction } from "@copilotkit/react-core";
 import { ActionContext } from './types';
 
-export const useSearchActions = ({ panelId, internetSearchEnabled }: ActionContext) => {
-  // Only register web search action if internet search is enabled
-  if (internetSearchEnabled) {
-    useCopilotAction({
+export const useSearchActions = ({ panelId }: ActionContext) => {
+  useCopilotAction({
     name: `search_web_${panelId}`,
     description: "Search the web for information using Tavily API.",
     parameters: [
@@ -115,5 +113,4 @@ export const useSearchActions = ({ panelId, internetSearchEnabled }: ActionConte
       return markdownOutput;
     }
   });
-  }
 }; 

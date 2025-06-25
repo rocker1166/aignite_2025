@@ -22,6 +22,7 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
   simulationMode = false, 
   onImmersiveModeChange,
   isImmersiveMode = false,
+  onCollapse,
   nodes: propNodes = [],
   edges: propEdges = [],
   onAddNode,
@@ -385,61 +386,64 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
   const messagesHeight = calculateMessagesHeight();
 
   return (
-    <div className="h-full flex flex-col bg-background">
-      {/* Immersive Mode Header */}
-      <ImmersiveHeader 
-        onExit={handleExitImmersiveMode} 
+    <div className="flex flex-col h-full bg-background relative">
+      <ImmersiveHeader
+        onExit={handleExitImmersiveMode}
+        onCollapse={onCollapse}
         internetSearch={internetSearch}
         setInternetSearch={setInternetSearch}
         isSearching={isSearching}
       />
+      <div 
+        className="flex-grow overflow-y-auto" 
+      >
+        {/* Clear Chat Button */}
+        <div className="flex justify-end p-2 border-b border-border/50">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleClearChat}
+            disabled={isLoading || messages.length === 0}
+            className="text-xs hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20"
+          >
+            <Trash2 className="h-3 w-3 mr-1" />
+            Clear Chat
+          </Button>
+        </div>
 
-      {/* Clear Chat Button */}
-      <div className="flex justify-end p-2 border-b border-border/50">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleClearChat}
-          disabled={isLoading || messages.length === 0}
-          className="text-xs hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20"
-        >
-          <Trash2 className="h-3 w-3 mr-1" />
-          Clear Chat
-        </Button>
+        {/* Messages Area - Full Height */}
+        <MessagesArea 
+          messages={messages}
+          isLoading={isLoading}
+          isImmersiveMode={isImmersiveMode}
+          messagesHeight={messagesHeight}
+          error={chatError}
+          onRetryError={handleRetryError}
+          onDismissError={clearError}
+          retryCount={retryCount}
+        />
+        
+        {/* Input Area - Fixed at Bottom */}
+        <AutocompleteInput
+          input={input}
+          setInput={(value) => {
+            setInput(value);
+            // Clear error when user starts typing
+            if (chatError && value.trim()) {
+              clearError();
+            }
+          }}
+          onSubmit={(message) => {
+            saveQuery(message);
+            handleAISubmit(message);
+          }}
+          isLoading={isLoading}
+          autocompleteSuggestions={autocompleteSuggestions}
+          recentQueries={recentQueries}
+          onAutocompleteSelect={handleAutocompleteSelect}
+          showRecentInHeader={showRecentInHeader}
+        />
       </div>
-
-      {/* Messages Area - Full Height */}
-      <MessagesArea 
-        messages={messages}
-        isLoading={isLoading}
-        isImmersiveMode={isImmersiveMode}
-        messagesHeight={messagesHeight}
-        error={chatError}
-        onRetryError={handleRetryError}
-        onDismissError={clearError}
-        retryCount={retryCount}
-      />
-      
-      {/* Input Area - Fixed at Bottom */}
-      <AutocompleteInput
-        input={input}
-        setInput={(value) => {
-          setInput(value);
-          // Clear error when user starts typing
-          if (chatError && value.trim()) {
-            clearError();
-          }
-        }}
-        onSubmit={(message) => {
-          saveQuery(message);
-          handleAISubmit(message);
-        }}
-        isLoading={isLoading}
-        autocompleteSuggestions={autocompleteSuggestions}
-        recentQueries={recentQueries}
-        onAutocompleteSelect={handleAutocompleteSelect}
-        showRecentInHeader={showRecentInHeader}
-      />
     </div>
   );
 };

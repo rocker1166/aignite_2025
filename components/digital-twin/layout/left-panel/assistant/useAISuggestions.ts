@@ -108,8 +108,7 @@ export const useAISuggestions = ({ nodes, edges, messages }: UseAISuggestionsPro
         }
       } else {
         const errorData = await response.json();
-        console.error('API Error:', errorData);
-        toast.error('Failed to generate AI suggestions');
+        // console.error('API Error:', errorData);
       }
     } catch (error) {
       console.error('Error generating suggestions:', error);
@@ -235,7 +234,7 @@ export const useAISuggestions = ({ nodes, edges, messages }: UseAISuggestionsPro
           }
         }
       } else {
-        console.error('Contextual autocomplete API error');
+        // console.error('Contextual autocomplete API error');  
       }
     } catch (error) {
       console.error('Error generating contextual autocomplete:', error);

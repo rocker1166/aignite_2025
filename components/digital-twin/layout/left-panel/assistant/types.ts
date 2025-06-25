@@ -29,10 +29,11 @@ export interface AIChatPanelProps {
   simulationMode?: boolean;
   onImmersiveModeChange?: (isImmersive: boolean) => void;
   isImmersiveMode?: boolean;
+  onCollapse?: () => void;
   // CopilotKit integration props
   nodes?: Node[];
   edges?: Edge[];
-  onAddNode?: (nodeType: string) => void;
+  onAddNode?: (nodeType: string, label: string, enhancedData?: any) => void;
   onAddMultipleNodes?: (nodes: Partial<Node>[]) => void;
   onAddEdges?: (edges: Partial<Edge>[]) => void;
   onLoadTemplate?: (templateId: string) => void;
@@ -72,6 +73,7 @@ export interface AISuggestionsProps {
 
 export interface ImmersiveHeaderProps {
   onExit: () => void;
+  onCollapse?: () => void;
   internetSearch?: boolean;
   setInternetSearch?: (value: boolean) => void;
   isSearching?: boolean;

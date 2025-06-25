@@ -21,7 +21,7 @@ export interface ActionContext {
   props: {
     nodes: Node[];
     edges: Edge[];
-    onAddNode?: (nodeType: string, label: string) => void;
+    onAddNode?: (nodeType: string, label: string, enhancedData?: any) => void;
     onAddMultipleNodes?: (nodes: Partial<Node>[]) => void;
     onLoadTemplate?: (templateId: string) => void;
     onClearCanvas?: () => void;

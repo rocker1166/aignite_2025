@@ -21,8 +21,7 @@ import {
 interface UseCopilotActionsProps {
   nodes: Node[];
   edges: Edge[];
-  internetSearchEnabled?: boolean;
-  onAddNode?: (nodeType: string, label: string) => void;
+  onAddNode?: (nodeType: string, label: string, enhancedData?: any) => void;
   onAddMultipleNodes?: (nodes: Partial<Node>[]) => void;
   onLoadTemplate?: (templateId: string) => void;
   onClearCanvas?: () => void;
@@ -45,7 +44,7 @@ interface UseCopilotActionsProps {
 }
 
 export const useCopilotActions = (props: UseCopilotActionsProps) => {
-  const { nodes, edges, internetSearchEnabled } = props;
+  const { nodes, edges } = props;
   
   // Generate unique action names to prevent conflicts
   const panelId = useMemo(() => Math.random().toString(36).substr(2, 9), []);
@@ -59,7 +58,6 @@ export const useCopilotActions = (props: UseCopilotActionsProps) => {
     nodes,
     edges,
     panelId,
-    internetSearchEnabled,
     props
   };
 
@@ -90,6 +88,7 @@ export const useCopilotActions = (props: UseCopilotActionsProps) => {
         description: node.data?.description,
         country: node.data?.country || node.data?.location?.country,
         address: node.data?.address,
+        type: node.data?.type,
         
         // Common properties
         capacity: node.data?.capacity,
@@ -132,7 +131,7 @@ export const useCopilotActions = (props: UseCopilotActionsProps) => {
       }
     })),
     totalNodes: nodes.length,
-    nodeTypes: [...new Set(nodes.map(n => n.type))],
+    nodeTypes: [...new Set(nodes.map(n => n.data?.type))],
     hasConnections: edges.length > 0,
     validation: {
       errors: validationSummary.errors,

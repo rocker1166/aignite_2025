@@ -37,11 +37,14 @@ const getSelectionClass = (selected: boolean) => {
 // Helper to get node style with custom color or fallback
 const getNodeStyle = (data: any, nodeType: keyof typeof nodeTypeColors) => {
   if (data.nodeColor) {
-    // Use custom color from node data
+    // Use custom color from node data with enhanced styling
     return {
       ...baseNodeStyle,
       backgroundColor: data.nodeColor,
       color: getContrastColor(data.nodeColor), // Ensure text is readable
+      borderColor: data.nodeColor, // Use the same color for border
+      borderWidth: '2px',
+      borderStyle: 'solid'
     };
   }
   // Fallback to default styles with CSS classes
@@ -73,7 +76,10 @@ export const SupplierNode = memo(({ data, isConnectable, selected }: NodeProps) 
   const nodeStyle = getNodeStyle(data, 'supplier');
 
   return (
-    <div style={nodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
+    <div 
+      style={nodeStyle} 
+      className={`${data.nodeColor ? 'border-0' : typeClass} ${riskClass} ${selectionClass}`}
+    >
       <Handle
         type="source"
         position={Position.Right}
@@ -93,7 +99,10 @@ export const FactoryNode = memo(({ data, isConnectable, selected }: NodeProps) =
   const nodeStyle = getNodeStyle(data, 'factory');
 
   return (
-    <div style={nodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
+    <div 
+      style={nodeStyle} 
+      className={`${data.nodeColor ? 'border-0' : typeClass} ${riskClass} ${selectionClass}`}
+    >
       <Handle
         type="target"
         position={Position.Left}
@@ -118,7 +127,10 @@ export const PortNode = memo(({ data, isConnectable, selected }: NodeProps) => {
   const nodeStyle = getNodeStyle(data, 'port');
   
   return (
-    <div style={nodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
+    <div 
+      style={nodeStyle} 
+      className={`${data.nodeColor ? 'border-0' : typeClass} ${riskClass} ${selectionClass}`}
+    >
       <Handle
         type="target"
         position={Position.Left}
@@ -143,7 +155,10 @@ export const WarehouseNode = memo(({ data, isConnectable, selected }: NodeProps)
   const nodeStyle = getNodeStyle(data, 'warehouse');
   
   return (
-    <div style={nodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
+    <div 
+      style={nodeStyle} 
+      className={`${data.nodeColor ? 'border-0' : typeClass} ${riskClass} ${selectionClass}`}
+    >
       <Handle
         type="target"
         position={Position.Left}
@@ -168,7 +183,10 @@ export const DistributionNode = memo(({ data, isConnectable, selected }: NodePro
   const nodeStyle = getNodeStyle(data, 'distribution');
   
   return (
-    <div style={nodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
+    <div 
+      style={nodeStyle} 
+      className={`${data.nodeColor ? 'border-0' : typeClass} ${riskClass} ${selectionClass}`}
+    >
       <Handle
         type="target"
         position={Position.Left}
@@ -193,7 +211,10 @@ export const RetailerNode = memo(({ data, isConnectable, selected }: NodeProps) 
   const nodeStyle = getNodeStyle(data, 'retailer');
   
   return (
-    <div style={nodeStyle} className={`${typeClass} ${riskClass} ${selectionClass}`}>
+    <div 
+      style={nodeStyle} 
+      className={`${data.nodeColor ? 'border-0' : typeClass} ${riskClass} ${selectionClass}`}
+    >
       <Handle
         type="target"
         position={Position.Left}

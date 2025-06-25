@@ -297,10 +297,8 @@ export default function DigitalTwinCanvas({
 
     if (selectedNodes.length > 0) {
       setSelectedElement(selectedNodes[0]);
-      setIsLeftPanelCollapsed(true);
     } else if (selectedEdges.length > 0) {
       setSelectedElement(selectedEdges[0]);
-      setIsLeftPanelCollapsed(true);
     } else {
       // Nothing selected
       setSelectedElement(null);
@@ -329,19 +327,24 @@ export default function DigitalTwinCanvas({
   }, [setEdges]);
 
   // Handle adding a new node from the left panel
-  const handleAddNode = useCallback((nodeType: string) => {
+  const handleAddNode = useCallback((nodeType: string, label?: string, enhancedData?: any) => {
+    const nodeData = enhancedData || {
+      label: label || `New ${nodeType}`,
+      description: `Description for ${nodeType}`,
+      type: nodeType,
+      capacity: 500,
+      leadTime: 7,
+      riskScore: 0.3,
+      location: { lat: 0, lng: 0 },
+      address: `Default address for ${nodeType}`
+    };
+
     const newNode = {
       id: `${nodeType.toLowerCase()}-${nodes.length + 1}`,
       type: `${nodeType.toLowerCase()}Node`,
       data: {
-        label: `New ${nodeType}`,
-        description: `Description for ${nodeType}`, // Adding default description
-        type: nodeType,
-        capacity: 500,
-        leadTime: 7,
-        riskScore: 0.3,
-        location: { lat: 0, lng: 0 },
-        address: `Default address for ${nodeType}` // Adding default address
+        ...nodeData,
+        type: nodeType // Ensure type is always set correctly
       },
       position: {
         x: 300 + Math.random() * 100,

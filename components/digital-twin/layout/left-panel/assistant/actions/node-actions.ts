@@ -5,10 +5,10 @@ import { ActionContext } from './types';
 export const useNodeActions = ({ nodes, panelId, props }: ActionContext) => {
   const { onAddNode, onUpdateNode, onUpdateMultipleNodes, onFindAndSelectNode } = props;
 
-  // Add single node action
+  // Add single node action with copilot-generated properties
   useCopilotAction({
     name: `addSupplyChainNode_${panelId}`,
-    description: "Add a single node to the supply chain canvas with proper type mapping",
+    description: "Add a single node to the supply chain canvas. Generate appropriate values for all properties based on the node type and label.",
     parameters: [
       {
         name: "nodeType",
@@ -21,26 +21,82 @@ export const useNodeActions = ({ nodes, panelId, props }: ActionContext) => {
         type: "string", 
         description: "Display name/label for the node",
         required: true
+      },
+      {
+        name: "description",
+        type: "string",
+        description: "Detailed description of what this node does in the supply chain. Should be specific to the node type and label provided.",
+        required: true
+      },
+      {
+        name: "address",
+        type: "string",
+        description: "Physical location/address (e.g., 'California, USA', 'Shanghai, China', 'Texas, USA'). Choose realistic locations based on the node type and label.",
+        required: true
+      },
+      {
+        name: "country",
+        type: "string",
+        description: "The 3-letter ISO 3166-1 alpha-3 code for the country of the address (e.g., USA, CHN). This should match the address.",
+        required: true
+      },
+      {
+        name: "capacity",
+        type: "number",
+        description: "Production or storage capacity. Typical ranges: Suppliers (1000-2000), Factories (500-1000), Warehouses (1500-3000), Distributors (800-1500), Retailers (200-500), Ports (3000-5000)",
+        required: true
+      },
+      {
+        name: "leadTime",
+        type: "number",
+        description: "Lead time in days. Typical ranges: Suppliers (10-21), Factories (7-14), Warehouses (2-5), Distributors (3-7), Retailers (1-3), Ports (5-10)",
+        required: true
+      },
+      {
+        name: "riskScore",
+        type: "number",
+        description: "Risk assessment score between 0.1 and 0.9. Lower is better. Consider factors like location, node type, and geopolitical stability.",
+        required: true
+      },
+      {
+        name: "nodeColor",
+        type: "string",
+        description: "Hex color code for the node. Use distinct colors: Suppliers (#3B82F6 blue), Factories (#EF4444 red), Warehouses (#F59E0B orange), Distributors (#10B981 green), Retailers (#8B5CF6 purple), Ports (#06B6D4 cyan)",
+        required: true
+      },
+      {
+        name: "latitude",
+        type: "number",
+        description: "Latitude coordinate for the location. Should match the provided address.",
+        required: true
+      },
+      {
+        name: "longitude",
+        type: "number",
+        description: "Longitude coordinate for the location. Should match the provided address.",
+        required: true
       }
     ],
-    handler: ({ nodeType, label }) => {
+    handler: ({ nodeType, label, description, address, capacity, leadTime, riskScore, nodeColor, latitude, longitude, country }) => {
       if (onAddNode) {
-        // Map user-friendly names to internal node types
-        const nodeTypeMap: Record<string, string> = {
-          'supplier': 'supplierNode',
-          'manufacturer': 'factoryNode',
-          'factory': 'factoryNode',
-          'warehouse': 'warehouseNode',
-          'distributor': 'distributionNode',
-          'distribution': 'distributionNode',
-          'retailer': 'retailerNode',
-          'customer': 'retailerNode',
-          '3pl': 'distributionNode',
-          'port': 'portNode'
+        // Create node data object
+        const nodeData = {
+          label,
+          description,
+          type: nodeType,
+          capacity,
+          leadTime,
+          riskScore,
+          location: { lat: latitude, lng: longitude, country },
+          address,
+          nodeColor
         };
+
+        console.log("🔍 Node Data:", nodeData); 
         
-        const mappedType = nodeTypeMap[nodeType.toLowerCase()] || nodeType;
-        onAddNode(mappedType, label);
+        // Create the node with the generated data - use nodeType directly
+        onAddNode(nodeType, label, nodeData);
+        
         toast.success(`✅ Added ${label} (${nodeType}) to your supply chain canvas.`);
       }
     }
