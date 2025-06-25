@@ -59,7 +59,7 @@ export const useAISuggestions = ({ nodes, edges, messages }: UseAISuggestionsPro
           id: edge.id,
           source: edge.source,
           target: edge.target,
-          transportMode: edge.data?.mode || 'road',
+          mode: edge.data?.mode || 'road',
           cost: edge.data?.cost || 0,
           transitTime: edge.data?.transitTime || 0,
           riskMultiplier: edge.data?.riskMultiplier || 1
@@ -147,7 +147,7 @@ export const useAISuggestions = ({ nodes, edges, messages }: UseAISuggestionsPro
           id: edge.id,
           source: edge.source,
           target: edge.target,
-          transportMode: edge.data?.mode || 'road',
+          mode: edge.data?.mode || 'road',
           cost: edge.data?.cost || 0,
           transitTime: edge.data?.transitTime || 0,
           riskMultiplier: edge.data?.riskMultiplier || 1

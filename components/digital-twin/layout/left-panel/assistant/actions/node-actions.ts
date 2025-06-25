@@ -10,7 +10,7 @@ type NodeDataWithLocation = {
 
 export const useNodeActions = ({ nodes, panelId, props }: ActionContext) => {
   const { onAddNode, onUpdateNode, onUpdateMultipleNodes, onFindAndSelectNode } = props;
-  console.log("onUpdateNode",onUpdateNode , "onAddNode",onAddNode, "onUpdateMultipleNodes",onUpdateMultipleNodes, "onFindAndSelectNode",onFindAndSelectNode)
+  // console.log("onUpdateNode",onUpdateNode , "onAddNode",onAddNode, "onUpdateMultipleNodes",onUpdateMultipleNodes, "onFindAndSelectNode",onFindAndSelectNode)
 
   // Add single node action with copilot-generated properties
   useCopilotAction({
