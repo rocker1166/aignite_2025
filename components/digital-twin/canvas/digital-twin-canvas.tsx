@@ -45,8 +45,37 @@ export default function DigitalTwinCanvas({ initialNodes, initialEdges }: Digita
     simulationToolbarProps,
     leftPanelProps,
     rightPanelProps,
-    handleAIFixRequest
+    handleAIFixRequest,
+    selectedElement,
+    handleDeleteNode
   } = useDigitalTwinManager({ initialNodes, initialEdges });
+
+  // Add keyboard event listener for Delete key
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check if Delete or Backspace key is pressed
+      if ((event.key === 'Delete' || event.key === 'Backspace') && selectedElement) {
+        // Prevent deletion in simulation mode
+        if (simulationToolbarProps.simulationMode) {
+          return;
+        }
+        
+        // Only delete nodes (not edges through keyboard for safety)
+        if ('position' in selectedElement && selectedElement.type !== 'group') {
+          event.preventDefault();
+          handleDeleteNode(selectedElement.id);
+        }
+      }
+    };
+
+    // Add event listener to window for global keyboard handling
+    window.addEventListener('keydown', handleKeyDown);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedElement, handleDeleteNode, simulationToolbarProps.simulationMode]);
 
   const onDragOver = (event: React.DragEvent) => {
     event.preventDefault();
@@ -149,6 +178,7 @@ export default function DigitalTwinCanvas({ initialNodes, initialEdges }: Digita
             zoomOnPinch
             zoomOnDoubleClick={false}
             onNodeDoubleClick={onNodeDoubleClick}
+            deleteKeyCode={null} // Disable default delete handling, we'll handle it ourselves
           >
             <Controls />
             <MiniMap />
