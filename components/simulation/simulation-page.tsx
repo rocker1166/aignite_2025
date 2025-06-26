@@ -29,11 +29,22 @@ import { EnhancedScenarioConfigurationForm } from "./enhanced-scenario-configura
 import { ProfessionalTemplateSelection } from "./professional-template-selection"
 import type { ApiResponse, SupplyChainData } from "./types"
 
-// Glassmorphic Card Component
-function GlassmorphicCard({ children, className = "", ...props }: { children: React.ReactNode; className?: string; [key: string]: any }) {
+// Glassmorphic Card Component with enhanced styling
+function GlassmorphicCard({ children, className = "", variant = "default", ...props }: { 
+  children: React.ReactNode; 
+  className?: string; 
+  variant?: "default" | "accent" | "subtle";
+  [key: string]: any 
+}) {
+  const variantStyles = {
+    default: "border border-white/30 dark:border-slate-700/20 bg-white/80 dark:bg-slate-900/20 backdrop-blur-xl shadow-xl shadow-black/5 dark:shadow-black/30",
+    accent: "border border-blue-200/50 dark:border-blue-800/30 bg-gradient-to-br from-white/90 to-blue-50/80 dark:from-slate-900/30 dark:to-blue-950/20 backdrop-blur-xl shadow-xl shadow-blue-500/10 dark:shadow-blue-500/20",
+    subtle: "border border-white/20 dark:border-slate-700/10 bg-white/60 dark:bg-slate-900/10 backdrop-blur-lg shadow-lg shadow-black/5 dark:shadow-black/20"
+  }
+  
   return (
     <Card 
-      className={`border border-white/30 dark:border-slate-700/10 bg-white/70 dark:bg-slate-900/5 backdrop-blur-xl shadow-xl shadow-black/5 dark:shadow-black/20 rounded-xl ${className}`} 
+      className={`${variantStyles[variant]} rounded-2xl transition-all duration-300 hover:shadow-2xl hover:shadow-black/10 dark:hover:shadow-black/40 ${className}`} 
       {...props}
     >
       {children}
@@ -302,50 +313,86 @@ function SimulationPageContent() {
   }
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-cyan-100 dark:from-gray-900 dark:to-slate-900 overflow-x-hidden">
-      {/* Enhanced background blurred elements for light mode */}
-      <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 dark:bg-purple-900 opacity-30 blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-1/3 right-1/3 w-96 h-96 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 dark:bg-blue-900 opacity-25 blur-3xl"></div>
-      <div className="absolute top-1/2 right-1/4 w-48 h-48 rounded-full bg-gradient-to-br from-emerald-300 to-teal-400 dark:bg-emerald-900 opacity-20 blur-2xl"></div>
-      <div className="absolute bottom-1/4 left-1/3 w-72 h-72 rounded-full bg-gradient-to-br from-orange-300 to-amber-400 dark:bg-orange-900 opacity-15 blur-3xl animate-pulse"></div>
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-100/60 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950 overflow-x-hidden">
+      {/* Enhanced animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-80 h-80 rounded-full bg-gradient-to-br from-purple-400/30 to-pink-400/20 dark:from-purple-900/40 dark:to-pink-900/30 blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/3 right-1/3 w-96 h-96 rounded-full bg-gradient-to-br from-blue-400/25 to-cyan-400/15 dark:from-blue-900/40 dark:to-cyan-900/30 blur-3xl animate-bounce [animation-duration:8s]"></div>
+        <div className="absolute top-1/2 right-1/4 w-64 h-64 rounded-full bg-gradient-to-br from-emerald-300/20 to-teal-400/10 dark:from-emerald-900/30 dark:to-teal-900/20 blur-2xl animate-pulse [animation-delay:2s]"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-72 h-72 rounded-full bg-gradient-to-br from-orange-300/15 to-amber-400/10 dark:from-orange-900/25 dark:to-amber-900/20 blur-3xl animate-pulse [animation-delay:4s]"></div>
+        
+        {/* Additional floating elements for depth */}
+        <div className="absolute top-10 right-10 w-32 h-32 rounded-full bg-gradient-to-br from-rose-300/20 to-pink-300/10 dark:from-rose-900/30 dark:to-pink-900/20 blur-xl animate-bounce [animation-duration:6s] [animation-delay:1s]"></div>
+        <div className="absolute bottom-10 left-10 w-40 h-40 rounded-full bg-gradient-to-br from-violet-300/15 to-purple-300/10 dark:from-violet-900/25 dark:to-purple-900/20 blur-xl animate-pulse [animation-delay:3s]"></div>
+      </div>
       
-      <div className="relative flex flex-col h-full">
+      <div className="relative flex flex-col h-full z-10">
         <SimulationHeader />
 
         <div className="flex-1 overflow-y-auto">
         {view === 'templates' && (
           <div className="p-6 px-10">
-            <ProfessionalTemplateSelection
-              onTemplateSelect={handleTemplateSelect}
-              onStartFromScratch={handleStartFromScratch}
-              onAIScenarios={() => setIsAIScenarioOpen(true)}
-              onSelectScenario={handleForecastScenarioSelect}
-            />
+            <div className="max-w-7xl mx-auto">
+              {/* Enhanced header for templates view */}
+              <div className="text-center mb-12">
+                <h1 className="text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-400 dark:via-purple-400 dark:to-indigo-400 mb-4">
+                  Choose Your Simulation
+                </h1>
+                <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
+                  Start with AI-powered scenarios, professional templates, or build from scratch to analyze your supply chain resilience
+                </p>
+              </div>
+              
+              <ProfessionalTemplateSelection
+                onTemplateSelect={handleTemplateSelect}
+                onStartFromScratch={handleStartFromScratch}
+                onAIScenarios={() => setIsAIScenarioOpen(true)}
+                onSelectScenario={handleForecastScenarioSelect}
+              />
+            </div>
           </div>
         )}
 
         {view === 'form' &&  (
           <div className="relative">
-            <div className="p-6 px-10 space-y-6">
-              {/* Header Section */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 mb-2">Scenario Builder</h1>
-                    <p className="text-slate-600 dark:text-slate-300 text-lg">Configure scenarios and analyze supply chain resilience</p>
+            <div className="p-6 px-10 space-y-8">
+              {/* Enhanced Header Section */}
+              <div className="max-w-7xl mx-auto">
+                <GlassmorphicCard variant="accent" className="p-8 mb-8">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-3">
+                      <h1 className="text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-400 dark:via-purple-400 dark:to-indigo-400">
+                        Scenario Builder
+                      </h1>
+                      <p className="text-slate-600 dark:text-slate-300 text-xl leading-relaxed max-w-2xl">
+                        Configure scenarios and analyze supply chain resilience with advanced Monte Carlo simulations
+                      </p>
+                      <div className="flex items-center gap-4 pt-2">
+                        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          Real-time analysis enabled
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                          <Sparkles className="w-4 h-4 text-blue-500" />
+                          AI-powered insights
+                        </div>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setView('templates')}
+                      className="shadow-lg border-white/40 dark:border-slate-700/30 bg-white/80 dark:bg-slate-900/20 backdrop-blur-xl hover:bg-white/90 dark:hover:bg-slate-900/30 transition-all duration-300 px-6 py-3 text-base"
+                    >
+                      ← Back to Templates
+                    </Button>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setView('templates')}
-                    className="shadow-md border-white/30 dark:border-slate-700/10 bg-white/70 dark:bg-slate-900/5 backdrop-blur-xl hover:bg-white/80 dark:hover:bg-slate-900/10"
-                  >
-                    ← Back to Templates
-                  </Button>
-                </div>
+                </GlassmorphicCard>
               </div>
 
               {/* Enhanced Form Configuration */}
-              <EnhancedScenarioConfigurationForm />
+              <div className="max-w-7xl mx-auto">
+                <EnhancedScenarioConfigurationForm />
+              </div>
             </div>
 
             {/* Floating Action Button */}
@@ -355,29 +402,50 @@ function SimulationPageContent() {
 
         {view === 'simulation' && simulationRunning && (
           <div className="p-6 px-10">
-            <GlassmorphicCard className="p-8">
-              <SimulationLoader progress={progress} />
-            </GlassmorphicCard>
+            <div className="max-w-4xl mx-auto">
+              <GlassmorphicCard variant="accent" className="p-12">
+                <SimulationLoader progress={progress} />
+              </GlassmorphicCard>
+            </div>
           </div>
         )}
 
         {view === 'results' && simulationComplete && (
-          <div className="p-6 px-10 space-y-6">
+          <div className="p-6 px-10 space-y-8">
             <div className="max-w-7xl mx-auto">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 mb-3">Simulation Results</h1>
-                  <p className="text-slate-600 dark:text-slate-300 text-lg">Analysis complete - review your supply chain impact</p>
+              <GlassmorphicCard variant="accent" className="p-8 mb-8">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-3">
+                    <h1 className="text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 via-blue-600 to-indigo-600 dark:from-emerald-400 dark:via-blue-400 dark:to-indigo-400">
+                      Simulation Results
+                    </h1>
+                    <p className="text-slate-600 dark:text-slate-300 text-xl leading-relaxed">
+                      Analysis complete - review your supply chain impact assessment and resilience metrics
+                    </p>
+                    <div className="flex items-center gap-4 pt-2">
+                      <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                        Simulation completed successfully
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                        <WorkflowIcon className="w-4 h-4" />
+                        Monte Carlo analysis
+                      </div>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={handleNewSimulation} 
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-xl hover:shadow-2xl transition-all duration-300 h-12 px-8 text-base text-white rounded-xl"
+                  >
+                    <PlusIcon size={18} className="mr-3" />
+                    New Simulation
+                  </Button>
                 </div>
-                <Button 
-                  onClick={handleNewSimulation} 
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-xl hover:shadow-2xl transition-all duration-300 h-10 text-base text-white"
-                >
-                  <PlusIcon size={16} className="mr-2" />
-                  New Simulation
-                </Button>
+              </GlassmorphicCard>
+              
+              <div className="space-y-6">
+                <SimulationResults simulationId={currentSimulation?.simulation_id} />
               </div>
-              <SimulationResults simulationId={currentSimulation?.simulation_id} />
             </div>
           </div>
         )}

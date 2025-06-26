@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
-import { Sparkles, ArrowRight, AlertTriangle, CloudLightning, Briefcase, ShoppingCart, Building, Loader2, RefreshCw, Wand2, Search, Clock, TrendingUp } from "lucide-react"
+import { Sparkles, ArrowRight, AlertTriangle, CloudLightning, Briefcase, ShoppingCart, Building, Loader2, RefreshCw, Wand2, Search, Clock, TrendingUp, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { ScenarioData, useScenario } from "@/lib/context/scenario-context" 
 import { useUser } from "@/lib/stores/user"
@@ -30,6 +30,7 @@ export function AIScenarioSuggestions({ open, onOpenChange, onSelectScenario }: 
   const [processingTime, setProcessingTime] = useState<number | null>(null)
   const [fromCache, setFromCache] = useState(false)
   const [hasInitiallyFetched, setHasInitiallyFetched] = useState<string | null>(null) // Track which supply chain we've fetched for
+  const [searchQuery, setSearchQuery] = useState("")
   const { userData } = useUser()
   const { toast } = useToast()
   const { updateScenarioData, selectedSupplyChainId } = useScenario()
@@ -66,6 +67,24 @@ export function AIScenarioSuggestions({ open, onOpenChange, onSelectScenario }: 
     setRefreshKey(prev => prev + 1)
     setFromCache(false)
     setHasInitiallyFetched(null) // Reset fetch tracking
+  }
+  
+  // Filter scenarios based on search query
+  const filteredScenarios = useMemo(() => {
+    if (!searchQuery.trim()) return scenarios
+    
+    const query = searchQuery.toLowerCase()
+    return scenarios.filter(scenario => 
+      scenario.scenarioName.toLowerCase().includes(query) ||
+      scenario.description.toLowerCase().includes(query) ||
+      scenario.affectedNode.toLowerCase().includes(query) ||
+      scenario.scenarioType.toLowerCase().includes(query)
+    )
+  }, [scenarios, searchQuery])
+  
+  // Clear search query
+  const clearSearch = () => {
+    setSearchQuery("")
   }
   
   // Fetch scenarios from the AI agent API when the sheet is opened
@@ -423,11 +442,50 @@ export function AIScenarioSuggestions({ open, onOpenChange, onSelectScenario }: 
 
         <Separator className="my-6" />
 
+        {/* Search Bar for Scenarios */}
+        {scenarios.length > 0 && (
+          <div className="mb-6">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search scenarios by name, description, or affected node..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-10"
+              />
+              {searchQuery && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={clearSearch}
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            
+            {searchQuery && (
+              <div className="mt-2 text-sm text-muted-foreground">
+                {filteredScenarios.length === 0 
+                  ? `No scenarios match "${searchQuery}"`
+                  : `Found ${filteredScenarios.length} of ${scenarios.length} scenarios`
+                }
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Recommended Scenarios Section */}
         <div>
           <h3 className="font-semibold mb-4 flex items-center">
             <Sparkles className="h-4 w-4 mr-2 text-blue-500" />
             Recommended Scenarios
+            {scenarios.length > 0 && (
+              <Badge variant="outline" className="ml-2 text-xs">
+                {filteredScenarios.length}
+              </Badge>
+            )}
           </h3>
           
           {isLoading ? (
@@ -442,9 +500,19 @@ export function AIScenarioSuggestions({ open, onOpenChange, onSelectScenario }: 
                 No scenarios available. Please ensure you have supply chain data and try refreshing.
               </p>
             </div>
+          ) : filteredScenarios.length === 0 && searchQuery ? (
+            <div className="flex flex-col items-center justify-center h-40 text-center">
+              <Search className="h-8 w-8 text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">
+                No scenarios match your search criteria.
+              </p>
+              <Button variant="ghost" size="sm" onClick={clearSearch} className="mt-2">
+                Clear search
+              </Button>
+            </div>
           ) : (
             <div className="grid gap-4">
-              {scenarios.map((scenario, index) => (
+              {filteredScenarios.map((scenario, index) => (
                 <Card key={index} className="border hover:border-blue-400 transition-all">
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
