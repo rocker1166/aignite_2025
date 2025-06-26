@@ -24,6 +24,7 @@ const NodeConfiguration: FC<NodeConfigurationProps> = ({
   onInputChange,
   onMapCoordinatesChange
 }) => {
+  console.log('formValues', formValues);
   // Get node type for dynamic properties
   const nodeType = formValues.type || '';
 

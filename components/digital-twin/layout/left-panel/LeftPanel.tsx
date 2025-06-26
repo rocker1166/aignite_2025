@@ -1,6 +1,7 @@
 "use client"
 import { FC, useState } from 'react';
-import { ChevronDown, ChevronRight, ChevronLeft, Upload, Download, RotateCcw, Building2 } from 'lucide-react';
+import { useQueryState } from 'nuqs';
+import { ChevronDown, ChevronRight, ChevronLeft, Building2, MessageSquare } from 'lucide-react';
 import { DeleteIcon } from '@/components/icons';
 import { BlocksIcon } from '@/components/icons/blocks';
 import { LayoutPanelTopIcon } from '@/components/icons/layout-panel-top';
@@ -9,23 +10,86 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { NODE_TYPES, SUPPLY_CHAIN_TEMPLATES } from '@/constants/digital-twin';
+import { AIChatPanel } from './assistant';
 
 interface LeftPanelProps {
-  onAddNode: (nodeType: string) => void;
+  onAddNode: (nodeType: string, label: string, enhancedData?: any) => void;
   onClearAllNodes: () => void;
   onLoadTemplate?: (templateId: string) => void;
   simulationMode: boolean;
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
+  // CopilotKit integration props
+  nodes?: any[];
+  edges?: any[];
+  onAddMultipleNodes?: (nodes: any[]) => void;
+  onAddMultipleEdges?: (edges: any[]) => void;
+  onAddEdges?: (edges: any[]) => void;
+  onUpdateNode?: (nodeId: string, updates: any) => void;
+  onDeleteNode?: (nodeId: string) => void;
+  onUpdateEdge?: (edgeId: string, updates: any) => void;
+  onValidateSupplyChain?: () => void;
+  onUpdateMultipleNodes?: (nodeIds: string[], properties: object) => void;
+  onUpdateNodePositions?: (nodePositions: { [nodeId: string]: { x: number; y: number } }) => void;
+  onFindAndSelectNode?: (nodeId: string) => void;
+  onFindAndSelectEdges?: (edgeIds: string[]) => void;
+
+  onHighlightNodes?: (nodeIds: string[]) => void;
+  onFocusNode?: (nodeId: string) => void;
+  onZoomToNodes?: (nodeIds: string[]) => void;
+  onGetNodeConnections?: (nodeId: string) => any[];
+  onAnalyzeNetworkPaths?: (sourceId: string, targetId: string) => void;
+  onBulkUpdateEdges?: (edgeIds: string[], properties: object) => void;
+  onCreateNodeGroup?: (nodeIds: string[], groupName: string) => void;
+  onExportSubgraph?: (nodeIds: string[]) => void;
+  pendingAIMessage?: string | null;
+  setPendingAIMessage?: (message: string | null) => void;
 }
 
-const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, onLoadTemplate, simulationMode, isCollapsed, setIsCollapsed }) => {
+const LeftPanel: FC<LeftPanelProps> = ({ 
+  onAddNode, 
+  onClearAllNodes, 
+  onLoadTemplate, 
+  simulationMode, 
+  isCollapsed, 
+  setIsCollapsed,
+  nodes = [],
+  edges = [],
+  onAddMultipleNodes,
+  onAddMultipleEdges,
+  onAddEdges,
+  onUpdateNode,
+  onDeleteNode,
+  onUpdateEdge,
+  onValidateSupplyChain,
+  onUpdateMultipleNodes,
+  onUpdateNodePositions,
+  onFindAndSelectNode,
+  onFindAndSelectEdges,
+
+  onHighlightNodes,
+  onFocusNode,
+  onZoomToNodes,
+  onGetNodeConnections,
+  onAnalyzeNetworkPaths,
+  onBulkUpdateEdges,
+  onCreateNodeGroup,
+  onExportSubgraph,
+  pendingAIMessage,
+  setPendingAIMessage,
+}) => {
   const [expandedSection, setExpandedSection] = useState<string | null>('');
+  const [chatMode, setChatMode] = useQueryState('chat');
+
+  const isImmersiveMode = chatMode === 'immersive';
+
+  const handleImmersiveModeChange = (immersive: boolean) => {
+    setChatMode(immersive ? 'immersive' : null);
+  };
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
   };
-
 
   const SectionHeader = ({ 
     title, 
@@ -90,11 +154,23 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, onLoadTempl
               </motion.div>
             </div>
             
-            {/* Expand button fixed at bottom */}
+            {/* Buttons fixed at bottom */}
             <div className="mt-auto border-t border-border">
               <motion.button
-                onClick={() => setIsCollapsed(false)}
+                onClick={() => {
+                  setIsCollapsed(false);
+                  handleImmersiveModeChange(true);
+                }}
                 className="w-full p-4 hover:bg-muted transition-colors group flex items-center justify-center"
+                title="Supply Chain Assistant"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <MessageSquare className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              </motion.button>
+              <motion.button
+                onClick={() => setIsCollapsed(false)}
+                className="w-full p-4 hover:bg-muted transition-colors group flex items-center justify-center border-t border-border"
                 title="Expand Builder Panel"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -102,6 +178,50 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, onLoadTempl
                 <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
               </motion.button>
             </div>
+          </motion.div>
+        ) : isImmersiveMode ? (
+          // Immersive AI Chat Mode
+          <motion.div
+            key="immersive"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, delay: 0.1 }}
+            className="w-full h-full"
+          >
+            <AIChatPanel 
+              simulationMode={simulationMode}
+              onImmersiveModeChange={handleImmersiveModeChange}
+              isImmersiveMode={true}
+              onCollapse={() => setIsCollapsed(true)}
+              nodes={nodes}
+              edges={edges}
+              onAddNode={onAddNode}
+              onAddMultipleNodes={onAddMultipleNodes}
+              onAddMultipleEdges={onAddMultipleEdges}
+              onAddEdges={onAddEdges}
+              onLoadTemplate={onLoadTemplate}
+              onClearCanvas={onClearAllNodes}
+              onUpdateNode={onUpdateNode}
+              onUpdateEdge={onUpdateEdge}
+              onValidateSupplyChain={onValidateSupplyChain}
+              onUpdateMultipleNodes={onUpdateMultipleNodes}
+              onUpdateNodePositions={onUpdateNodePositions}
+              onFindAndSelectNode={onFindAndSelectNode}
+              onFindAndSelectEdges={onFindAndSelectEdges}
+              onDeleteNode={onDeleteNode}
+
+              onHighlightNodes={onHighlightNodes}
+              onFocusNode={onFocusNode}
+              onZoomToNodes={onZoomToNodes}
+              onGetNodeConnections={onGetNodeConnections}
+              onAnalyzeNetworkPaths={onAnalyzeNetworkPaths}
+              onBulkUpdateEdges={onBulkUpdateEdges}
+              onCreateNodeGroup={onCreateNodeGroup}
+              onExportSubgraph={onExportSubgraph}
+              pendingAIMessage={pendingAIMessage}
+              setPendingAIMessage={setPendingAIMessage}
+            />
           </motion.div>
         ) : (
           <motion.div
@@ -167,7 +287,7 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, onLoadTempl
                               >
                                 <Button
                                   variant="outline"
-                                  onClick={() => onAddNode(node.id)}
+                                  onClick={() => onAddNode(node.id, `New ${node.id}`)}
                                   disabled={simulationMode}
                                   className={`w-full h-auto p-3 justify-start ${node.color} dark:bg-card dark:hover:bg-muted/50 dark:border-border shadow-md ${
                                     simulationMode ? 'opacity-50 cursor-not-allowed' : ''
@@ -307,6 +427,25 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, onLoadTempl
                     </AnimatePresence>
                   </CardContent>
                 </Card>
+
+                {/* Build with Assistant Section */}
+                <Card>
+                  <CardContent className="p-4">
+                    <Button
+                      onClick={() => handleImmersiveModeChange(true)}
+                      disabled={simulationMode}
+                      className={`w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-all duration-200 ${
+                        simulationMode ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-xl hover:scale-[1.02]'
+                      }`}
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      Build with Assistant
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-2 text-center">
+                      Get AI-powered help to design your supply chain
+                    </p>
+                  </CardContent>
+                </Card>
               </motion.div>
             </div>
 
@@ -317,7 +456,7 @@ const LeftPanel: FC<LeftPanelProps> = ({ onAddNode, onClearAllNodes, onLoadTempl
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.4 }}
             >
-              <div className="space-y-2 ">
+              <div className="space-y-3">
                 <Button
                   variant="destructive"
                   onClick={onClearAllNodes}

@@ -70,7 +70,7 @@ interface HeaderProps {
 
 export function Header({ title }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b g-background-100/70 dark:bg-[#232325]/70 backdrop-blur-md shadow-sm px-6">
+    <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background-100/70 dark:bg-[#232325]/70 backdrop-blur-md shadow-sm px-6">
        
       <SidebarTrigger />
       <div className="font-semibold text-lg">{title}</div>

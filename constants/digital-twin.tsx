@@ -224,7 +224,7 @@ export const COMMON_RISK_FIELDS: PropertySpec[] = [
 // Map node type IDs to property spec keys
 export const NODE_TYPE_MAP: Record<string, NodeType> = {
   'Supplier': 'supplierNode',
-  'Factory': 'factoryNode',
+  'Factory': 'factoryNode', 
   'Warehouse': 'warehouseNode',
   'Distribution': 'distributionNode',
   'Port': 'portNode',

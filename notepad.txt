@@ -5,6 +5,15 @@
 5. use less colour veriations 
 6. back button issue in creation form 
 7. change view work flow to see how it works
+8. some time copilot is generatting same nodes  multiple times need to fix it 
+9. add custom instructuctions for the copilot kit
+10.problem in connecting nodes nodes not being connceted when it is in the end 
+11. add more error handling in the actions so that there is no chance of regeiertering the hook two times 
+12. add more analysis related actions 
+13. find and select not working 
+14 . fix input box  not clearing but
+15. add small url functionalitu 
+16 . implement view of digital twin 
 
 //suman improvment list :
 1. scenario :

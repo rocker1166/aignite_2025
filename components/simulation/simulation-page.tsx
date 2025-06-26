@@ -153,7 +153,7 @@ function SimulationPageContent() {
     }
     
     updateScenarioData(dummyScenario)
-    toast.success("✨ Dev mode: Form filled with dummy data!")
+    toast.success("Dev mode: Form filled with dummy data!")
   }
 
   // Development helper function to jump directly to results with dummy data
@@ -285,18 +285,10 @@ function SimulationPageContent() {
           { day: 14, level: 100 }
         ]
       })
-
-      // Jump directly to results
-      setView('results')
-      setSimulationComplete(true)
-      setSimulationRunning(false)
       
-      toast.success("🚀 Dev mode: Jumped to results with dummy data!")
-      
-      // Update simulation history
-      fetchSimulationHistory(selectedSupplyChainId)
+      toast.success("Dev mode: Jumped to results with dummy data!")
     } catch (error) {
-      console.error('Error in dev mode jump to results:', error)
+      console.error('Error jumping to results:', error)
       toast.error("Failed to jump to results")
     }
   }

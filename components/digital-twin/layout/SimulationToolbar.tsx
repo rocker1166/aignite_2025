@@ -2,6 +2,7 @@ import { FC, useState, useEffect } from 'react';
 import { useQueryState, parseAsString } from 'nuqs';
 import SaveSupplyChainDialog from '../forms/SaveSupplyChainDialog';
 import FloatingSaveButton from './FloatingSaveButton';
+import { Node, Edge } from 'reactflow';
 
 interface SimulationToolbarProps {
   selectedSupplyChain: string;
@@ -13,6 +14,8 @@ interface SimulationToolbarProps {
   setSupplyChainName?: (name: string) => void;
   description?: string;
   setDescription?: (desc: string) => void;
+  nodes: Node[];
+  edges: Edge[];
 }
 
 const SimulationToolbar: FC<SimulationToolbarProps> = ({
@@ -24,7 +27,9 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
   supplyChainName,
   setSupplyChainName,
   description,
-  setDescription
+  setDescription,
+  nodes,
+  edges,
 }) => {
   // Check for URL parameters to detect if save dialog was previously opened
   const [nameParam] = useQueryState('saveName', parseAsString);
@@ -112,6 +117,8 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
         onSave={handleSaveSupplyChain}
         initialName={supplyChainName || inputValue}
         initialDescription={description || ''}
+        nodes={nodes}
+        edges={edges}
       />
     </>
   );
