@@ -65,6 +65,14 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
   // Map API scenario types to UI scenario types
   const mapScenarioType = (apiType: string): string => {
     const typeMapping: { [key: string]: string } = {
+      // Forecast scenario types
+      'natural': 'natural',
+      'geopolitical': 'political',
+      'economic': 'political',
+      'operational': 'disruption',
+      'regulatory': 'political',
+      'other': 'disruption',
+      // Legacy scenario types
       'NATURAL_DISASTER': 'natural',
       'GEOPOLITICAL': 'political',
       'CYBER_ATTACK': 'disruption',
@@ -76,7 +84,7 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
       'INFRASTRUCTURE': 'disruption',
       'CLIMATE': 'natural'
     }
-    return typeMapping[apiType] || 'disruption'
+    return typeMapping[apiType.toLowerCase()] || typeMapping[apiType] || 'disruption'
   }
 
   const getSeverityColor = (severity: number) => {
@@ -108,9 +116,9 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
     }
   }
 
-  // Fetch scenarios from the AI agent API
+  // Fetch scenarios from the forecast table's scenario_json column
   const fetchScenarios = async (forceRefresh = false) => {
-    if (!userData?.id || !selectedSupplyChainId) return
+    if (!selectedSupplyChainId) return
 
     // Check cache first
     const cachedScenarios = scenarioCache.get(selectedSupplyChainId)
@@ -126,18 +134,9 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
     const startTime = Date.now()
 
     try {
-      console.log('🤖 Fetching AI forecast scenarios...')
+      console.log('🔍 Fetching forecast scenarios from database...')
       
-      const response = await fetch('/api/agent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'forecast_scenarios',
-          userId: userData.id,
-          supplyChainId: selectedSupplyChainId,
-          count: 4
-        })
-      })
+      const response = await fetch(`/api/forecast-scenarios?supply_chain_id=${selectedSupplyChainId}`)
 
       if (!response.ok) {
         throw new Error(`API responded with status: ${response.status}`)
@@ -147,21 +146,21 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
       
       if (data.success && data.scenarios) {
         const transformedScenarios: ScenarioData[] = data.scenarios.map((scenario: any) => ({
-          scenarioName: scenario.name || scenario.scenarioName || 'AI Generated Scenario',
-          scenarioType: mapScenarioType(scenario.type || scenario.scenarioType || 'DISRUPTION'),
+          scenarioName: scenario.scenarioName || 'AI Generated Scenario',
+          scenarioType: mapScenarioType(scenario.scenarioType || 'operational'),
           description: scenario.description || 'AI-generated scenario based on current risk analysis',
-          disruptionSeverity: scenario.severity || scenario.disruptionSeverity || 75,
-          disruptionDuration: scenario.duration || scenario.disruptionDuration || 14,
-          affectedNode: scenario.affectedNodes || scenario.affectedNode || 'supplier-a',
-          startDate: '',
-          endDate: '',
-          monteCarloRuns: scenario.simulations || 1000,
-          distributionType: 'normal',
-          cascadeEnabled: true,
-          failureThreshold: scenario.threshold || 50,
-          bufferPercent: 15,
-          alternateRouting: true,
-          randomSeed: ''
+          disruptionSeverity: scenario.disruptionSeverity || 75,
+          disruptionDuration: scenario.disruptionDuration || 14,
+          affectedNode: scenario.affectedNode || 'supplier-a',
+          startDate: scenario.startDate || '',
+          endDate: scenario.endDate || '',
+          monteCarloRuns: scenario.monteCarloRuns || 1000,
+          distributionType: scenario.distributionType || 'normal',
+          cascadeEnabled: scenario.cascadeEnabled !== undefined ? scenario.cascadeEnabled : true,
+          failureThreshold: scenario.failureThreshold || 0.5,
+          bufferPercent: scenario.bufferPercent || 15,
+          alternateRouting: scenario.alternateRouting !== undefined ? scenario.alternateRouting : true,
+          randomSeed: scenario.randomSeed || ''
         }))
 
         setScenarios(transformedScenarios)
@@ -171,16 +170,26 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
         setProcessingTime(processingTime)
         
         console.log(`✅ Successfully loaded ${transformedScenarios.length} forecast scenarios`)
+        
+        if (transformedScenarios.length === 0) {
+          toast({
+            title: "No Forecast Scenarios",
+            description: "No forecast scenarios found for this supply chain. Generate a forecast first.",
+            variant: "default"
+          })
+        }
       } else {
-        throw new Error(data.error || 'Failed to generate scenarios')
+        console.log('📭 No scenarios available:', data.message)
+        setScenarios([])
       }
     } catch (error) {
       console.error('❌ Error fetching forecast scenarios:', error)
       toast({
         title: "Failed to Load Forecast Scenarios",
-        description: "Unable to generate AI forecast scenarios. Please try again.",
+        description: "Unable to fetch forecast scenarios. Please try again.",
         variant: "destructive"
       })
+      setScenarios([])
     } finally {
       setIsLoading(false)
     }
@@ -188,10 +197,10 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
 
   // Auto-fetch scenarios when component mounts and supply chain is selected
   useEffect(() => {
-    if (selectedSupplyChainId && userData?.id) {
+    if (selectedSupplyChainId) {
       fetchScenarios()
     }
-  }, [selectedSupplyChainId, userData?.id])
+  }, [selectedSupplyChainId])
 
   if (!selectedSupplyChainId) {
     return (
@@ -377,7 +386,7 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
               No Forecast Scenarios Available
             </h3>
             <p className="text-slate-600 dark:text-slate-400 mb-4">
-              Unable to generate AI forecast scenarios at this time.
+              No forecast has been generated for this supply chain yet. Generate a forecast first to see scenarios here.
             </p>
             <Button 
               onClick={() => fetchScenarios(true)}
@@ -385,7 +394,7 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
               className="flex items-center gap-2"
             >
               <RefreshCw className="w-4 h-4" />
-              Try Again
+              Check Again
             </Button>
           </CardContent>
         </GlassmorphicCard>

@@ -14,6 +14,25 @@ import { ForecastConfig, ForecastOutput } from './types';
 import { logError } from '../../monitoring';
 import { getValidSupplyChainId, generateUUID } from './database-utils';
 
+// Schema for scenario data matching the ScenarioOutputSchema from app/api/scenario/route.ts
+const ScenarioDataSchema = z.object({
+  scenarioName: z.string(),
+  scenarioType: z.string(),
+  disruptionSeverity: z.number().min(0).max(100),
+  disruptionDuration: z.number().min(1).max(365),
+  affectedNode: z.string(),
+  description: z.string(),
+  startDate: z.string(),
+  endDate: z.string(),
+  monteCarloRuns: z.number().min(1000).max(50000),
+  distributionType: z.enum(['normal', 'lognormal', 'uniform', 'exponential', 'beta']),
+  cascadeEnabled: z.boolean(),
+  failureThreshold: z.number().min(0).max(1),
+  bufferPercent: z.number().min(0).max(100),
+  alternateRouting: z.boolean(),
+  randomSeed: z.string(),
+});
+
 // Zod schema for LLM output validation using Vercel AI SDK
 // This approach is more reliable than raw JSON schema
 const forecastSchema = z.object({
@@ -57,7 +76,8 @@ const forecastSchema = z.object({
       probability: z.number().min(0).max(1),
       impact: z.enum(['low', 'medium', 'high', 'critical']),
       estimatedDate: z.string().optional(),
-      category: z.enum(['weather', 'geopolitical', 'economic', 'operational', 'regulatory', 'other'])
+      category: z.enum(['weather', 'geopolitical', 'economic', 'operational', 'regulatory', 'other']),
+      scenario_json: ScenarioDataSchema.describe('Scenario simulation data for this event, matching ScenarioOutputSchema structure - REQUIRED for each event')
     })),
     recommendations: z.array(z.object({
       title: z.string().min(5),
@@ -112,6 +132,35 @@ export async function invokeLLM(
 
 The response MUST be a valid JSON object matching the schema I've defined.
 Include detailed analysis, risks, and recommendations.
+
+CRITICAL REQUIREMENT: For EVERY event in the events array, you MUST include a scenario_json field that contains simulation data matching this exact structure:
+{
+  scenarioName: string (descriptive name for the event),
+  scenarioType: string (one of: natural, geopolitical, economic, operational, regulatory, other),
+  disruptionSeverity: number (0-100, severity of the disruption),
+  disruptionDuration: number (1-365, duration in days),
+  affectedNode: string (the supply chain node most affected - use a realistic node ID),
+  description: string (detailed description of the scenario),
+  startDate: string (ISO date when scenario begins),
+  endDate: string (ISO date when scenario ends),
+  monteCarloRuns: number (suggest appropriate number of simulation runs, 1000-50000),
+  distributionType: string (one of: normal, lognormal, uniform, exponential, beta),
+  cascadeEnabled: boolean (whether cascade failures should be enabled),
+  failureThreshold: number (0-1, threshold for node failure),
+  bufferPercent: number (0-100, buffer capacity percentage),
+  alternateRouting: boolean (whether alternate routing is available),
+  randomSeed: string (lowercase hyphenated identifier for reproducibility)
+}
+
+The scenario_json field is MANDATORY for each event. DO NOT mark it as optional or omit it.
+
+The scenario_json should be realistic and match the event's characteristics. For example:
+- Natural disasters should have high severity (70-95), longer duration (7-60 days), and enable cascade failures
+- Economic events might have moderate severity (40-70) but longer duration (30-180 days)
+- Operational issues might have medium severity (30-60) and shorter duration (1-14 days)
+- Geopolitical events could have variable severity (50-90) and medium duration (14-90 days)
+
+Ensure the affectedNode field contains a realistic node identifier that would exist in the supply chain.
 
 Note: The supplyChainId will be set automatically by the system, so you can use any placeholder value.
 
@@ -229,7 +278,24 @@ async function createFallbackForecast(timeHorizon: number, supplyChainId?: strin
           description: "The system was unable to generate a complete forecast with the available data and models",
           probability: 1.0,
           impact: "medium",
-          category: "operational"
+          category: "operational",
+          scenario_json: {
+            scenarioName: "System Forecast Generation Failure",
+            scenarioType: "operational",
+            disruptionSeverity: 50,
+            disruptionDuration: 1,
+            affectedNode: "system-fallback",
+            description: "Forecast generation system temporarily unavailable - no impact on actual supply chain operations",
+            startDate: now.toISOString(),
+            endDate: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+            monteCarloRuns: 1000,
+            distributionType: "normal",
+            cascadeEnabled: false,
+            failureThreshold: 100,
+            bufferPercent: 0,
+            alternateRouting: false,
+            randomSeed: "system-fallback-forecast-" + now.getFullYear()
+          }
         }
       ],
       recommendations: [

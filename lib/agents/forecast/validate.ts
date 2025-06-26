@@ -47,7 +47,24 @@ const outputSchema = z.object({
       probability: z.number().min(0).max(1),
       impact: z.enum(['low', 'medium', 'high', 'critical']),
       estimatedDate: z.string().optional(),
-      category: z.enum(['weather', 'geopolitical', 'economic', 'operational', 'regulatory', 'other'])
+      category: z.enum(['weather', 'geopolitical', 'economic', 'operational', 'regulatory', 'other']),
+      scenario_json: z.object({
+        scenarioName: z.string(),
+        scenarioType: z.string(),
+        disruptionSeverity: z.number().min(0).max(100),
+        disruptionDuration: z.number().min(1).max(365),
+        affectedNode: z.string(),
+        description: z.string(),
+        startDate: z.string(),
+        endDate: z.string(),
+        monteCarloRuns: z.number().min(1000).max(50000),
+        distributionType: z.enum(['normal', 'lognormal', 'uniform', 'exponential', 'beta']),
+        cascadeEnabled: z.boolean(),
+        failureThreshold: z.number().min(0).max(1),
+        bufferPercent: z.number().min(0).max(100),
+        alternateRouting: z.boolean(),
+        randomSeed: z.string()
+      })
     })),
     recommendations: z.array(z.object({
       title: z.string().min(5),
@@ -191,6 +208,13 @@ Please generate a repaired version that fixes all the issues while maintaining a
 Ensure all dates are properly formatted ISO strings, all risk scores are within proper ranges (0-100),
 probabilities are decimal values between 0 and 1, and that the analysis is comprehensive and well-supported.
 
+CRITICAL REQUIREMENT: Every event in the events array MUST include a complete scenario_json object with all required fields:
+- scenarioName, scenarioType, disruptionSeverity (0-100), disruptionDuration (1-365)
+- affectedNode, description, startDate, endDate (ISO format)
+- monteCarloRuns (1000-50000), distributionType (normal/lognormal/uniform/exponential/beta)
+- cascadeEnabled (boolean), failureThreshold (0-1), bufferPercent (0-100)
+- alternateRouting (boolean), randomSeed (string)
+
 If the confidence score was too low, improve the quality of the analysis with more specific details and evidence-based statements.
 `;
 
@@ -263,7 +287,24 @@ function createFallbackOutput(invalidOutput: any, supplyChainId?: string): Forec
           description: 'Insufficient data was available to generate a complete forecast',
           probability: 1.0,
           impact: 'medium',
-          category: 'operational'
+          category: 'operational',
+          scenario_json: {
+            scenarioName: "Data Quality Gap",
+            scenarioType: "operational",
+            disruptionSeverity: 30,
+            disruptionDuration: 1,
+            affectedNode: "system-fallback",
+            description: "Forecast generation system experienced data quality issues",
+            startDate: now.toISOString(),
+            endDate: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+            monteCarloRuns: 1000,
+            distributionType: "normal",
+            cascadeEnabled: false,
+            failureThreshold: 0.8,
+            bufferPercent: 20,
+            alternateRouting: true,
+            randomSeed: "data-gap-fallback-" + now.getFullYear()
+          }
         }
       ],
       recommendations: [

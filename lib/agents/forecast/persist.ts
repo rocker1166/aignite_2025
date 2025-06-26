@@ -74,6 +74,9 @@ export async function persistForecast(
         news_data: ingestedData.news,
         market_data: ingestedData.marketData,
         
+        // Scenario data extracted from events for simulation usage
+        scenario_json: completeOutput.forecastData.events.map(event => event.scenario_json),
+        
         // Risk metrics
         risk_score: completeOutput.forecastData.riskAssessment.overallRiskScore,
         confidence_score: completeOutput.metadata.confidenceScore,
