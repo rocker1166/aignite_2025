@@ -1,13 +1,14 @@
 import { FC, useState, useEffect } from 'react';
 import { useQueryState, parseAsString } from 'nuqs';
 import SaveSupplyChainDialog from '../forms/SaveSupplyChainDialog';
+import IntelligenceAnalysisDialog from '../IntelligenceAnalysisDialog';
 import FloatingSaveButton from './FloatingSaveButton';
 import { Node, Edge } from 'reactflow';
 
 interface SimulationToolbarProps {
   selectedSupplyChain: string;
   setSelectedSupplyChain: (id: string) => void;
-  onSave: () => void;
+  onSave: () => Promise<string | null>;
   simulationMode: boolean;
   setSimulationMode: (mode: boolean) => void;
   supplyChainName?: string;
@@ -38,6 +39,8 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAnalysisDialogOpen, setIsAnalysisDialogOpen] = useState(false);
+  const [analysisSupplyChainId, setAnalysisSupplyChainId] = useState<string | null>(null);
 
   // Initialize input value with the label corresponding to the selected supply chain
   useEffect(() => {
@@ -92,7 +95,13 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
       setInputValue(name);
       
       // Call the original save function
-      await onSave();
+      const supplyChainId = await onSave();
+
+      if (supplyChainId) {
+        setAnalysisSupplyChainId(supplyChainId);
+        setIsDialogOpen(false); // Close save dialog
+        setIsAnalysisDialogOpen(true); // Open analysis dialog
+      }
     } catch (error) {
       console.error('Error saving supply chain:', error);
       throw error; // Re-throw to let dialog handle the error
@@ -119,6 +128,11 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
         initialDescription={description || ''}
         nodes={nodes}
         edges={edges}
+      />
+      <IntelligenceAnalysisDialog
+        isOpen={isAnalysisDialogOpen}
+        onClose={() => setIsAnalysisDialogOpen(false)}
+        supplyChainId={analysisSupplyChainId}
       />
     </>
   );

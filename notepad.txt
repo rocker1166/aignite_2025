@@ -16,7 +16,9 @@
 16 . implement view of digital twin 
 17. hide the advanced configuration 
 20.Add a current scenrio  option  
-21. 
+21. make the templates such that user does not have to fix any thing 
+22 . add power of saving to asistant 
+23. unable to update the temperature  and if not found temperateure just consider it as false there is some issue  with temperature  
 
 
 //suman improvment list :
