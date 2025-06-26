@@ -4,18 +4,19 @@ import { ThemeProvider } from "@/components/theme"
 import SessionProvider from "@/lib/context/SessionProvider";
 import { Toaster } from "sonner";
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
-import { Inter } from 'next/font/google'
+import { Poppins } from 'next/font/google'
 
-const inter = Inter({ 
+const poppins = Poppins({
   subsets: ['latin'],
-  variable: '--font-inter',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-poppins',
   display: 'swap',
 })
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`dark ${inter.variable}`} suppressHydrationWarning>
-      <body className={`min-h-screen flex flex-col font-sans ${inter.className}`}>
+    <html lang="en" className={`dark ${poppins.variable}`} suppressHydrationWarning>
+      <body className={`min-h-screen flex flex-col font-sans ${poppins.className}`}>
         <NuqsAdapter>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
             {children}

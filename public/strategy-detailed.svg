@@ -1,0 +1,136 @@
+<svg width="350" height="240" viewBox="0 0 350 240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradientStrategyDet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#581c87;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#a855f7;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="implementationGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f59e0b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#a855f7;stop-opacity:1" />
+    </linearGradient>
+    <filter id="strategyDetailGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="350" height="240" fill="url(#bgGradientStrategyDet)"/>
+  
+  <!-- Implementation dashboard -->
+  <rect x="15" y="15" width="320" height="190" rx="10" fill="rgba(0, 0, 0, 0.6)" stroke="#a855f7" stroke-width="2"/>
+  
+  <!-- Header with status -->
+  <circle cx="25" cy="25" r="4" fill="#10b981">
+    <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <text x="35" y="29" fill="#e9d5ff" font-family="Arial, sans-serif" font-size="11" font-weight="bold">Strategy Implementation Hub</text>
+  <text x="300" y="29" text-anchor="end" fill="#c4b5fd" font-family="Arial, sans-serif" font-size="8">Executing: 3 strategies</text>
+  
+  <!-- Implementation timeline -->
+  <g transform="translate(25, 45)">
+    <text x="0" y="0" fill="#e9d5ff" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Implementation Timeline</text>
+    
+    <!-- Timeline progress bar -->
+    <rect x="0" y="15" width="280" height="8" rx="4" fill="rgba(168, 85, 247, 0.3)"/>
+    <rect x="0" y="15" width="180" height="8" rx="4" fill="url(#implementationGrad)"/>
+    
+    <!-- Timeline milestones -->
+    <circle cx="70" cy="19" r="4" fill="#10b981"/>
+    <text x="70" y="35" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="7">Phase 1</text>
+    <text x="70" y="45" text-anchor="middle" fill="#6ee7b7" font-family="Arial, sans-serif" font-size="6">Complete</text>
+    
+    <circle cx="140" cy="19" r="4" fill="#f59e0b"/>
+    <text x="140" y="35" text-anchor="middle" fill="#f59e0b" font-family="Arial, sans-serif" font-size="7">Phase 2</text>
+    <text x="140" y="45" text-anchor="middle" fill="#fbbf24" font-family="Arial, sans-serif" font-size="6">In Progress</text>
+    
+    <circle cx="210" cy="19" r="4" fill="#a855f7"/>
+    <text x="210" y="35" text-anchor="middle" fill="#a855f7" font-family="Arial, sans-serif" font-size="7">Phase 3</text>
+    <text x="210" y="45" text-anchor="middle" fill="#c084fc" font-family="Arial, sans-serif" font-size="6">Pending</text>
+    
+    <!-- Overall progress -->
+    <text x="285" y="22" fill="#e9d5ff" font-family="Arial, sans-serif" font-size="8" font-weight="bold">64%</text>
+  </g>
+  
+  <!-- ROI tracking -->
+  <g transform="translate(25, 95)">
+    <text x="0" y="0" fill="#e9d5ff" font-family="Arial, sans-serif" font-size="10" font-weight="bold">ROI Tracking</text>
+    
+    <!-- ROI chart -->
+    <rect x="0" y="15" width="130" height="50" fill="rgba(168, 85, 247, 0.1)" stroke="#a855f7" stroke-width="1" rx="4"/>
+    
+    <!-- ROI trend line -->
+    <polyline points="10,55 25,50 40,45 55,40 70,30 85,25 100,20 115,15" 
+              fill="none" stroke="#10b981" stroke-width="2" filter="url(#strategyDetailGlow)"/>
+    
+    <!-- ROI data points -->
+    <circle cx="40" cy="45" r="2" fill="#10b981"/>
+    <circle cx="70" cy="30" r="2" fill="#10b981"/>
+    <circle cx="100" cy="20" r="2" fill="#10b981"/>
+    
+    <!-- Current ROI -->
+    <text x="140" y="25" fill="#10b981" font-family="Arial, sans-serif" font-size="12" font-weight="bold">+$1.2M</text>
+    <text x="140" y="35" fill="#6ee7b7" font-family="Arial, sans-serif" font-size="8">Current ROI</text>
+    <text x="140" y="45" fill="#c4b5fd" font-family="Arial, sans-serif" font-size="8">Projected: +$2.8M</text>
+    <text x="140" y="55" fill="#10b981" font-family="Arial, sans-serif" font-size="7">↑ 18% vs. baseline</text>
+  </g>
+  
+  <!-- Risk reduction matrix -->
+  <g transform="translate(220, 95)">
+    <text x="0" y="0" fill="#e9d5ff" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Risk Reduction</text>
+    
+    <!-- Risk levels -->
+    <rect x="0" y="15" width="15" height="10" fill="#ef4444" rx="2"/>
+    <rect x="18" y="15" width="15" height="10" fill="#f59e0b" rx="2"/>
+    <rect x="36" y="15" width="15" height="10" fill="#fbbf24" rx="2"/>
+    <rect x="54" y="15" width="15" height="10" fill="#10b981" rx="2"/>
+    
+    <!-- Before/After -->
+    <text x="0" y="35" fill="#c4b5fd" font-family="Arial, sans-serif" font-size="7">Before:</text>
+    <rect x="35" y="32" width="8" height="6" fill="#ef4444" rx="1"/>
+    <text x="50" y="35" fill="#ef4444" font-family="Arial, sans-serif" font-size="7">High Risk</text>
+    
+    <text x="0" y="45" fill="#c4b5fd" font-family="Arial, sans-serif" font-size="7">After:</text>
+    <rect x="35" y="42" width="8" height="6" fill="#10b981" rx="1"/>
+    <text x="50" y="45" fill="#10b981" font-family="Arial, sans-serif" font-size="7">Low Risk</text>
+    
+    <!-- Reduction percentage -->
+    <text x="0" y="58" fill="#10b981" font-family="Arial, sans-serif" font-size="9" font-weight="bold">-73% Risk</text>
+  </g>
+  
+  <!-- Active strategies status -->
+  <g transform="translate(25, 155)">
+    <text x="0" y="0" fill="#e9d5ff" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Active Strategies</text>
+    
+    <!-- Strategy 1 -->
+    <circle cx="8" cy="15" r="3" fill="#10b981"/>
+    <text x="15" y="18" fill="#6ee7b7" font-family="Arial, sans-serif" font-size="8">Alternative Supplier Network</text>
+    <text x="150" y="18" fill="#10b981" font-family="Arial, sans-serif" font-size="7">Activated • 12 suppliers online</text>
+    
+    <!-- Strategy 2 -->
+    <circle cx="8" cy="28" r="3" fill="#f59e0b"/>
+    <text x="15" y="31" fill="#fbbf24" font-family="Arial, sans-serif" font-size="8">Logistics Rerouting</text>
+    <text x="150" y="31" fill="#f59e0b" font-family="Arial, sans-serif" font-size="7">In progress • 65% complete</text>
+    
+    <!-- Strategy 3 -->
+    <circle cx="8" cy="41" r="3" fill="#a855f7"/>
+    <text x="15" y="44" fill="#c084fc" font-family="Arial, sans-serif" font-size="8">Safety Stock Increase</text>
+    <text x="150" y="44" fill="#a855f7" font-family="Arial, sans-serif" font-size="7">Scheduled • Starts in 6hrs</text>
+  </g>
+  
+  <!-- Real-time automation -->
+  <g transform="translate(25, 180)">
+    <circle cx="0" cy="5" r="2" fill="#a855f7">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1s" repeatCount="indefinite"/>
+    </circle>
+    <text x="8" y="9" fill="#e9d5ff" font-family="Arial, sans-serif" font-size="8" font-weight="bold">Auto-optimization active</text>
+    <text x="120" y="9" fill="#c4b5fd" font-family="Arial, sans-serif" font-size="7">• ML model adjusting strategies every 15min</text>
+  </g>
+  
+  <!-- Title -->
+  <text x="175" y="220" text-anchor="middle" fill="#e9d5ff" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Strategy Execution Dashboard</text>
+</svg> 

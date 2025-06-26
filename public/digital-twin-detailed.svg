@@ -1,0 +1,86 @@
+<svg width="350" height="240" viewBox="0 0 350 240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3730a3;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="nodeGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="activeNode" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow2">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="350" height="240" fill="url(#bgGradient2)"/>
+  
+  <!-- Grid pattern -->
+  <defs>
+    <pattern id="grid2" width="15" height="15" patternUnits="userSpaceOnUse">
+      <path d="M 15 0 L 0 0 0 15" fill="none" stroke="#334155" stroke-width="0.5" opacity="0.4"/>
+    </pattern>
+  </defs>
+  <rect width="350" height="240" fill="url(#grid2)"/>
+  
+  <!-- Animated connections -->
+  <line x1="60" y1="60" x2="140" y2="60" stroke="#10b981" stroke-width="3" opacity="0.8">
+    <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line x1="140" y1="60" x2="220" y2="60" stroke="#10b981" stroke-width="3" opacity="0.8">
+    <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+  </line>
+  <line x1="220" y1="60" x2="290" y2="60" stroke="#10b981" stroke-width="3" opacity="0.8">
+    <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" begin="1s" repeatCount="indefinite"/>
+  </line>
+  
+  <!-- Data flow indicators -->
+  <circle r="3" fill="#10b981">
+    <animateMotion dur="3s" repeatCount="indefinite" path="M60,60 L140,60 L220,60 L290,60"/>
+  </circle>
+  <circle r="3" fill="#f59e0b">
+    <animateMotion dur="3s" begin="1s" repeatCount="indefinite" path="M60,120 L140,120 L220,120 L290,120"/>
+  </circle>
+  
+  <!-- Supply chain nodes with details -->
+  <!-- Suppliers with status -->
+  <circle cx="60" cy="60" r="15" fill="url(#activeNode)" filter="url(#glow2)"/>
+  <text x="60" y="65" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="8" font-weight="bold">S1</text>
+  <circle cx="60" cy="120" r="12" fill="url(#nodeGradient2)" filter="url(#glow2)"/>
+  <text x="60" y="125" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="8" font-weight="bold">S2</text>
+  <circle cx="60" cy="180" r="12" fill="url(#nodeGradient2)" filter="url(#glow2)"/>
+  <text x="60" y="185" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="8" font-weight="bold">S3</text>
+  
+  <!-- Status indicators -->
+  <circle cx="75" cy="50" r="4" fill="#10b981"/>
+  <circle cx="75" cy="110" r="4" fill="#f59e0b"/>
+  <circle cx="75" cy="170" r="4" fill="#ef4444"/>
+  
+  <!-- Manufacturing with capacity -->
+  <rect x="125" y="45" width="30" height="30" rx="6" fill="url(#activeNode)" filter="url(#glow2)"/>
+  <text x="140" y="65" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="8" font-weight="bold">M1</text>
+  
+  <!-- Real-time metrics -->
+  <text x="20" y="20" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="10">Real-time Monitoring</text>
+  <text x="20" y="35" fill="#10b981" font-family="Arial, sans-serif" font-size="8">● Active: 8/12 nodes</text>
+  <text x="20" y="47" fill="#f59e0b" font-family="Arial, sans-serif" font-size="8">● Warning: 2 nodes</text>
+  <text x="20" y="59" fill="#ef4444" font-family="Arial, sans-serif" font-size="8">● Risk: 2 nodes</text>
+  
+  <!-- Interactive elements -->
+  <rect x="250" y="15" width="80" height="50" rx="8" fill="rgba(30, 58, 138, 0.7)" stroke="#60a5fa" stroke-width="1"/>
+  <text x="290" y="30" text-anchor="middle" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="9" font-weight="bold">Live Dashboard</text>
+  <text x="290" y="42" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="8">99.2% Uptime</text>
+  <text x="290" y="52" text-anchor="middle" fill="#60a5fa" font-family="Arial, sans-serif" font-size="8">24/7 Tracking</text>
+  
+  <!-- Title -->
+  <text x="175" y="220" text-anchor="middle" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Interactive Digital Twin</text>
+</svg> 

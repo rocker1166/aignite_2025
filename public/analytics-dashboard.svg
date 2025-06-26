@@ -1,0 +1,140 @@
+<svg width="350" height="240" viewBox="0 0 350 240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradientAnalytics" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#064e3b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="chartFill" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:0.3" />
+    </linearGradient>
+    <filter id="glowAnalytics">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="350" height="240" fill="url(#bgGradientAnalytics)"/>
+  
+  <!-- Dashboard grid -->
+  <defs>
+    <pattern id="dashGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#065f46" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+  </defs>
+  <rect width="350" height="240" fill="url(#dashGrid)"/>
+  
+  <!-- Main dashboard container -->
+  <rect x="20" y="20" width="310" height="180" rx="12" fill="rgba(0, 0, 0, 0.4)" stroke="#10b981" stroke-width="2"/>
+  
+  <!-- Header -->
+  <text x="175" y="40" text-anchor="middle" fill="#6ee7b7" font-family="Arial, sans-serif" font-size="12" font-weight="bold">Real-time Analytics Dashboard</text>
+  
+  <!-- KPI Cards -->
+  <g transform="translate(30, 50)">
+    <!-- Cost Impact KPI -->
+    <rect width="60" height="40" rx="6" fill="rgba(16, 185, 129, 0.2)" stroke="#10b981" stroke-width="1"/>
+    <text x="30" y="12" text-anchor="middle" fill="#d1fae5" font-family="Arial, sans-serif" font-size="8">Cost Impact</text>
+    <text x="30" y="25" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="11" font-weight="bold">$1.2M</text>
+    <text x="30" y="35" text-anchor="middle" fill="#34d399" font-family="Arial, sans-serif" font-size="7">↓ 15% vs. last month</text>
+  </g>
+  
+  <g transform="translate(100, 50)">
+    <!-- Delivery Performance KPI -->
+    <rect width="60" height="40" rx="6" fill="rgba(16, 185, 129, 0.2)" stroke="#10b981" stroke-width="1"/>
+    <text x="30" y="12" text-anchor="middle" fill="#d1fae5" font-family="Arial, sans-serif" font-size="8">On-Time Delivery</text>
+    <text x="30" y="25" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="11" font-weight="bold">94.2%</text>
+    <text x="30" y="35" text-anchor="middle" fill="#34d399" font-family="Arial, sans-serif" font-size="7">↑ 2.1% improvement</text>
+  </g>
+  
+  <g transform="translate(170, 50)">
+    <!-- Risk Score KPI -->
+    <rect width="60" height="40" rx="6" fill="rgba(16, 185, 129, 0.2)" stroke="#10b981" stroke-width="1"/>
+    <text x="30" y="12" text-anchor="middle" fill="#d1fae5" font-family="Arial, sans-serif" font-size="8">Risk Score</text>
+    <text x="30" y="25" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="11" font-weight="bold">2.3/10</text>
+    <text x="30" y="35" text-anchor="middle" fill="#34d399" font-family="Arial, sans-serif" font-size="7">Low Risk</text>
+  </g>
+  
+  <g transform="translate(240, 50)">
+    <!-- Inventory Turnover KPI -->
+    <rect width="60" height="40" rx="6" fill="rgba(16, 185, 129, 0.2)" stroke="#10b981" stroke-width="1"/>
+    <text x="30" y="12" text-anchor="middle" fill="#d1fae5" font-family="Arial, sans-serif" font-size="8">Inventory Turn</text>
+    <text x="30" y="25" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="11" font-weight="bold">8.4x</text>
+    <text x="30" y="35" text-anchor="middle" fill="#34d399" font-family="Arial, sans-serif" font-size="7">↑ 0.3x increase</text>
+  </g>
+  
+  <!-- Performance chart -->
+  <g transform="translate(40, 100)">
+    <text x="0" y="0" fill="#d1fae5" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Performance Trends</text>
+    
+    <!-- Chart area -->
+    <rect x="0" y="10" width="120" height="60" fill="rgba(16, 185, 129, 0.1)" stroke="#10b981" stroke-width="1" rx="4"/>
+    
+    <!-- Performance line chart -->
+    <polyline points="10,60 25,45 40,50 55,35 70,40 85,25 100,30 115,20" 
+              fill="none" stroke="#10b981" stroke-width="2" filter="url(#glowAnalytics)"/>
+    
+    <!-- Data points -->
+    <circle cx="25" cy="45" r="2" fill="#34d399"/>
+    <circle cx="40" cy="50" r="2" fill="#34d399"/>
+    <circle cx="55" cy="35" r="2" fill="#10b981"/>
+    <circle cx="70" cy="40" r="2" fill="#34d399"/>
+    <circle cx="85" cy="25" r="2" fill="#10b981"/>
+    <circle cx="100" cy="30" r="2" fill="#34d399"/>
+    <circle cx="115" cy="20" r="2" fill="#10b981"/>
+    
+    <!-- Chart labels -->
+    <text x="10" y="80" fill="#d1fae5" font-family="Arial, sans-serif" font-size="7">Jan</text>
+    <text x="40" y="80" fill="#d1fae5" font-family="Arial, sans-serif" font-size="7">Mar</text>
+    <text x="70" y="80" fill="#d1fae5" font-family="Arial, sans-serif" font-size="7">May</text>
+    <text x="100" y="80" fill="#d1fae5" font-family="Arial, sans-serif" font-size="7">Jul</text>
+  </g>
+  
+  <!-- Supplier health matrix -->
+  <g transform="translate(180, 100)">
+    <text x="0" y="0" fill="#d1fae5" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Supplier Health</text>
+    
+    <!-- Health grid -->
+    <rect x="0" y="15" width="12" height="12" fill="#10b981" rx="2"/>
+    <rect x="15" y="15" width="12" height="12" fill="#10b981" rx="2"/>
+    <rect x="30" y="15" width="12" height="12" fill="#34d399" rx="2"/>
+    <rect x="45" y="15" width="12" height="12" fill="#10b981" rx="2"/>
+    <rect x="60" y="15" width="12" height="12" fill="#f59e0b" rx="2"/>
+    
+    <rect x="0" y="30" width="12" height="12" fill="#10b981" rx="2"/>
+    <rect x="15" y="30" width="12" height="12" fill="#34d399" rx="2"/>
+    <rect x="30" y="30" width="12" height="12" fill="#10b981" rx="2"/>
+    <rect x="45" y="30" width="12" height="12" fill="#10b981" rx="2"/>
+    <rect x="60" y="30" width="12" height="12" fill="#10b981" rx="2"/>
+    
+    <rect x="0" y="45" width="12" height="12" fill="#10b981" rx="2"/>
+    <rect x="15" y="45" width="12" height="12" fill="#10b981" rx="2"/>
+    <rect x="30" y="45" width="12" height="12" fill="#10b981" rx="2"/>
+    <rect x="45" y="45" width="12" height="12" fill="#ef4444" rx="2"/>
+    <rect x="60" y="45" width="12" height="12" fill="#10b981" rx="2"/>
+    
+    <!-- Legend -->
+    <circle cx="80" cy="20" r="3" fill="#10b981"/>
+    <text x="88" y="24" fill="#d1fae5" font-family="Arial, sans-serif" font-size="7">Healthy</text>
+    <circle cx="80" cy="35" r="3" fill="#f59e0b"/>
+    <text x="88" y="39" fill="#d1fae5" font-family="Arial, sans-serif" font-size="7">Warning</text>
+    <circle cx="80" cy="50" r="3" fill="#ef4444"/>
+    <text x="88" y="54" fill="#d1fae5" font-family="Arial, sans-serif" font-size="7">Critical</text>
+  </g>
+  
+  <!-- Real-time alerts -->
+  <g transform="translate(30, 170)">
+    <text x="0" y="0" fill="#d1fae5" font-family="Arial, sans-serif" font-size="9" font-weight="bold">Live Alerts</text>
+    <circle cx="70" cy="-2" r="2" fill="#10b981">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <text x="80" y="2" fill="#34d399" font-family="Arial, sans-serif" font-size="8">● Supplier XYZ delivery confirmed - ETA 2hrs</text>
+  </g>
+  
+  <!-- Title -->
+  <text x="175" y="220" text-anchor="middle" fill="#d1fae5" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Impact Assessment Dashboard</text>
+</svg> 

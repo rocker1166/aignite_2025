@@ -1,0 +1,151 @@
+<svg width="350" height="240" viewBox="0 0 350 240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradientAnalyticsDet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#064e3b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="heatmapGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f59e0b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ef4444;stop-opacity:1" />
+    </linearGradient>
+    <filter id="detailGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="350" height="240" fill="url(#bgGradientAnalyticsDet)"/>
+  
+  <!-- Advanced analytics dashboard -->
+  <rect x="15" y="15" width="320" height="190" rx="10" fill="rgba(0, 0, 0, 0.6)" stroke="#10b981" stroke-width="2"/>
+  
+  <!-- Header with live indicator -->
+  <circle cx="25" cy="25" r="4" fill="#10b981">
+    <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <text x="35" y="29" fill="#6ee7b7" font-family="Arial, sans-serif" font-size="11" font-weight="bold">Live Impact Analysis</text>
+  <text x="300" y="29" text-anchor="end" fill="#d1fae5" font-family="Arial, sans-serif" font-size="8">Updated: 2min ago</text>
+  
+  <!-- Cascading impact flow -->
+  <g transform="translate(25, 45)">
+    <text x="0" y="0" fill="#d1fae5" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Cascading Impact Flow</text>
+    
+    <!-- Impact nodes -->
+    <circle cx="20" cy="25" r="8" fill="#ef4444" opacity="0.8"/>
+    <text x="20" y="29" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="7" font-weight="bold">S1</text>
+    <text x="20" y="40" text-anchor="middle" fill="#ef4444" font-family="Arial, sans-serif" font-size="6">Primary</text>
+    
+    <!-- Impact arrows -->
+    <path d="M 30 25 L 50 25" stroke="#ef4444" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M 70 25 L 90 25" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M 110 25 L 130 25" stroke="#fbbf24" stroke-width="2" marker-end="url(#arrowhead)"/>
+    
+    <!-- Secondary impacts -->
+    <rect x="55" y="17" width="16" height="16" rx="3" fill="#f59e0b" opacity="0.8"/>
+    <text x="63" y="28" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="7" font-weight="bold">M2</text>
+    <text x="63" y="38" text-anchor="middle" fill="#f59e0b" font-family="Arial, sans-serif" font-size="6">Secondary</text>
+    
+    <!-- Tertiary impacts -->
+    <polygon points="95,17 103,25 95,33 87,25" fill="#fbbf24" opacity="0.8"/>
+    <text x="95" y="28" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="7" font-weight="bold">D3</text>
+    <text x="95" y="38" text-anchor="middle" fill="#fbbf24" font-family="Arial, sans-serif" font-size="6">Tertiary</text>
+    
+    <!-- Final impact -->
+    <circle cx="140" cy="25" r="8" fill="#10b981" opacity="0.8"/>
+    <text x="140" y="29" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="7" font-weight="bold">R4</text>
+    <text x="140" y="38" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="6">Contained</text>
+    
+    <!-- Arrow marker definition -->
+    <defs>
+      <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+      </marker>
+    </defs>
+  </g>
+  
+  <!-- Cost impact breakdown -->
+  <g transform="translate(200, 45)">
+    <text x="0" y="0" fill="#d1fae5" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Cost Breakdown</text>
+    
+    <!-- Pie chart representation -->
+    <circle cx="40" cy="30" r="20" fill="none" stroke="#10b981" stroke-width="8" stroke-dasharray="63 37.7" transform="rotate(-90 40 30)"/>
+    <circle cx="40" cy="30" r="20" fill="none" stroke="#f59e0b" stroke-width="8" stroke-dasharray="25.1 75.4" stroke-dashoffset="-63" transform="rotate(-90 40 30)"/>
+    <circle cx="40" cy="30" r="20" fill="none" stroke="#ef4444" stroke-width="8" stroke-dasharray="12.6 87.5" stroke-dashoffset="-88.1" transform="rotate(-90 40 30)"/>
+    
+    <!-- Cost labels -->
+    <text x="70" y="18" fill="#10b981" font-family="Arial, sans-serif" font-size="8">● Direct: $1.6M (63%)</text>
+    <text x="70" y="28" fill="#f59e0b" font-family="Arial, sans-serif" font-size="8">● Indirect: $0.6M (25%)</text>
+    <text x="70" y="38" fill="#ef4444" font-family="Arial, sans-serif" font-size="8">● Opportunity: $0.3M (12%)</text>
+    <text x="70" y="48" fill="#d1fae5" font-family="Arial, sans-serif" font-size="8" font-weight="bold">Total: $2.5M</text>
+  </g>
+  
+  <!-- Risk heatmap -->
+  <g transform="translate(25, 100)">
+    <text x="0" y="0" fill="#d1fae5" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Risk Heatmap by Region</text>
+    
+    <!-- Heatmap grid -->
+    <rect x="0" y="15" width="15" height="15" fill="#10b981" rx="2"/>
+    <rect x="18" y="15" width="15" height="15" fill="#10b981" rx="2"/>
+    <rect x="36" y="15" width="15" height="15" fill="#34d399" rx="2"/>
+    <rect x="54" y="15" width="15" height="15" fill="#f59e0b" rx="2"/>
+    <rect x="72" y="15" width="15" height="15" fill="#ef4444" rx="2"/>
+    
+    <rect x="0" y="33" width="15" height="15" fill="#10b981" rx="2"/>
+    <rect x="18" y="33" width="15" height="15" fill="#34d399" rx="2"/>
+    <rect x="36" y="33" width="15" height="15" fill="#10b981" rx="2"/>
+    <rect x="54" y="33" width="15" height="15" fill="#f59e0b" rx="2"/>
+    <rect x="72" y="33" width="15" height="15" fill="#10b981" rx="2"/>
+    
+    <!-- Region labels -->
+    <text x="7" y="57" text-anchor="middle" fill="#d1fae5" font-family="Arial, sans-serif" font-size="6">NA</text>
+    <text x="25" y="57" text-anchor="middle" fill="#d1fae5" font-family="Arial, sans-serif" font-size="6">EU</text>
+    <text x="43" y="57" text-anchor="middle" fill="#d1fae5" font-family="Arial, sans-serif" font-size="6">APAC</text>
+    <text x="61" y="57" text-anchor="middle" fill="#d1fae5" font-family="Arial, sans-serif" font-size="6">LATAM</text>
+    <text x="79" y="57" text-anchor="middle" fill="#d1fae5" font-family="Arial, sans-serif" font-size="6">MEA</text>
+  </g>
+  
+  <!-- Time series analysis -->
+  <g transform="translate(130, 100)">
+    <text x="0" y="0" fill="#d1fae5" font-family="Arial, sans-serif" font-size="10" font-weight="bold">24hr Impact Timeline</text>
+    
+    <!-- Timeline chart -->
+    <rect x="0" y="15" width="180" height="50" fill="rgba(16, 185, 129, 0.1)" stroke="#10b981" stroke-width="1" rx="4"/>
+    
+    <!-- Timeline data -->
+    <polyline points="10,55 30,45 50,35 70,40 90,30 110,25 130,35 150,40 170,45" 
+              fill="none" stroke="#10b981" stroke-width="2" filter="url(#detailGlow)"/>
+    
+    <!-- Critical events -->
+    <circle cx="50" cy="35" r="3" fill="#ef4444">
+      <animate attributeName="r" values="3;5;3" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <text x="50" y="25" text-anchor="middle" fill="#ef4444" font-family="Arial, sans-serif" font-size="7">Alert</text>
+    
+    <circle cx="110" cy="25" r="3" fill="#f59e0b">
+      <animate attributeName="r" values="3;5;3" dur="2s" begin="1s" repeatCount="indefinite"/>
+    </circle>
+    <text x="110" y="15" text-anchor="middle" fill="#f59e0b" font-family="Arial, sans-serif" font-size="7">Peak</text>
+    
+    <!-- Time labels -->
+    <text x="10" y="75" fill="#d1fae5" font-family="Arial, sans-serif" font-size="7">00:00</text>
+    <text x="90" y="75" fill="#d1fae5" font-family="Arial, sans-serif" font-size="7">12:00</text>
+    <text x="170" y="75" fill="#d1fae5" font-family="Arial, sans-serif" font-size="7">24:00</text>
+  </g>
+  
+  <!-- Real-time metrics -->
+  <g transform="translate(25, 170)">
+    <text x="0" y="0" fill="#d1fae5" font-family="Arial, sans-serif" font-size="9" font-weight="bold">Real-time Metrics</text>
+    <text x="100" y="2" fill="#10b981" font-family="Arial, sans-serif" font-size="8">● System Response: 847ms</text>
+    <text x="220" y="2" fill="#34d399" font-family="Arial, sans-serif" font-size="8">● Data Accuracy: 99.7%</text>
+    <text x="0" y="15" fill="#6ee7b7" font-family="Arial, sans-serif" font-size="8">● Active Monitoring: 2,847 nodes</text>
+    <text x="150" y="15" fill="#10b981" font-family="Arial, sans-serif" font-size="8">● Predictions Generated: 156</text>
+  </g>
+  
+  <!-- Title -->
+  <text x="175" y="220" text-anchor="middle" fill="#d1fae5" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Advanced Impact Analytics</text>
+</svg> 

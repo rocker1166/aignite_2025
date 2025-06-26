@@ -1,0 +1,103 @@
+<svg width="350" height="240" viewBox="0 0 350 240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradientSim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7c2d12;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="normalNode" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="disruptedNode" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glowSim">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="350" height="240" fill="url(#bgGradientSim)"/>
+  
+  <!-- Weather pattern overlay -->
+  <defs>
+    <pattern id="storm" width="30" height="30" patternUnits="userSpaceOnUse">
+      <circle cx="15" cy="15" r="2" fill="#fbbf24" opacity="0.3"/>
+      <circle cx="5" cy="25" r="1.5" fill="#f59e0b" opacity="0.4"/>
+      <circle cx="25" cy="8" r="1" fill="#d97706" opacity="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="350" height="240" fill="url(#storm)"/>
+  
+  <!-- Hurricane/Storm center -->
+  <circle cx="200" cy="80" r="40" fill="none" stroke="#ef4444" stroke-width="3" opacity="0.6">
+    <animate attributeName="r" values="30;50;30" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="200" cy="80" r="25" fill="none" stroke="#dc2626" stroke-width="2" opacity="0.8">
+    <animate attributeName="r" values="20;35;20" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="200" cy="80" r="8" fill="#dc2626" opacity="0.9"/>
+  
+  <!-- Disrupted supply chain -->
+  <!-- Normal nodes (green) -->
+  <circle cx="60" cy="60" r="12" fill="url(#normalNode)" filter="url(#glowSim)"/>
+  <circle cx="60" cy="180" r="12" fill="url(#normalNode)" filter="url(#glowSim)"/>
+  <circle cx="290" cy="120" r="12" fill="url(#normalNode)" filter="url(#glowSim)"/>
+  
+  <!-- Disrupted nodes (red) -->
+  <circle cx="140" cy="80" r="12" fill="url(#disruptedNode)" filter="url(#glowSim)">
+    <animate attributeName="opacity" values="1;0.3;1" dur="1s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="220" cy="120" r="12" fill="url(#disruptedNode)" filter="url(#glowSim)">
+    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="160" cy="160" r="12" fill="url(#disruptedNode)" filter="url(#glowSim)">
+    <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Broken connections -->
+  <line x1="60" y1="60" x2="140" y2="80" stroke="#ef4444" stroke-width="3" stroke-dasharray="5,5" opacity="0.7">
+    <animate attributeName="stroke-dashoffset" values="0;10" dur="1s" repeatCount="indefinite"/>
+  </line>
+  <line x1="140" y1="80" x2="220" y2="120" stroke="#ef4444" stroke-width="3" stroke-dasharray="5,5" opacity="0.7">
+    <animate attributeName="stroke-dashoffset" values="0;10" dur="1s" repeatCount="indefinite"/>
+  </line>
+  
+  <!-- Alternative routes (yellow/orange) -->
+  <path d="M 60 180 Q 120 140 160 160" stroke="#f59e0b" stroke-width="2" fill="none" stroke-dasharray="3,3"/>
+  <path d="M 160 160 Q 220 150 290 120" stroke="#f59e0b" stroke-width="2" fill="none" stroke-dasharray="3,3"/>
+  
+  <!-- Risk indicators -->
+  <g transform="translate(20, 20)">
+    <rect width="100" height="70" rx="8" fill="rgba(127, 29, 29, 0.8)" stroke="#ef4444" stroke-width="1"/>
+    <text x="50" y="15" text-anchor="middle" fill="#fbbf24" font-family="Arial, sans-serif" font-size="10" font-weight="bold">ALERT</text>
+    <text x="50" y="28" text-anchor="middle" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="8">Hurricane Impact</text>
+    <text x="8" y="42" fill="#ef4444" font-family="Arial, sans-serif" font-size="8">● 3 Facilities Offline</text>
+    <text x="8" y="54" fill="#f59e0b" font-family="Arial, sans-serif" font-size="8">● 2 Routes Blocked</text>
+    <text x="8" y="66" fill="#fbbf24" font-family="Arial, sans-serif" font-size="8">● Est. Delay: 5-7 days</text>
+  </g>
+  
+  <!-- Simulation metrics -->
+  <g transform="translate(240, 160)">
+    <rect width="90" height="60" rx="6" fill="rgba(127, 29, 29, 0.7)" stroke="#f59e0b" stroke-width="1"/>
+    <text x="45" y="12" text-anchor="middle" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="9" font-weight="bold">Monte Carlo</text>
+    <text x="45" y="24" text-anchor="middle" fill="#fbbf24" font-family="Arial, sans-serif" font-size="8">1000 Iterations</text>
+    <text x="8" y="36" fill="#ef4444" font-family="Arial, sans-serif" font-size="7">Risk Level: HIGH</text>
+    <text x="8" y="46" fill="#f59e0b" font-family="Arial, sans-serif" font-size="7">Probability: 85%</text>
+    <text x="8" y="56" fill="#fbbf24" font-family="Arial, sans-serif" font-size="7">Cost Impact: $2.4M</text>
+  </g>
+  
+  <!-- Warning symbols -->
+  <polygon points="320,40 330,60 310,60" fill="#fbbf24" opacity="0.8">
+    <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/>
+  </polygon>
+  <text x="320" y="55" text-anchor="middle" fill="#7c2d12" font-family="Arial, sans-serif" font-size="12" font-weight="bold">!</text>
+  
+  <!-- Title -->
+  <text x="175" y="220" text-anchor="middle" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Disruption Simulation</text>
+</svg> 

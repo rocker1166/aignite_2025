@@ -1,0 +1,77 @@
+<svg width="350" height="240" viewBox="0 0 350 240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3730a3;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="nodeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="350" height="240" fill="url(#bgGradient)"/>
+  
+  <!-- Grid pattern -->
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#334155" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+  </defs>
+  <rect width="350" height="240" fill="url(#grid)"/>
+  
+  <!-- Connection lines -->
+  <line x1="60" y1="60" x2="140" y2="60" stroke="#60a5fa" stroke-width="2" opacity="0.7"/>
+  <line x1="140" y1="60" x2="220" y2="60" stroke="#60a5fa" stroke-width="2" opacity="0.7"/>
+  <line x1="220" y1="60" x2="290" y2="60" stroke="#60a5fa" stroke-width="2" opacity="0.7"/>
+  <line x1="60" y1="120" x2="140" y2="120" stroke="#60a5fa" stroke-width="2" opacity="0.7"/>
+  <line x1="140" y1="120" x2="220" y2="120" stroke="#60a5fa" stroke-width="2" opacity="0.7"/>
+  <line x1="220" y1="120" x2="290" y2="120" stroke="#60a5fa" stroke-width="2" opacity="0.7"/>
+  <line x1="60" y1="180" x2="140" y2="180" stroke="#60a5fa" stroke-width="2" opacity="0.7"/>
+  <line x1="140" y1="180" x2="220" y2="180" stroke="#60a5fa" stroke-width="2" opacity="0.7"/>
+  <line x1="220" y1="180" x2="290" y2="180" stroke="#60a5fa" stroke-width="2" opacity="0.7"/>
+  
+  <!-- Vertical connections -->
+  <line x1="140" y1="60" x2="140" y2="120" stroke="#60a5fa" stroke-width="2" opacity="0.7"/>
+  <line x1="140" y1="120" x2="140" y2="180" stroke="#60a5fa" stroke-width="2" opacity="0.7"/>
+  <line x1="220" y1="60" x2="220" y2="120" stroke="#60a5fa" stroke-width="2" opacity="0.7"/>
+  <line x1="220" y1="120" x2="220" y2="180" stroke="#60a5fa" stroke-width="2" opacity="0.7"/>
+  
+  <!-- Supply chain nodes -->
+  <!-- Suppliers -->
+  <circle cx="60" cy="60" r="12" fill="url(#nodeGradient)" filter="url(#glow)"/>
+  <circle cx="60" cy="120" r="12" fill="url(#nodeGradient)" filter="url(#glow)"/>
+  <circle cx="60" cy="180" r="12" fill="url(#nodeGradient)" filter="url(#glow)"/>
+  
+  <!-- Manufacturers -->
+  <rect x="128" y="48" width="24" height="24" rx="4" fill="url(#nodeGradient)" filter="url(#glow)"/>
+  <rect x="128" y="108" width="24" height="24" rx="4" fill="url(#nodeGradient)" filter="url(#glow)"/>
+  <rect x="128" y="168" width="24" height="24" rx="4" fill="url(#nodeGradient)" filter="url(#glow)"/>
+  
+  <!-- Distributors -->
+  <polygon points="220,48 232,60 220,72 208,60" fill="url(#nodeGradient)" filter="url(#glow)"/>
+  <polygon points="220,108 232,120 220,132 208,120" fill="url(#nodeGradient)" filter="url(#glow)"/>
+  <polygon points="220,168 232,180 220,192 208,180" fill="url(#nodeGradient)" filter="url(#glow)"/>
+  
+  <!-- Retailers -->
+  <circle cx="290" cy="60" r="12" fill="url(#nodeGradient)" filter="url(#glow)"/>
+  <circle cx="290" cy="120" r="12" fill="url(#nodeGradient)" filter="url(#glow)"/>
+  <circle cx="290" cy="180" r="12" fill="url(#nodeGradient)" filter="url(#glow)"/>
+  
+  <!-- Labels -->
+  <text x="60" y="35" text-anchor="middle" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Suppliers</text>
+  <text x="140" y="35" text-anchor="middle" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Manufacturing</text>
+  <text x="220" y="35" text-anchor="middle" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Distribution</text>
+  <text x="290" y="35" text-anchor="middle" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Retail</text>
+  
+  <!-- Title -->
+  <text x="175" y="220" text-anchor="middle" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Digital Twin Network</text>
+</svg> 
