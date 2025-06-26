@@ -25,7 +25,8 @@ import { useImpact } from "@/lib/context/impact-context"
 // Import separated components
 import { SimulationHeader } from "./simulation-header"
 import { FloatingRunButton } from "./floating-run-button"
-import { ScenarioConfigurationForm } from "./scenario-configuration-form"
+import { EnhancedScenarioConfigurationForm } from "./enhanced-scenario-configuration-form"
+import { ProfessionalTemplateSelection } from "./professional-template-selection"
 import type { ApiResponse, SupplyChainData } from "./types"
 
 // Glassmorphic Card Component
@@ -47,7 +48,7 @@ function SimulationPageContent() {
   const [progress, setProgress] = useState(0)
 
   // URL state management with nuqs
-  const [view, setView] = useQueryState('view', parseAsString.withDefault('form'))
+  const [view, setView] = useQueryState('view', parseAsString.withDefault('templates'))
   const [simulationRunning, setSimulationRunning] = useState(false)
   const [simulationComplete, setSimulationComplete] = useState(false)
 
@@ -129,7 +130,45 @@ function SimulationPageContent() {
 
   const handleAIScenarioSelect = (scenario: ScenarioData) => {
     updateScenarioData(scenario)
+    setView('form')
     toast.success(`Applied "${scenario.scenarioName}" to the builder`)
+  }
+
+  const handleForecastScenarioSelect = (scenario: ScenarioData) => {
+    updateScenarioData(scenario)
+    setView('form')
+    toast.success(`Applied AI forecast scenario "${scenario.scenarioName}" to the builder`)
+  }
+
+  const handleTemplateSelect = (template: any) => {
+    if (template) {
+      updateScenarioData(template.scenarioData)
+      setView('form')
+      toast.success(`Applied "${template.name}" template`)
+    }
+  }
+
+  const handleStartFromScratch = () => {
+    // Reset scenario data to defaults
+    updateScenarioData({
+      scenarioName: "",
+      scenarioType: "",
+      disruptionSeverity: 0,
+      disruptionDuration: 0,
+      affectedNode: "",
+      description: "",
+      startDate: "",
+      endDate: "",
+      monteCarloRuns: 1000,
+      distributionType: "normal",
+      cascadeEnabled: true,
+      failureThreshold: 50,
+      bufferPercent: 15,
+      alternateRouting: true,
+      randomSeed: ""
+    })
+    setView('form')
+    toast.success("Started with blank scenario")
   }
 
   const runSimulation = async () => {
@@ -255,7 +294,7 @@ function SimulationPageContent() {
   }
 
   const handleNewSimulation = () => {
-    setView('form')
+    setView('templates')
     setSimulationRunning(false)
     setSimulationComplete(false)
     setProgress(0)
@@ -274,104 +313,39 @@ function SimulationPageContent() {
         <SimulationHeader />
 
         <div className="flex-1 overflow-y-auto">
+        {view === 'templates' && (
+          <div className="p-6 px-10">
+            <ProfessionalTemplateSelection
+              onTemplateSelect={handleTemplateSelect}
+              onStartFromScratch={handleStartFromScratch}
+              onAIScenarios={() => setIsAIScenarioOpen(true)}
+              onSelectScenario={handleForecastScenarioSelect}
+            />
+          </div>
+        )}
+
         {view === 'form' &&  (
           <div className="relative">
             <div className="p-6 px-10 space-y-6">
               {/* Header Section */}
               <div className="space-y-4">
-                <div>
-                  <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 mb-2">Scenario Builder</h1>
-                  <p className="text-slate-600 dark:text-slate-300 text-lg">Configure scenarios and analyze supply chain resilience</p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Drawer>
-                    <DrawerTrigger asChild>
-                      <Button variant="secondary" className="shadow-md border-white/30 dark:border-slate-700/10 bg-white/70 dark:bg-slate-900/5 backdrop-blur-xl hover:bg-white/80 dark:hover:bg-slate-900/10">
-                        <WorkflowIcon size={16} className="mr-2" />
-                        See how it works
-                      </Button>
-                    </DrawerTrigger>
-                    <DrawerContent>
-                      <DrawerHeader>
-                        <DrawerTitle>Simulation Workflow</DrawerTitle>
-                        <DrawerDescription>
-                          Follow these steps to run your supply chain analysis
-                        </DrawerDescription>
-                      </DrawerHeader>
-                      <div className="p-4">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-                          <div className="flex items-start gap-3 p-3 rounded-md bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
-                            <div className="flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full text-xs font-medium">1</div>
-                            <div>
-                              <h3 className="font-medium text-sm mb-1">Configure Scenario</h3>
-                              <p className="text-xs text-muted-foreground">Set up your scenario parameters</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-3 p-3 rounded-md bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800">
-                            <div className="flex items-center justify-center w-6 h-6 bg-orange-500 text-white rounded-full text-xs font-medium">2</div>
-                            <div>
-                              <h3 className="font-medium text-sm mb-1">Select Affected Nodes</h3>
-                              <p className="text-xs text-muted-foreground">Choose impacted supply chain parts</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-3 p-3 rounded-md bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
-                            <div className="flex items-center justify-center w-6 h-6 bg-green-500 text-white rounded-full text-xs font-medium">3</div>
-                            <div>
-                              <h3 className="font-medium text-sm mb-1">Run Simulation</h3>
-                              <p className="text-xs text-muted-foreground">Execute and wait for results</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-3 p-3 rounded-md bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800">
-                            <div className="flex items-center justify-center w-6 h-6 bg-purple-500 text-white rounded-full text-xs font-medium">4</div>
-                            <div>
-                              <h3 className="font-medium text-sm mb-1">Analyze Results</h3>
-                              <p className="text-xs text-muted-foreground">Review impact and strategies</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </DrawerContent>
-                  </Drawer>
-
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <Button variant="secondary" className="shadow-md border-white/30 dark:border-slate-700/10 bg-white/70 dark:bg-slate-900/5 backdrop-blur-xl hover:bg-white/80 dark:hover:bg-slate-900/10">
-                        <HistoryIcon size={16} className="mr-2" />
-                        View History
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent className="w-[600px] sm:w-[600px]">
-                      <SheetHeader>
-                        <SheetTitle>Simulation History</SheetTitle>
-                        <SheetDescription>
-                          Previously run simulations and their results
-                        </SheetDescription>
-                      </SheetHeader>
-                      <div className="mt-6">
-                        <SimulationHistory
-                          simulations={simulationHistory}
-                          onRunSimulation={(id) => {
-                            const sim = simulationHistory.find((s) => s.simulation_id === id)
-                            if (sim) {
-                              setCurrentSimulation(sim)
-                              setView('results')
-                            }
-                          }}
-                        />
-                      </div>
-                    </SheetContent>
-                  </Sheet>
-
-                  <Button variant="default" onClick={() => setIsAIScenarioOpen(true)} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-xl hover:shadow-2xl transition-all duration-300">
-                    <Sparkles className="mr-2 h-4 w-4 text-yellow-500" /> 
-                    AI Scenarios
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 mb-2">Scenario Builder</h1>
+                    <p className="text-slate-600 dark:text-slate-300 text-lg">Configure scenarios and analyze supply chain resilience</p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setView('templates')}
+                    className="shadow-md border-white/30 dark:border-slate-700/10 bg-white/70 dark:bg-slate-900/5 backdrop-blur-xl hover:bg-white/80 dark:hover:bg-slate-900/10"
+                  >
+                    ← Back to Templates
                   </Button>
                 </div>
               </div>
 
-              {/* Form Configuration */}
-              <ScenarioConfigurationForm />
+              {/* Enhanced Form Configuration */}
+              <EnhancedScenarioConfigurationForm />
             </div>
 
             {/* Floating Action Button */}

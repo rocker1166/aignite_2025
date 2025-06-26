@@ -1,0 +1,395 @@
+"use client"
+
+import React, { useState, useEffect } from "react"
+import { 
+  AlertTriangle, 
+  TrendingUp, 
+  Clock, 
+  Sparkles, 
+  RefreshCw, 
+  Loader2,
+  Brain,
+  Zap,
+  Globe,
+  Shield,
+  BarChart3,
+  CheckCircle
+} from "lucide-react"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { cn } from "@/lib/utils"
+import { ScenarioData, useScenario } from "@/lib/context/scenario-context"
+import { useUser } from "@/lib/stores/user"
+import { useToast } from "@/hooks/use-toast"
+import { scenarioCache } from "@/lib/utils/scenario-cache"
+
+// Enhanced Glassmorphic Card Component
+function GlassmorphicCard({ 
+  children, 
+  className = "", 
+  ...props 
+}: { 
+  children: React.ReactNode
+  className?: string
+  [key: string]: any 
+}) {
+  return (
+    <Card 
+      className={cn(
+        "border border-white/30 dark:border-slate-700/10 bg-white/70 dark:bg-slate-950/50 backdrop-blur-xl shadow-xl shadow-black/5 dark:shadow-black/20 rounded-xl transition-all duration-300 hover:shadow-2xl hover:bg-white/80 dark:hover:bg-slate-950/70",
+        className
+      )} 
+      {...props}
+    >
+      {children}
+    </Card>
+  )
+}
+
+interface ForecastScenariosProps {
+  onSelectScenario: (scenario: ScenarioData) => void
+}
+
+export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) {
+  const [scenarios, setScenarios] = useState<ScenarioData[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [processingTime, setProcessingTime] = useState<number | null>(null)
+  const [fromCache, setFromCache] = useState(false)
+  
+  const { userData } = useUser()
+  const { toast } = useToast()
+  const { selectedSupplyChainId } = useScenario()
+
+  // Map API scenario types to UI scenario types
+  const mapScenarioType = (apiType: string): string => {
+    const typeMapping: { [key: string]: string } = {
+      'NATURAL_DISASTER': 'natural',
+      'GEOPOLITICAL': 'political',
+      'CYBER_ATTACK': 'disruption',
+      'SUPPLY_SHORTAGE': 'disruption',
+      'DEMAND_SURGE': 'demand',
+      'REGULATORY': 'political',
+      'ECONOMIC': 'political',
+      'PANDEMIC': 'natural',
+      'INFRASTRUCTURE': 'disruption',
+      'CLIMATE': 'natural'
+    }
+    return typeMapping[apiType] || 'disruption'
+  }
+
+  const getSeverityColor = (severity: number) => {
+    if (severity >= 80) return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+    if (severity >= 60) return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
+    if (severity >= 40) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+    return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+  }
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'natural': return AlertTriangle
+      case 'political': return Globe
+      case 'demand': return TrendingUp
+      case 'disruption': return Zap
+      default: return Shield
+    }
+  }
+
+  // Enhanced refresh function
+  const handleRefresh = async () => {
+    if (selectedSupplyChainId) {
+      scenarioCache.clear(selectedSupplyChainId)
+      await fetchScenarios(true)
+      toast({
+        title: "Scenarios Refreshed",
+        description: "AI forecast scenarios have been updated with latest data.",
+      })
+    }
+  }
+
+  // Fetch scenarios from the AI agent API
+  const fetchScenarios = async (forceRefresh = false) => {
+    if (!userData?.id || !selectedSupplyChainId) return
+
+    // Check cache first
+    const cachedScenarios = scenarioCache.get(selectedSupplyChainId)
+    if (cachedScenarios && !forceRefresh) {
+      console.log('📋 Using cached forecast scenarios')
+      setScenarios(cachedScenarios)
+      setFromCache(true)
+      return
+    }
+
+    setIsLoading(true)
+    setFromCache(false)
+    const startTime = Date.now()
+
+    try {
+      console.log('🤖 Fetching AI forecast scenarios...')
+      
+      const response = await fetch('/api/agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'forecast_scenarios',
+          userId: userData.id,
+          supplyChainId: selectedSupplyChainId,
+          count: 4
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`API responded with status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      if (data.success && data.scenarios) {
+        const transformedScenarios: ScenarioData[] = data.scenarios.map((scenario: any) => ({
+          scenarioName: scenario.name || scenario.scenarioName || 'AI Generated Scenario',
+          scenarioType: mapScenarioType(scenario.type || scenario.scenarioType || 'DISRUPTION'),
+          description: scenario.description || 'AI-generated scenario based on current risk analysis',
+          disruptionSeverity: scenario.severity || scenario.disruptionSeverity || 75,
+          disruptionDuration: scenario.duration || scenario.disruptionDuration || 14,
+          affectedNode: scenario.affectedNodes || scenario.affectedNode || 'supplier-a',
+          startDate: '',
+          endDate: '',
+          monteCarloRuns: scenario.simulations || 1000,
+          distributionType: 'normal',
+          cascadeEnabled: true,
+          failureThreshold: scenario.threshold || 50,
+          bufferPercent: 15,
+          alternateRouting: true,
+          randomSeed: ''
+        }))
+
+        setScenarios(transformedScenarios)
+        scenarioCache.set(selectedSupplyChainId, transformedScenarios)
+        
+        const processingTime = Date.now() - startTime
+        setProcessingTime(processingTime)
+        
+        console.log(`✅ Successfully loaded ${transformedScenarios.length} forecast scenarios`)
+      } else {
+        throw new Error(data.error || 'Failed to generate scenarios')
+      }
+    } catch (error) {
+      console.error('❌ Error fetching forecast scenarios:', error)
+      toast({
+        title: "Failed to Load Forecast Scenarios",
+        description: "Unable to generate AI forecast scenarios. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Auto-fetch scenarios when component mounts and supply chain is selected
+  useEffect(() => {
+    if (selectedSupplyChainId && userData?.id) {
+      fetchScenarios()
+    }
+  }, [selectedSupplyChainId, userData?.id])
+
+  if (!selectedSupplyChainId) {
+    return (
+      <GlassmorphicCard className="text-center py-8">
+        <CardContent>
+          <Brain className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">
+            No Supply Chain Selected
+          </h3>
+          <p className="text-slate-600 dark:text-slate-400">
+            Please select a supply chain to view AI-generated forecast scenarios.
+          </p>
+        </CardContent>
+      </GlassmorphicCard>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+            <Brain className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+              AI Forecast Scenarios
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              High-alert scenarios based on current risk analysis
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          {fromCache && (
+            <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+              Cached Results
+            </Badge>
+          )}
+          
+          {processingTime && (
+            <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+              {processingTime}ms
+            </Badge>
+          )}
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <GlassmorphicCard key={i} className="animate-pulse">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4"></div>
+                    <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                  <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-5/6"></div>
+                  <div className="flex gap-2">
+                    <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-16"></div>
+                    <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-20"></div>
+                  </div>
+                </div>
+              </CardContent>
+            </GlassmorphicCard>
+          ))}
+        </div>
+      )}
+
+      {/* Scenarios Grid */}
+      {!isLoading && scenarios.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {scenarios.map((scenario, index) => {
+            const TypeIcon = getTypeIcon(scenario.scenarioType)
+            
+            return (
+              <GlassmorphicCard 
+                key={index} 
+                className="group cursor-pointer relative overflow-hidden"
+                onClick={() => onSelectScenario(scenario)}
+              >
+                {/* High Alert Badge */}
+                <div className="absolute top-3 right-3 z-10">
+                  <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg">
+                    High Alert
+                  </Badge>
+                </div>
+
+                <CardHeader className="pb-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <TypeIcon className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                    </div>
+                    <div className="flex-1 pr-8">
+                      <CardTitle className="text-base leading-tight group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                        {scenario.scenarioName}
+                      </CardTitle>
+                      <CardDescription className="text-sm mt-1">
+                        AI-generated based on risk patterns
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {scenario.description}
+                  </p>
+
+                  <div className="flex flex-wrap gap-2">
+                    <Badge 
+                      className={getSeverityColor(scenario.disruptionSeverity)} 
+                      variant="secondary"
+                    >
+                      {scenario.disruptionSeverity}% severity
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      <Clock className="w-3 h-3 mr-1" />
+                      {scenario.disruptionDuration} days
+                    </Badge>
+                    <Badge variant="outline" className="text-xs capitalize">
+                      {scenario.scenarioType}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <BarChart3 className="w-3 h-3" />
+                    {scenario.monteCarloRuns.toLocaleString()} simulations
+                    {scenario.cascadeEnabled && (
+                      <>
+                        <Separator orientation="vertical" className="h-3" />
+                        <span className="flex items-center gap-1">
+                          <Zap className="w-3 h-3" />
+                          Cascade enabled
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+
+                <CardFooter className="pt-0">
+                  <Button 
+                    className="w-full group-hover:bg-purple-600 group-hover:border-purple-600 transition-colors"
+                    variant="outline"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Use This Scenario
+                  </Button>
+                </CardFooter>
+              </GlassmorphicCard>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && scenarios.length === 0 && (
+        <GlassmorphicCard className="text-center py-12">
+          <CardContent>
+            <Brain className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">
+              No Forecast Scenarios Available
+            </h3>
+            <p className="text-slate-600 dark:text-slate-400 mb-4">
+              Unable to generate AI forecast scenarios at this time.
+            </p>
+            <Button 
+              onClick={() => fetchScenarios(true)}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Try Again
+            </Button>
+          </CardContent>
+        </GlassmorphicCard>
+      )}
+    </div>
+  )
+}
