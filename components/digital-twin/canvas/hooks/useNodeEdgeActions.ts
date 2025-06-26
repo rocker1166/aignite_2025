@@ -153,9 +153,31 @@ export function useNodeEdgeActions({
     setSelectedElement(null);
   }, [setNodes, setEdges, setSelectedElement]);
 
+  const handleAddNodeAtPosition = useCallback((nodeType: string, position: { x: number; y: number }, label?: string, enhancedData?: any) => {
+    const nodeData = enhancedData || {
+      label: label || `New ${nodeType}`, 
+      description: `Description for ${nodeType}`, 
+      type: nodeType,
+      capacity: 500, 
+      leadTime: 7, 
+      riskScore: 0.3, 
+      location: { lat: 0, lng: 0 },
+      address: `Default address for ${nodeType}`
+    };
+    const newNode = {
+      id: `${nodeType.toLowerCase()}-${nodes.length + 1}`,
+      type: `${nodeType.toLowerCase()}Node`,
+      data: { ...nodeData, type: nodeType },
+      position,
+    };
+    setNodes(nds => [...nds, newNode]);
+    setSelectedElement(newNode);
+  }, [nodes, setNodes, setSelectedElement]);
+
   return {
     onConnect,
     handleAddNode,
+    handleAddNodeAtPosition,
     handleUpdateNode,
     handleDeleteNode,
     handleAddMultipleNodes,

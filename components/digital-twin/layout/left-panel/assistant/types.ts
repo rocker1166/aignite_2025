@@ -34,6 +34,7 @@ export interface AIChatPanelProps {
   nodes?: Node[];
   edges?: Edge[];
   onAddNode?: (nodeType: string, label: string, enhancedData?: any) => void;
+  onAddNodeAtPosition?: (nodeType: string, position: { x: number; y: number }, label?: string, enhancedData?: any) => void;
   onAddMultipleNodes?: (nodes: Partial<Node>[]) => void;
   onAddMultipleEdges?: (edges: Partial<Edge>[]) => void;
   onAddEdges?: (edges: Edge[]) => void;

@@ -160,6 +160,7 @@ export function useDigitalTwinManager({
     },
     leftPanelProps: {
       onAddNode: nodeEdgeActions.handleAddNode,
+      onAddNodeAtPosition: nodeEdgeActions.handleAddNodeAtPosition,
       onClearAllNodes: nodeEdgeActions.handleClearAllNodes,
       onLoadTemplate: finalTemplateManager.handleLoadTemplate,
       simulationMode,
