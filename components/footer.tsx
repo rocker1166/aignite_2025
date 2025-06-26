@@ -5,128 +5,35 @@ import Link from "next/link"
 
 export function Footer() {
   return (
-    <footer className="w-full bg-background border-t border-border/40 py-12">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-          <div>
-            <Link href="/" className="flex items-center mb-4">
-              <span className="font-bold text-xl">IntelliSupply</span>
-            </Link>
-            <p className="text-sm text-muted-foreground mb-4">
-              AI-powered supply chain resilience platform for proactive risk management and optimization.
-            </p>
-            <div className="flex gap-4">
-              <a href="#" className="text-muted-foreground hover:text-foreground">
-                <Twitter className="h-5 w-5" />
-                <span className="sr-only">Twitter</span>
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground">
-                <Linkedin className="h-5 w-5" />
-                <span className="sr-only">LinkedIn</span>
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground">
-                <Github className="h-5 w-5" />
-                <span className="sr-only">GitHub</span>
-              </a>
-            </div>
-          </div>
-          
-          <div>
-            <h3 className="font-semibold mb-4">Product</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Digital Twin
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Simulation
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Risk Analysis
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Strategy Recommendations
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  KPI Dashboard
-                </Link>
-              </li>
-            </ul>
-          </div>
-          
-          <div>
-            <h3 className="font-semibold mb-4">Resources</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Documentation
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Case Studies
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Webinars
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Research
-                </Link>
-              </li>
-            </ul>
-          </div>
-          
-          <div>
-            <h3 className="font-semibold mb-4">Company</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Careers
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Contact
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Terms of Service
-                </Link>
-              </li>
-            </ul>
-          </div>
+    <footer className="w-full bg-black pt-12 pb-32 relative overflow-hidden">
+      {/* Gradient background text */}
+      <span className="hidden md:block absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-0 text-[7vw] font-extrabold uppercase bg-gradient-to-r from-white via-white/70 to-white/30 bg-clip-text text-transparent opacity-50 select-none pointer-events-none z-0 whitespace-nowrap">
+        INTELLISUPPLY
+      </span>
+      <div className="relative z-10 max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-start gap-12">
+        {/* Brand and copyright */}
+        <div className="flex-1 min-w-[220px]">
+          <h2 className="text-2xl font-bold text-white mb-4">IntelliSupply</h2>
+          <p className="text-base text-gray-300 mb-8">© copyright IntelliSupply 2025. All rights reserved.</p>
         </div>
-        
-        <div className="text-center text-sm text-muted-foreground pt-8 border-t border-border/40">
-          <p>© 2025 IntelliSupply. All rights reserved.</p>
+        {/* Pages */}
+        <div className="flex-1 min-w-[180px]">
+          <h3 className="font-semibold text-white mb-4">Pages</h3>
+          <ul className="space-y-3 text-lg">
+            <li><Link href="/" className="text-gray-200 hover:text-white">Home</Link></li>
+            <li><Link href="#features" className="text-gray-200 hover:text-white">Features</Link></li>
+            <li><Link href="#benefits" className="text-gray-200 hover:text-white">Benefits</Link></li>
+            <li><Link href="#contact" className="text-gray-200 hover:text-white">Contact</Link></li>
+          </ul>
+        </div>
+        {/* Socials */}
+        <div className="flex-1 min-w-[180px]">
+          <h3 className="font-semibold text-white mb-4">Socials</h3>
+          <ul className="space-y-3 text-lg">
+            <li><a href="#" className="text-gray-200 hover:text-white">Facebook</a></li>
+            <li><a href="#" className="text-gray-200 hover:text-white">Instagram</a></li>
+            <li><a href="#" className="text-gray-200 hover:text-white">LinkedIn</a></li>
+          </ul>
         </div>
       </div>
     </footer>
