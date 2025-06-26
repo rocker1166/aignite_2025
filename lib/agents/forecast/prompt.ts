@@ -181,6 +181,21 @@ FORECASTING INSTRUCTIONS:
    - Identify potential disruptive events in the forecast period
    - Assign probability and impact ratings
    - Categorize by type (weather, geopolitical, economic, operational, regulatory)
+   - CRITICAL: Include scenario_json for EVERY event with these fields:
+     * scenarioName: descriptive name
+     * scenarioType: natural, geopolitical, economic, operational, regulatory, other
+     * disruptionSeverity: 0-100 severity score
+     * disruptionDuration: 1-365 days duration
+     * affectedNode: realistic node ID from the supply chain
+     * description: detailed scenario description
+     * startDate, endDate: ISO formatted dates
+     * monteCarloRuns: 1000-50000 simulation runs
+     * distributionType: normal, lognormal, uniform, exponential, beta
+     * cascadeEnabled: boolean for cascade failure modeling
+     * failureThreshold: 0-1 node failure threshold
+     * bufferPercent: 0-100 buffer capacity percentage
+     * alternateRouting: boolean for routing alternatives
+     * randomSeed: lowercase-hyphenated reproducible identifier
 
 4. Recommendations Requirements:
    - Provide 3-5 specific, actionable recommendations
@@ -189,6 +204,8 @@ FORECASTING INSTRUCTIONS:
 
 FORECAST OUTPUT FORMAT:
 Follow the JSON schema requirements exactly. Ensure all dates are in ISO format, all scores are within specified ranges, and all required fields are populated with meaningful content.
+
+CRITICAL REQUIREMENT: Every event in the events array MUST include a complete scenario_json object. This is not optional. Each scenario_json should realistically match the event characteristics (e.g., natural disasters have higher severity and enable cascades, economic events have longer duration, operational issues have shorter duration).
 
 Generate a highly specific, evidence-based forecast with practical business value.
 `;

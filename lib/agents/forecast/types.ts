@@ -181,6 +181,23 @@ export interface ForecastOutput {
       impact: 'low' | 'medium' | 'high' | 'critical';
       estimatedDate?: string;
       category: 'weather' | 'geopolitical' | 'economic' | 'operational' | 'regulatory' | 'other';
+      scenario_json: {
+        scenarioName: string;
+        scenarioType: string;
+        disruptionSeverity: number;
+        disruptionDuration: number;
+        affectedNode: string;
+        description: string;
+        startDate: string;
+        endDate: string;
+        monteCarloRuns: number;
+        distributionType: string;
+        cascadeEnabled: boolean;
+        failureThreshold: number;
+        bufferPercent: number;
+        alternateRouting: boolean;
+        randomSeed: string;
+      };
     }[];
     recommendations: {
       title: string;
