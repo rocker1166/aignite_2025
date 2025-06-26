@@ -143,12 +143,14 @@ class ProductionIntelligenceAgent {
       console.log(`Successfully cached intelligence for node ${nodeId}`);
     } catch (error) {
       console.error('Cache storage error:', error);
-    }  }
+    }
+  }
 
   private async buildSearchContext(node: any, supplyChainData?: any): Promise<string> {
     let memoryContext = '';
     let historicalTrends = '';
     let supplyChainContext = '';
+    let networkContext = '';
     
     // Extract supply chain form data if available
     if (supplyChainData?.form_data) {
@@ -182,6 +184,46 @@ class ProductionIntelligenceAgent {
       - Company Name: ${supplyChainData.name}
       - Organisation: ${supplyChainData.organisation || 'Not specified'}
       - Description: ${supplyChainData.description || 'Not specified'}`;
+    }
+    
+    // Build network context if edges and connections are available
+    if (supplyChainData?.nodeConnections && supplyChainData?.edges) {
+      const nodeConnections = supplyChainData.nodeConnections[node.node_id];
+      const totalEdges = supplyChainData.edges.length;
+      
+      if (nodeConnections) {
+        const upstreamNodes = nodeConnections.upstream;
+        const downstreamNodes = nodeConnections.downstream;
+        const isCriticalPath = nodeConnections.criticalPath;
+        
+        networkContext = `
+        SUPPLY CHAIN NETWORK CONTEXT:
+        - Total Supply Chain Connections: ${totalEdges} edges
+        - Node Role: ${isCriticalPath ? 'CRITICAL PATH NODE' : 'Standard Node'}
+        - Dependencies Count: ${nodeConnections.dependencies}
+        
+        UPSTREAM SUPPLIERS (${upstreamNodes.length}):
+        ${upstreamNodes.slice(0, 5).map((up: any) => 
+          `  • ${up.nodeName} (${up.nodeType}) - Transport: ${up.transportMode}, Cost: ${up.cost}, Transit: ${up.transitTime}h, Risk: ${up.riskMultiplier}x`
+        ).join('\n') || '  • No upstream suppliers'}
+        
+        DOWNSTREAM CUSTOMERS (${downstreamNodes.length}):
+        ${downstreamNodes.slice(0, 5).map((down: any) => 
+          `  • ${down.nodeName} (${down.nodeType}) - Transport: ${down.transportMode}, Cost: ${down.cost}, Transit: ${down.transitTime}h, Risk: ${down.riskMultiplier}x`
+        ).join('\n') || '  • No downstream customers'}
+        
+        NETWORK RISK FACTORS:
+        ${isCriticalPath ? '- HIGH PRIORITY: This node is on the critical path - disruptions here will cascade through the network' : '- Standard network priority'}
+        ${nodeConnections.dependencies > 2 ? '- Multiple dependencies - vulnerable to multi-supplier disruptions' : '- Limited dependencies - more resilient to supplier issues'}
+        ${upstreamNodes.some((up: any) => up.riskMultiplier > 1.5) ? '- High-risk upstream connections detected' : '- Upstream connections appear stable'}
+        ${downstreamNodes.some((down: any) => down.riskMultiplier > 1.5) ? '- High-risk downstream connections detected' : '- Downstream connections appear stable'}`;
+      } else {
+        networkContext = `
+        SUPPLY CHAIN NETWORK CONTEXT:
+        - Total Supply Chain Connections: ${totalEdges} edges
+        - Node Position: Isolated or connection data unavailable
+        - This node may be disconnected from the main supply chain network`;
+      }
     }
     
     // Try to retrieve memories with proper error handling following latest Mem0 docs
@@ -836,6 +878,70 @@ Generated at: ${new Date().toISOString()}`
       return new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(); // 4 hours
     }
   }
+
+  /**
+   * Build a map of node connections to understand supply chain relationships
+   */
+  public buildNodeConnectionMap(nodes: any[], edges: any[]): any {
+    const nodeMap = new Map(nodes.map(node => [node.node_id, node]));
+    const connectionMap: any = {};
+    
+    // Initialize connection map for each node
+    nodes.forEach(node => {
+      connectionMap[node.node_id] = {
+        upstream: [], // nodes that supply to this node
+        downstream: [], // nodes that this node supplies to
+        dependencies: 0,
+        criticalPath: false
+      };
+    });
+    
+    // Build connections based on edges
+    edges.forEach(edge => {
+      const fromNode = nodeMap.get(edge.from_node_id);
+      const toNode = nodeMap.get(edge.to_node_id);
+      
+      if (fromNode && toNode) {
+        // Add downstream connection (from -> to)
+        connectionMap[edge.from_node_id].downstream.push({
+          nodeId: edge.to_node_id,
+          nodeName: toNode.name,
+          nodeType: toNode.type,
+          edgeType: edge.type,
+          transportMode: edge.data?.mode || 'road',
+          cost: edge.data?.cost || 0,
+          transitTime: edge.data?.transitTime || 0,
+          riskMultiplier: edge.data?.riskMultiplier || 1
+        });
+        
+        // Add upstream connection (to <- from)
+        connectionMap[edge.to_node_id].upstream.push({
+          nodeId: edge.from_node_id,
+          nodeName: fromNode.name,
+          nodeType: fromNode.type,
+          edgeType: edge.type,
+          transportMode: edge.data?.mode || 'road',
+          cost: edge.data?.cost || 0,
+          transitTime: edge.data?.transitTime || 0,
+          riskMultiplier: edge.data?.riskMultiplier || 1
+        });
+        
+        // Count dependencies
+        connectionMap[edge.to_node_id].dependencies++;
+      }
+    });
+    
+    // Identify critical path nodes (high dependency count)
+    const maxDependencies = Math.max(...Object.values(connectionMap).map((conn: any) => conn.dependencies));
+    Object.keys(connectionMap).forEach(nodeId => {
+      if (connectionMap[nodeId].dependencies >= maxDependencies * 0.7) {
+        connectionMap[nodeId].criticalPath = true;
+      }
+    });
+    
+    return connectionMap;
+  }
+
   async processSupplyChainIntelligence(supplyChainId: string, forceRefresh: boolean = false, supplyChainData?: any): Promise<any[]> {
     const results = [];
     
@@ -848,8 +954,25 @@ Generated at: ${new Date().toISOString()}`
     if (error) throw error;
     if (!nodes?.length) return [];
 
-    console.log(`Processing intelligence for ${nodes.length} nodes in supply chain ${supplyChainId}`);
+    // Get all edges for this supply chain to understand relationships
+    const { data: edges, error: edgesError } = await supabaseServer
+      .from('edges')
+      .select('*')
+      .eq('supply_chain_id', supplyChainId);
+
+    if (edgesError) {
+      console.warn('Failed to fetch edges:', edgesError);
+    }
+
+    console.log(`Processing intelligence for ${nodes.length} nodes and ${edges?.length || 0} edges in supply chain ${supplyChainId}`);
     console.log(`Node IDs to process: ${nodes.map(n => `${n.node_id} (${n.name})`).join(', ')}`);
+
+    // Build supply chain data with edges for enhanced context
+    const enhancedSupplyChainData = {
+      ...supplyChainData,
+      edges: edges || [],
+      nodeConnections: this.buildNodeConnectionMap(nodes, edges || [])
+    };
 
     // Process nodes with intelligent prioritization
     const highPriorityNodes = nodes.filter(n => 
@@ -871,7 +994,7 @@ Generated at: ${new Date().toISOString()}`
         
         if (!intelligence) {
           console.log(`Gathering fresh intelligence for node ${node.node_id}`);
-          intelligence = await this.gatherComprehensiveIntelligence(node, supplyChainData);
+          intelligence = await this.gatherComprehensiveIntelligence(node, enhancedSupplyChainData);
           await this.cacheIntelligence(node.node_id, intelligence);
         } else {
           console.log(`Using cached intelligence for node ${node.node_id}`);
@@ -920,7 +1043,7 @@ Generated at: ${new Date().toISOString()}`
         
         if (!intelligence) {
           console.log(`Gathering fresh intelligence for node ${node.node_id}`);
-          intelligence = await this.gatherComprehensiveIntelligence(node, supplyChainData);
+          intelligence = await this.gatherComprehensiveIntelligence(node, enhancedSupplyChainData);
           await this.cacheIntelligence(node.node_id, intelligence);
         } else {
           console.log(`Using cached intelligence for node ${node.node_id}`);
@@ -1788,7 +1911,7 @@ export async function GET(request: NextRequest) {
     let results;
 
     if (nodeId) {
-      // Process single node
+      // Process single node with full network context
       const { data: node } = await supabaseServer
         .from('nodes')
         .select('*')
@@ -1810,7 +1933,27 @@ export async function GET(request: NextRequest) {
             processingTime: Date.now() - startTime
           });
         }
-      }      const intelligence = await agent.gatherComprehensiveIntelligence(node, supplyChain);
+      }
+
+      // Get all nodes and edges for this supply chain to build complete network context
+      const { data: allNodes } = await supabaseServer
+        .from('nodes')
+        .select('*')
+        .eq('supply_chain_id', supplyChainId);
+
+      const { data: edges } = await supabaseServer
+        .from('edges')
+        .select('*')
+        .eq('supply_chain_id', supplyChainId);
+
+      // Build enhanced supply chain data with full network context
+      const enhancedSupplyChainData = {
+        ...supplyChain,
+        edges: edges || [],
+        nodeConnections: agent.buildNodeConnectionMap(allNodes || [], edges || [])
+      };
+
+      const intelligence = await agent.gatherComprehensiveIntelligence(node, enhancedSupplyChainData);
       await agent.cacheIntelligence(nodeId, intelligence);
       results = [intelligence];
     } else {
@@ -1993,6 +2136,24 @@ export async function POST(request: NextRequest) {
       if (!node && node_id) {
         return NextResponse.json({ error: 'Node not found' }, { status: 404 });
       }
+
+      // Get all nodes and edges for this supply chain to build complete network context
+      const { data: allNodes } = await supabaseServer
+        .from('nodes')
+        .select('*')
+        .eq('supply_chain_id', supply_chain_id);
+
+      const { data: edges } = await supabaseServer
+        .from('edges')
+        .select('*')
+        .eq('supply_chain_id', supply_chain_id);
+
+      // Build enhanced supply chain data with full network context
+      const enhancedSupplyChainData = {
+        ...supplyChain,
+        edges: edges || [],
+        nodeConnections: new ProductionIntelligenceAgent().buildNodeConnectionMap(allNodes || [], edges || [])
+      };
         // Validate Mem0 key configuration before proceeding
       const apiKeyStatus = await ApiKeyValidator.validateMem0ApiKey();
       const memoryEnabled = apiKeyStatus.isValid && apiKeyStatus.isConfigured;
@@ -2016,7 +2177,7 @@ export async function POST(request: NextRequest) {
           tools: {
             ...tavily,
             getNodeContext: tool({
-              description: 'Get supply chain node context and historical intelligence',
+              description: 'Get supply chain node context, historical intelligence, and network relationships',
               parameters: z.object({
                 nodeId: z.string().describe('The node ID to get context for')
               }),
@@ -2033,11 +2194,38 @@ export async function POST(request: NextRequest) {
                     console.error('Memory retrieval failed in streaming context:', error);
                   }
                 }
+
+                // Get network context for this node
+                const nodeConnections = enhancedSupplyChainData.nodeConnections?.[nodeId];
+                let networkInfo = 'No network connections found';
+                
+                if (nodeConnections) {
+                  networkInfo = `Network Analysis:
+- Role: ${nodeConnections.criticalPath ? 'CRITICAL PATH NODE' : 'Standard Node'}
+- Dependencies: ${nodeConnections.dependencies}
+- Upstream Suppliers: ${nodeConnections.upstream.length}
+- Downstream Customers: ${nodeConnections.downstream.length}
+- Total Network Edges: ${enhancedSupplyChainData.edges?.length || 0}
+
+Key Connections:
+${nodeConnections.upstream.slice(0, 3).map((up: any) => 
+  `↑ ${up.nodeName} (${up.nodeType}) - ${up.transportMode} transport, Risk: ${up.riskMultiplier}x`
+).join('\n')}
+${nodeConnections.downstream.slice(0, 3).map((down: any) => 
+  `↓ ${down.nodeName} (${down.nodeType}) - ${down.transportMode} transport, Risk: ${down.riskMultiplier}x`
+).join('\n')}`;
+                }
                 
                 return {
                   cached: cached ? 'Recent intelligence available' : 'No recent intelligence',
                   memories: memories.slice(0, 5), // Last 5 memories
                   nodeInfo: node,
+                  networkContext: networkInfo,
+                  supplyChainInfo: {
+                    name: enhancedSupplyChainData.name,
+                    totalNodes: allNodes?.length || 0,
+                    totalEdges: enhancedSupplyChainData.edges?.length || 0
+                  },
                   memoryStatus: memoryEnabled ? 'enabled' : 'disabled'
                 };
               }
@@ -2373,7 +2561,7 @@ export async function POST(request: NextRequest) {
           tools: {
             ...tavily,
             getNodeContext: tool({
-              description: 'Get supply chain node context and historical intelligence',
+              description: 'Get supply chain node context, historical intelligence, and network relationships',
               parameters: z.object({
                 nodeId: z.string().describe('The node ID to get context for')
               }),
@@ -2390,11 +2578,38 @@ export async function POST(request: NextRequest) {
                     console.error('Memory retrieval failed in streaming context:', error);
                   }
                 }
+
+                // Get network context for this node
+                const nodeConnections = enhancedSupplyChainData.nodeConnections?.[nodeId];
+                let networkInfo = 'No network connections found';
+                
+                if (nodeConnections) {
+                  networkInfo = `Network Analysis:
+- Role: ${nodeConnections.criticalPath ? 'CRITICAL PATH NODE' : 'Standard Node'}
+- Dependencies: ${nodeConnections.dependencies}
+- Upstream Suppliers: ${nodeConnections.upstream.length}
+- Downstream Customers: ${nodeConnections.downstream.length}
+- Total Network Edges: ${enhancedSupplyChainData.edges?.length || 0}
+
+Key Connections:
+${nodeConnections.upstream.slice(0, 3).map((up: any) => 
+  `↑ ${up.nodeName} (${up.nodeType}) - ${up.transportMode} transport, Risk: ${up.riskMultiplier}x`
+).join('\n')}
+${nodeConnections.downstream.slice(0, 3).map((down: any) => 
+  `↓ ${down.nodeName} (${down.nodeType}) - ${down.transportMode} transport, Risk: ${down.riskMultiplier}x`
+).join('\n')}`;
+                }
                 
                 return {
                   cached: cached ? 'Recent intelligence available' : 'No recent intelligence',
                   memories: memories.slice(0, 5), // Last 5 memories
                   nodeInfo: node,
+                  networkContext: networkInfo,
+                  supplyChainInfo: {
+                    name: enhancedSupplyChainData.name,
+                    totalNodes: allNodes?.length || 0,
+                    totalEdges: enhancedSupplyChainData.edges?.length || 0
+                  },
                   memoryStatus: memoryEnabled ? 'enabled' : 'disabled'
                 };
               }
@@ -2562,25 +2777,30 @@ export async function POST(request: NextRequest) {
             INSTRUCTIONS:
             
             1. USE TOOLS STRATEGICALLY:
-               - Start with getNodeContext to understand historical patterns
+               - Start with getNodeContext to understand historical patterns AND network relationships
+               - Analyze the node's position in the supply chain network (critical path, dependencies)
                - Use search tools to find current events and disruptions
                - Use searchQNA for specific questions about supply chain impacts
                - Use storeIntelligence to save important findings
             
             2. INTELLIGENCE PRIORITIES:
                - Critical disruptions affecting operations (severity >70)
-               - Weather events impacting transportation
-               - Port congestions, strikes, or closures
-               - Regulatory changes affecting trade
-               - Market shifts and price fluctuations
-               - Geopolitical events affecting supply routes
+               - Network-level risks: disruptions that could cascade through connected nodes
+               - Weather events impacting transportation routes to/from connected nodes
+               - Port congestions, strikes, or closures affecting upstream/downstream flows
+               - Regulatory changes affecting trade routes in the network
+               - Market shifts and price fluctuations affecting connected suppliers/customers
+               - Geopolitical events affecting supply routes and node connections
             
-            3. ANALYSIS APPROACH:
-               - Search for recent news (last 7 days) about supply chain disruptions
-               - Focus on specific locations and industries relevant to this supply chain
+            3. NETWORK-AWARE ANALYSIS APPROACH:
+               - Analyze how disruptions at THIS node would impact connected nodes
+               - Consider upstream dependencies and potential bottlenecks
+               - Evaluate downstream demand effects and customer impact
+               - Assess transportation route risks between connected nodes
+               - Focus on locations and industries relevant to this node AND its network connections
                - Cross-reference multiple sources for accuracy
-               - Assess probability and impact of identified risks
-               - Provide actionable recommendations
+               - Assess probability and impact of identified risks on the broader network
+               - Provide actionable recommendations considering network effects
             
             4. COMMUNICATION STYLE:
                - Stream your analysis in real-time as you gather information
