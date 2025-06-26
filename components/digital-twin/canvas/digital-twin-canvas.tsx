@@ -50,9 +50,34 @@ export default function DigitalTwinCanvas({ initialNodes, initialEdges }: Digita
     handleDeleteNode
   } = useDigitalTwinManager({ initialNodes, initialEdges });
 
-  // Add keyboard event listener for Delete key
+  // Add keyboard event listener for Delete key and Ctrl+S
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Check if we're typing in an input field, textarea, or contenteditable element
+      const target = event.target as HTMLElement;
+      const isTyping = target.tagName === 'INPUT' || 
+                      target.tagName === 'TEXTAREA' || 
+                      target.contentEditable === 'true';
+
+      // Handle Ctrl+S for save
+      if (event.ctrlKey && event.key === 's') {
+        event.preventDefault(); // Prevent browser's default save
+        
+        // Don't trigger save if we're in simulation mode
+        if (simulationToolbarProps.simulationMode) {
+          return;
+        }
+        
+        // Trigger the save function
+        simulationToolbarProps.onSave();
+        return;
+      }
+
+      // Only process other shortcuts if we're not typing
+      if (isTyping) {
+        return;
+      }
+
       // Check if Delete or Backspace key is pressed
       if ((event.key === 'Delete' || event.key === 'Backspace') && selectedElement) {
         // Prevent deletion in simulation mode
@@ -75,7 +100,7 @@ export default function DigitalTwinCanvas({ initialNodes, initialEdges }: Digita
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedElement, handleDeleteNode, simulationToolbarProps.simulationMode]);
+  }, [selectedElement, handleDeleteNode, simulationToolbarProps.simulationMode, simulationToolbarProps.onSave]);
 
   const onDragOver = (event: React.DragEvent) => {
     event.preventDefault();

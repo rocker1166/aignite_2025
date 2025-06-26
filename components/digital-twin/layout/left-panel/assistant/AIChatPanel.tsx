@@ -17,6 +17,7 @@ import { useCopilotActions } from './useCopilotActions';
 import { useAISuggestions } from './useAISuggestions';
 import { parseError } from './error-parser';
 import { AIChatPanelProps, AutocompleteSuggestion, ChatError } from './types';
+import { decompressArchData } from '@/lib/utils/url-compression';
 
 const AIChatPanel: React.FC<AIChatPanelProps> = ({ 
   simulationMode = false, 
@@ -80,16 +81,8 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
     const decodeFromURL = async () => {
       if (archParam) {
         try {
-          console.log('🔍 AI Chat Panel: Decoding canvas state from URL');
-
-          // Add back padding if needed for base64
-          const padding = '='.repeat((4 - (archParam.length % 4)) % 4);
-          const paddedBase64 = archParam
-            .replace(/-/g, '+')
-            .replace(/_/g, '/') + padding;
-
-          const jsonString = atob(paddedBase64);
-          const canvasData = JSON.parse(jsonString);
+          console.log('🔍 AI Chat Panel: Decompressing canvas state from URL');
+          const canvasData = decompressArchData(archParam);
 
           if (canvasData.nodes && canvasData.edges) {
             console.log('🔍 AI Chat Panel: Setting nodes and edges from URL', {

@@ -5,6 +5,7 @@ import { useNodesState, useEdgesState, Node, Edge, ReactFlowInstance } from 'rea
 import { useQueryState } from 'nuqs';
 import debounce from 'lodash.debounce';
 import { migrateEdges } from '../lib/utils';
+import { compressArchData, decompressArchData } from '@/lib/utils/url-compression';
 
 export function useDigitalTwinState(initialNodes: Node[] = [], initialEdges: Edge[] = []) {
   const [archParam, setArchParam] = useQueryState('arch', {
@@ -26,10 +27,8 @@ export function useDigitalTwinState(initialNodes: Node[] = [], initialEdges: Edg
       if (!isHydrated) {
         if (archParam) {
           try {
-            const padding = '='.repeat((4 - (archParam.length % 4)) % 4);
-            const paddedBase64 = archParam.replace(/-/g, '+').replace(/_/g, '/') + padding;
-            const jsonString = atob(paddedBase64);
-            const canvasData = JSON.parse(jsonString);
+            console.log('🗜️ Decompressing canvas state from URL...');
+            const canvasData = decompressArchData(archParam);
 
             if (canvasData.nodes && canvasData.edges) {
               const migrated = migrateEdges(canvasData.edges);
@@ -67,12 +66,16 @@ export function useDigitalTwinState(initialNodes: Node[] = [], initialEdges: Edg
       try {
         const canvasData = { nodes: currentNodes, edges: currentEdges, timestamp: Date.now() };
         const jsonString = JSON.stringify(canvasData);
-        if (jsonString.length > 50000) {
-          console.warn('Canvas data too large for URL, skipping URL update');
+        
+        // Check if data is too large even before compression
+        if (jsonString.length > 200000) {
+          console.warn('Canvas data extremely large, skipping URL update');
           return;
         }
-        const base64String = btoa(jsonString).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-        setArchParam(base64String, { scroll: false, shallow: true });
+        
+        console.log('🗜️ Compressing canvas state for URL...');
+        const compressedString = compressArchData(canvasData);
+        setArchParam(compressedString, { scroll: false, shallow: true });
       } catch (error) {
         console.error('Failed to update URL with canvas state:', error);
       }
