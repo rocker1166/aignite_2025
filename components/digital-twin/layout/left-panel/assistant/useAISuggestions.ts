@@ -75,7 +75,7 @@ export const useAISuggestions = ({ nodes, edges, messages }: UseAISuggestionsPro
       const prompt = `Based on this detailed supply chain context: ${JSON.stringify(fullContext)}, 
         provide 3-5 actionable suggestions to improve efficiency, reduce risks, or optimize operations. Consider the specific nodes, their properties, connections, risk scores, and relationships.`;
 
-      const response = await fetch('/api/chat', {
+      const response = await fetch('/api/suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -170,7 +170,7 @@ export const useAISuggestions = ({ nodes, edges, messages }: UseAISuggestionsPro
       const prompt = `Based on the supply chain context and recent conversation: ${JSON.stringify(fullContext)}, 
         provide 4-6 intelligent query suggestions that would be most relevant for the user to ask next. Focus on actionable questions about optimization, analysis, and improvements.`;
 
-      const response = await fetch('/api/chat', {
+      const response = await fetch('/api/suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

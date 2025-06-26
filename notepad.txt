@@ -14,6 +14,10 @@
 14 . fix input box  not clearing but
 15. add small url functionalitu 
 16 . implement view of digital twin 
+17. hide the advanced configuration 
+20.Add a current scenrio  option  
+21. 
+
 
 //suman improvment list :
 1. scenario :
