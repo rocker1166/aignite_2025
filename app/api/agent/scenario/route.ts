@@ -139,53 +139,74 @@ class ProductionScenarioAgent {
     }
   }  private async fetchIntelligenceContext(supplyChainId: string): Promise<any> {
     try {
-      // Use Promise.race for faster response - first source wins
+      // Enhanced Mem0 queries for better context
       const intelligencePromises = [];
 
-      // Add Mem0 promise if available
+      // Enhanced Mem0 promise with multiple queries for richer context
       if (process.env.MEM0_API_KEY) {
+        const mem0Queries = [
+          `supply chain scenarios ${supplyChainId}`,
+          `risk analysis ${supplyChainId}`,
+          `disruption patterns ${supplyChainId}`,
+          `historical incidents ${supplyChainId}`,
+          `supply chain vulnerabilities`
+        ];
+
         intelligencePromises.push(
           Promise.race([
-            getMemories(
-              `intelligence ${supplyChainId}`,
-              {
-                user_id: `supply-chain-${supplyChainId}`,
-                mem0ApiKey: process.env.MEM0_API_KEY,
-                org_id: process.env.MEM0_ORG_ID,
-                project_id: process.env.MEM0_PROJECT_ID
-              }
-            ).then(memories => ({
-              source: 'mem0',
-              data: memories?.slice(0, 3) || [], // Limit to 3 most relevant
-              count: memories?.length || 0
-            })),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Mem0 timeout')), 2000))
+            Promise.all(
+              mem0Queries.map(query =>
+                getMemories(query, {
+                  user_id: `supply-chain-${supplyChainId}`,
+                  mem0ApiKey: process.env.MEM0_API_KEY,
+                  org_id: process.env.MEM0_ORG_ID,
+                  project_id: process.env.MEM0_PROJECT_ID
+                }).catch(() => [])
+              )
+            ).then(results => {
+              const allMemories = results.flat().filter(Boolean);
+              const uniqueMemories = Array.from(
+                new Map(allMemories.map(m => [m.id || m.content, m])).values()
+              );
+              return {
+                source: 'mem0',
+                data: uniqueMemories.slice(0, 10) || [], // Increased limit for richer context
+                count: uniqueMemories.length || 0,
+                queries: mem0Queries
+              };
+            }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Mem0 timeout')), 4000)) // Increased timeout
           ])
         );
       }
 
-      // Add Supabase promise with timeout
+      // Add Supabase promise with timeout (as fallback)
       intelligencePromises.push(
         Promise.race([
           supabaseServer
             .from('supply_chain_intel')
-            .select('id, risk_level, intel_type, summary') // Only essential fields
+            .select('id, risk_level, intel_type, summary, intelligence_data, news, weather') // Get more context fields
             .eq('supply_chain_id', supplyChainId)
             .order('created_at', { ascending: false })
-            .limit(3) // Limit to 3 records for speed
+            .limit(5) // Increased limit for more context
             .then(({ data }) => ({
               source: 'supabase',
               data: data || [],
               count: data?.length || 0
             })),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Supabase timeout')), 2000))
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Supabase timeout')), 3000))
         ])
-      );      // Return first successful result
+      );
+
+      // Return the best available result (prioritize Mem0 for richer context)
       const result = await Promise.any(intelligencePromises).catch(() => null);
       
       if (result && typeof result === 'object' && 'source' in result) {
         const typedResult = result as any;
-        console.log(`Fast intel fetch: ${typedResult.count} records from ${typedResult.source} (2s max)`);
+        console.log(`Enhanced intel fetch: ${typedResult.count} records from ${typedResult.source} (4s max)`);
+        if (typedResult.source === 'mem0' && typedResult.queries) {
+          console.log(`Mem0 queries used: ${typedResult.queries.join(', ')}`);
+        }
         return result;
       }
 
@@ -201,7 +222,7 @@ class ProductionScenarioAgent {
         Promise.race([
           supabaseServer
             .from('supply_chains')
-            .select('supply_chain_id, name, description, nodes, edges') // Include nodes and edges JSONB
+            .select('supply_chain_id, name, description, form_data, organisation') // Select actual columns
             .eq('supply_chain_id', supplyChainId)
             .single(),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Chain timeout')), 3000))
@@ -209,7 +230,7 @@ class ProductionScenarioAgent {
         Promise.race([
           supabaseServer
             .from('nodes')
-            .select('node_id, id, name, type, location, risk_level') // Only essential fields
+            .select('node_id, name, type, description, address, location_lat, location_lng, data') // Get all relevant fields
             .eq('supply_chain_id', supplyChainId)
             .limit(50), // Limit nodes for faster processing
           new Promise((_, reject) => setTimeout(() => reject(new Error('Nodes timeout')), 3000))
@@ -223,35 +244,24 @@ class ProductionScenarioAgent {
         throw new Error(`Supply chain ${supplyChainId} not found`);
       }
 
-      // Handle nodes from both sources: JSONB in supply_chains table AND nodes table
+      // Handle nodes from nodes table (primary source now)
       let allNodes = [];
       
-      // 1. PRIORITIZE nodes from supply_chains.nodes JSONB column (primary source)
-      if (chainData.nodes && Array.isArray(chainData.nodes) && chainData.nodes.length > 0) {
-        const jsonbNodes = chainData.nodes.map((node: any) => ({
-          node_id: node.id, // Map 'id' to 'node_id'
-          id: node.id,
-          name: node.data?.label || node.data?.name || node.label || node.name || 'Unknown Node',
-          type: node.data?.type?.toLowerCase() || node.type?.toLowerCase() || 'unknown',
-          location: node.data?.address || node.data?.location || node.location || 'Unknown Location',
-          risk_level: node.data?.riskScore || node.riskScore || 0.3, // Default risk score
-          capacity: node.data?.capacity || node.capacity || 500,
-          leadTime: node.data?.leadTime || node.leadTime || 7,
-          description: node.data?.description || node.description || `${node.data?.type || node.type || 'Node'} in supply chain`
+      // 1. Use nodes from dedicated nodes table (primary source)
+      if (nodesData && nodesData.length > 0) {
+        const processedNodes = nodesData.map((node: any) => ({
+          node_id: node.node_id,
+          id: node.node_id, // Ensure both fields exist
+          name: node.name || node.data?.label || 'Unknown Node',
+          type: (node.type?.replace('Node', '') || node.data?.type || 'unknown').toLowerCase(),
+          location: node.address || node.data?.address || 'Unknown Location',
+          risk_level: node.data?.riskScore || 0.3, // Get from data JSONB or default
+          capacity: node.data?.capacity || 500,
+          leadTime: node.data?.leadTime || 7,
+          description: node.description || node.data?.description || `${node.data?.type || node.type || 'Node'} in supply chain`
         }));
-        allNodes = jsonbNodes;
-        console.log(`✅ Found ${jsonbNodes.length} nodes from supply_chains.nodes JSONB`);
-      }
-      
-      // 2. Merge/Append nodes from dedicated nodes table (secondary source)
-      if (nodesData && nodesData.length > 0) {        // Check for duplicates by node_id before merging
-        const existingIds = new Set(allNodes.map((n: any) => n.node_id || n.id));
-        const uniqueNodes = nodesData.filter((node: any) => !existingIds.has(node.node_id || node.id));
-        
-        if (uniqueNodes.length > 0) {
-          allNodes = [...allNodes, ...uniqueNodes];
-          console.log(`✅ Added ${uniqueNodes.length} unique nodes from nodes table`);
-        }
+        allNodes = processedNodes;
+        console.log(`✅ Found ${processedNodes.length} nodes from nodes table`);
       }
 
       // 3. Ensure we have at least some nodes for scenario generation
@@ -302,7 +312,7 @@ class ProductionScenarioAgent {
       return {
         ...chainData,
         detailedNodes: allNodes,
-        detailedEdges: chainData.edges || [] // Use JSONB edges or empty array
+        detailedEdges: [] // No edges from JSONB, will be fetched separately if needed
       };
     } catch (error) {
       console.error('❌ Supply chain structure fetch error:', error);
@@ -392,23 +402,23 @@ class ProductionScenarioAgent {
     intelData: any[],
     selectedNodes: string[],
     customPrompt?: string,
-    scenarioCount: number = 3, // Reduced default
-    timeHorizon: number = 90
+    scenarioCount: number = 3,
+    timeHorizon: number = 90,
+    intelContext: string = '',
+    intelSource: string = 'none'
   ): string {
-    // Simplified, focused prompt for faster AI generation
-    const basePrompt = customPrompt || `Generate ${scenarioCount} diverse supply chain disruption scenarios for the next ${timeHorizon} days. Focus on realistic, actionable scenarios with varied severity levels.`;
+    // Enhanced prompt with Mem0 context integration
+    const basePrompt = customPrompt || `Generate ${scenarioCount} highly relevant and contextual supply chain disruption scenarios for the next ${timeHorizon} days. Use the provided memory context and intelligence data to create realistic, actionable scenarios.`;
 
-    // Build node context - handle both real and fallback nodes
+    // Build enhanced node context
     const nodeContext = selectedNodes.slice(0, 3).map(id => {
       if (id.startsWith('fallback-')) {
-        // Extract node type from fallback ID and create meaningful context
         const nodeType = id.includes('supplier') ? 'Supplier' : 
                          id.includes('factory') ? 'Factory' : 
                          id.includes('distribution') ? 'Distribution Center' : 'Node';
         return `${nodeType} (${chainData.name || 'Supply Chain'})`;
       }
       
-      // Find real node data from both possible sources
       const nodeData = chainData.detailedNodes?.find((n: any) => 
         (n.node_id === id || n.id === id)
       ) || chainData.nodes?.find((n: any) => 
@@ -420,43 +430,78 @@ class ProductionScenarioAgent {
         const type = nodeData.type || nodeData.data?.type || 'unknown';
         const location = nodeData.location || nodeData.data?.address || nodeData.data?.location || 'Unknown Location';
         const riskLevel = nodeData.risk_level || nodeData.data?.riskScore || 0.3;
+        const capacity = nodeData.capacity || nodeData.data?.capacity || 'Unknown';
+        const leadTime = nodeData.leadTime || nodeData.data?.leadTime || 'Unknown';
         
-        return `${name} (${type}) at ${location} [Risk: ${(riskLevel * 100).toFixed(0)}%]`;
+        return `${name} (${type}) at ${location} [Risk: ${(riskLevel * 100).toFixed(0)}%, Capacity: ${capacity}, Lead Time: ${leadTime} days]`;
       }
       
       return `Node ${id} (Unknown details)`;
     }).join(', ');
 
-    // Build intelligence context (limited for speed)
-    const intelContext = intelData.slice(0, 2).map((intel: any) => {
-      if (intel.summary) return intel.summary;
-      if (intel.content) return intel.content.substring(0, 200) + '...';
+    // Enhanced intelligence context processing
+    const contextualIntelligence = intelContext || intelData.slice(0, 3).map((intel: any) => {
       if (intel.memory) return intel.memory;
+      if (intel.content) return intel.content.substring(0, 300) + '...';
+      if (intel.summary) return intel.summary;
       return 'Intelligence data available';
     }).join('; ');
+
+    // Industry-specific context from form_data
+    const industryContext = chainData.form_data ? `
+INDUSTRY CONTEXT:
+- Industry: ${chainData.form_data.industry || 'Unknown'}
+- Operation Locations: ${chainData.form_data.operationsLocation?.join(', ') || 'Unknown'}
+- Shipping Methods: ${chainData.form_data.shippingMethods?.join(', ') || 'Unknown'}
+- Risk Categories: ${chainData.form_data.risks?.join(', ') || 'Unknown'}
+- Product Characteristics: ${chainData.form_data.productCharacteristics?.join(', ') || 'Unknown'}
+- Annual Volume: ${chainData.form_data.annualVolumeValue || 'Unknown'} ${chainData.form_data.annualVolumeType || 'units'}` : '';
 
     return `
 ${basePrompt}
 
-CHAIN: ${chainData.name || 'Supply Chain'}
-DESCRIPTION: ${chainData.description || 'Supply chain disruption analysis'}
+SUPPLY CHAIN CONTEXT:
+- Chain: ${chainData.name || 'Supply Chain'}
+- Description: ${chainData.description || 'Supply chain disruption analysis'}
+- Organization: ${chainData.organisation?.name || 'Unknown'} (${chainData.organisation?.industry || 'Unknown Industry'})
+${industryContext}
+
 TARGET NODES: ${nodeContext}
-RECENT INTEL: ${intelContext || 'No specific intelligence available'}
 
-Generate exactly ${scenarioCount} realistic scenarios with:
-- Varied types (natural disaster, cyber attack, geopolitical event, supply shortage, demand surge, etc.)
-- Different severity levels (0-100) - include both moderate (30-60) and high (70-90) scenarios
-- Realistic timeframes (1-365 days) - mix of short-term (1-30) and longer disruptions
-- Specific affected nodes from the targets above
-- Monte Carlo simulation runs: 1000-50000 (vary based on complexity)
-- Quantified impact estimates (cost in USD, time delays in hours, quality %, customer satisfaction %)
-- Practical mitigation strategies for each scenario
-- Probability scores (0-1) and urgency levels (LOW/MEDIUM/HIGH/CRITICAL)
-- Use current date as reference: ${new Date().toISOString().split('T')[0]}
+CONTEXTUAL INTELLIGENCE (Source: ${intelSource.toUpperCase()}):
+${contextualIntelligence || 'No specific intelligence available - generate based on industry best practices and common supply chain vulnerabilities'}
 
-Keep descriptions detailed but actionable. Focus on realistic business impacts.
-Each scenario should target one of the specified nodes as the primary disruption point.
-Ensure scenarios are diverse in type, impact, and mitigation approaches.
+SCENARIO REQUIREMENTS:
+Generate exactly ${scenarioCount} realistic and contextually relevant scenarios that:
+
+1. LEVERAGE THE PROVIDED CONTEXT: Use the intelligence data and memories to inform scenario types, severity levels, and impact patterns
+2. TARGET SPECIFIC NODES: Each scenario should primarily affect one of the specified nodes
+3. VARY IN CHARACTERISTICS:
+   - Types: Mix of natural disasters, cyber attacks, geopolitical events, supply shortages, demand surges, regulatory changes
+   - Severity levels (0-100): Include moderate (30-60) and high (70-90) scenarios based on historical patterns
+   - Timeframes (1-365 days): Mix short-term (1-30) and longer disruptions (30-365)
+   - Monte Carlo runs: 1000-50000 (vary based on complexity and risk level)
+
+4. QUANTIFY REALISTIC IMPACTS:
+   - Cost impact in USD (consider industry scale and node capacity)
+   - Time delays in hours (consider lead times and recovery capabilities)
+   - Quality degradation percentage (0-100)
+   - Customer satisfaction impact (0-100)
+
+5. PROVIDE ACTIONABLE STRATEGIES:
+   - Practical mitigation approaches specific to the node type and disruption
+   - Consider alternative routing, supplier diversification, inventory buffers
+   - Include both preventive and reactive measures
+
+6. ASSESS PROBABILITY & URGENCY:
+   - Probability scores (0-1) based on historical data and current risk factors
+   - Urgency levels (LOW/MEDIUM/HIGH/CRITICAL) based on potential impact and response time
+
+7. USE CURRENT DATE REFERENCE: ${new Date().toISOString().split('T')[0]}
+
+FOCUS ON REALISM: Each scenario should be grounded in actual supply chain vulnerabilities and industry-specific risks. If intelligence data suggests certain types of disruptions or patterns, prioritize those in your scenario generation.
+
+ENSURE DIVERSITY: Make each scenario unique in type, impact vector, mitigation approach, and affected node to provide comprehensive risk coverage.
 `;
   }
   public async generateScenarios(request: any): Promise<any> {
@@ -500,15 +545,65 @@ Ensure scenarios are diverse in type, impact, and mitigation approaches.
       ]);
       timer.checkpoint('Data fetching');
 
-      // Handle intelligence data
+      // Handle intelligence data with enhanced Mem0 processing
       let actualIntelData: any[] = [];
+      let intelContext = '';
+      let intelSource = 'none';
+      
       if (intelData.status === 'fulfilled' && intelData.value) {
         const intel = intelData.value;
+        intelSource = intel.source;
+        
         if (intel.source === 'mem0' && Array.isArray(intel.data)) {
-          actualIntelData = intel.data.slice(0, 2); // Limit for speed
+          // Enhanced Mem0 processing for richer context
+          actualIntelData = intel.data.slice(0, 8); // More data for better scenarios
+          console.log(`Found ${actualIntelData.length} mem0 records with enhanced context`);
+          
+          // Extract and categorize Mem0 memories for scenario generation
+          const memoryCategories = {
+            scenarios: actualIntelData.filter(m => 
+              m.memory?.toLowerCase().includes('scenario') || 
+              m.content?.toLowerCase().includes('scenario')
+            ),
+            risks: actualIntelData.filter(m => 
+              m.memory?.toLowerCase().includes('risk') || 
+              m.content?.toLowerCase().includes('risk') ||
+              m.memory?.toLowerCase().includes('disruption')
+            ),
+            historical: actualIntelData.filter(m => 
+              m.memory?.toLowerCase().includes('incident') || 
+              m.content?.toLowerCase().includes('historical') ||
+              m.memory?.toLowerCase().includes('past')
+            ),
+            vulnerabilities: actualIntelData.filter(m => 
+              m.memory?.toLowerCase().includes('vulnerability') || 
+              m.content?.toLowerCase().includes('weakness')
+            )
+          };
+          
+          // Build rich context from categorized memories
+          intelContext = Object.entries(memoryCategories)
+            .filter(([_, memories]) => memories.length > 0)
+            .map(([category, memories]) => {
+              const memoryTexts = memories.slice(0, 2).map(m => 
+                m.memory || m.content || 'Memory available'
+              ).join('; ');
+              return `${category.toUpperCase()}: ${memoryTexts}`;
+            }).join('\n');
+            
         } else if (intel.source === 'supabase' && Array.isArray(intel.data)) {
-          actualIntelData = intel.data.slice(0, 2); // Limit for speed
+          actualIntelData = intel.data.slice(0, 5);
+          console.log(`Found ${actualIntelData.length} supabase intel records`);
+          
+          // Process Supabase intelligence data
+          intelContext = actualIntelData.map(item => {
+            const summary = item.summary || 'No summary available';
+            const riskLevel = item.risk_level ? `Risk Level: ${item.risk_level}` : '';
+            const intelType = item.intel_type ? `Type: ${item.intel_type}` : '';
+            return [summary, riskLevel, intelType].filter(Boolean).join(' | ');
+          }).join('\n');
         }
+        
         console.log(`Found ${actualIntelData.length} intel records from ${intel.source || 'unknown'}`);
       }
 
@@ -542,14 +637,16 @@ Ensure scenarios are diverse in type, impact, and mitigation approaches.
       }
       timer.checkpoint('Node selection');
 
-      // Build simplified prompt for faster AI generation
+      // Build enhanced prompt with Mem0 context integration
       const prompt = this.buildScenarioPrompt(
         chain,
         actualIntelData,
         selectedNodes,
         customPrompt,
         scenarioCount,
-        timeHorizon
+        timeHorizon,
+        intelContext,
+        intelSource
       );
       timer.checkpoint('Prompt building');
 
@@ -570,7 +667,7 @@ Ensure scenarios are diverse in type, impact, and mitigation approaches.
       timer.checkpoint('Scenario enhancement');
 
       // Background storage (don't wait for it)
-      this.storeScenarios(supplyChainId, enhancedScenarios).catch(err => 
+      this.storeScenarios(supplyChainId, enhancedScenarios, chain).catch(err => 
         console.warn('Background storage failed:', err)
       );
 
@@ -581,7 +678,9 @@ Ensure scenarios are diverse in type, impact, and mitigation approaches.
           supplyChainId,
           selectedNodes,
           intelSourcesUsed: actualIntelData.length,
-          intelSource: intelData.status === 'fulfilled' && intelData.value ? (intelData.value as any).source : 'none',
+          intelSource: intelSource,
+          intelContextLength: intelContext.length,
+          mem0Enhanced: intelSource === 'mem0',
           focusType,
           timeHorizon,
           scenarioCount: enhancedScenarios.length
@@ -635,7 +734,7 @@ Ensure scenarios are diverse in type, impact, and mitigation approaches.
 
       return scenario;
     });
-  }  private async storeScenarios(supplyChainId: string, scenarios: any[]): Promise<void> {
+  }  private async storeScenarios(supplyChainId: string, scenarios: any[], chainData?: any): Promise<void> {
     // Background storage - don't block main response
     try {
       // Store in Supabase only (skip Mem0 for speed in background)
@@ -659,31 +758,64 @@ Ensure scenarios are diverse in type, impact, and mitigation approaches.
         console.log(`Background stored ${scenarios.length} scenarios`);
       }
 
-      // Store in Mem0 only if quick
-      if (process.env.MEM0_API_KEY && scenarios.length <= 3) {
-        const quickMemory = [
-          {
+      // Enhanced Mem0 storage for future context building
+      if (process.env.MEM0_API_KEY && scenarios.length <= 5) {
+        try {
+          // Create rich memories for future scenario generation
+          const scenarioMemories = scenarios.map((scenario, index) => ({
             role: 'user' as const,
             content: [
               {
                 type: 'text' as const,
-                text: `Generated ${scenarios.length} scenarios: ${scenarios.map(s => s.scenarioName).join(', ')}`
+                text: `Supply Chain Scenario Generated: ${scenario.scenarioName} - Type: ${scenario.scenarioType}, Severity: ${scenario.disruptionSeverity}%, Duration: ${scenario.disruptionDuration} days, Affected Node: ${scenario.affectedNode}, Probability: ${scenario.probability}, Key Mitigation: ${scenario.mitigationStrategies?.[0] || 'Standard protocols'}`
               }
             ]
-          }
-        ];
+          }));
 
-        await Promise.race([
-          addMemories(quickMemory, {
-            user_id: `supply-chain-${supplyChainId}`,
-            mem0ApiKey: process.env.MEM0_API_KEY,
-            org_id: process.env.MEM0_ORG_ID,
-            project_id: process.env.MEM0_PROJECT_ID,
-            agent_id: 'scenario-generator-agent',
-            app_id: 'intellisupply-agent'
-          }),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Mem0 timeout')), 3000))
-        ]);
+          // Store individual scenario memories
+          for (const memory of scenarioMemories) {
+            await Promise.race([
+              addMemories([memory], {
+                user_id: `supply-chain-${supplyChainId}`,
+                mem0ApiKey: process.env.MEM0_API_KEY,
+                org_id: process.env.MEM0_ORG_ID,
+                project_id: process.env.MEM0_PROJECT_ID,
+                agent_id: 'scenario-generator-agent',
+                app_id: 'intellisupply-agent'
+              }),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('Individual memory timeout')), 2000))
+            ]).catch(() => {
+              // Silently continue if individual memory fails
+            });
+          }
+
+          // Store summary memory for overall context
+          const summaryMemory = [{
+            role: 'user' as const,
+            content: [
+              {
+                type: 'text' as const,
+                text: `Generated ${scenarios.length} supply chain scenarios for ${chainData?.name || 'Supply Chain'}. Key patterns: ${scenarios.map(s => s.scenarioType).join(', ')}. Risk levels: ${scenarios.map(s => `${s.disruptionSeverity}%`).join(', ')}. Focus areas: ${scenarios.map(s => s.affectedNode).join(', ')}`
+              }
+            ]
+          }];
+
+          await Promise.race([
+            addMemories(summaryMemory, {
+              user_id: `supply-chain-${supplyChainId}`,
+              mem0ApiKey: process.env.MEM0_API_KEY,
+              org_id: process.env.MEM0_ORG_ID,
+              project_id: process.env.MEM0_PROJECT_ID,
+              agent_id: 'scenario-generator-agent',
+              app_id: 'intellisupply-agent'
+            }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Summary memory timeout')), 3000))
+          ]);
+          
+          console.log('Enhanced Mem0 storage completed with rich context');
+        } catch (mem0Error) {
+          console.log('Enhanced Mem0 storage partially completed (some timeouts expected)');
+        }
       }
 
     } catch (error) {

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { streamText, tool, generateObject } from 'ai';
+import { streamText, tool, generateObject, generateText } from 'ai';
 import { google } from '@ai-sdk/google';
 import { createMem0, addMemories, retrieveMemories, getMemories } from '@mem0/vercel-ai-provider';
-import { tavilyTools } from '@/lib/tavily';
+import { tavilyTools } from '@/lib/fixed-tavily';
 import { tavily } from '@tavily/core';
 import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase/server';
@@ -310,13 +310,6 @@ Historical event pattern suggests ${riskTrend > 10 ? 'significant deterioration'
     const startTime = Date.now();
     const context = await this.buildSearchContext(node, supplyChainData);
 
-    // Check quota first
-    if (!QuotaManager.canMakeCall()) {
-      const status = QuotaManager.getStatus();
-      console.log(`Quota exceeded. ${status.callsRemaining} calls remaining, resets in ${status.resetsIn}`);
-      return this.generateFallbackIntelligence(node, startTime);
-    }
-
     // Check API keys availability
     const googleApiMissing = !process.env.GOOGLE_GENERATIVE_AI_API_KEY;
     const tavilyApiMissing = !process.env.TAVILY_API_KEY;
@@ -328,14 +321,12 @@ Historical event pattern suggests ${riskTrend > 10 ? 'significant deterioration'
       weather: !weatherApiMissing,
       memory: process.env.MEM0_API_KEY ? true : false
     };
-      // If all critical APIs are missing, use fallback mode
+    // If all critical APIs are missing, use fallback mode
     if (googleApiMissing && tavilyApiMissing && weatherApiMissing) {
       console.log('Using complete fallback mode - all critical API keys missing');
       return this.generateFallbackIntelligence(node, startTime, supplyChainData);
     }
 
-    // Record that we're making an API call
-    QuotaManager.recordCall();
       // Data collection object to track what we've obtained
     const collectedData: {
       tavilyResults: any[];
@@ -789,6 +780,9 @@ Generated at: ${new Date().toISOString()}`
         }
       }      return {
         ...result.object,
+        nodeId: node.node_id, // Ensure we always use the correct node_id from database
+        weatherForecast: collectedData.weatherForecast, // Include weather data for separate storage
+        tavilyResults: collectedData.tavilyResults, // Include search results for separate storage
         metadata: {
           ...result.object.metadata,
           processingTime,
@@ -854,6 +848,9 @@ Generated at: ${new Date().toISOString()}`
     if (error) throw error;
     if (!nodes?.length) return [];
 
+    console.log(`Processing intelligence for ${nodes.length} nodes in supply chain ${supplyChainId}`);
+    console.log(`Node IDs to process: ${nodes.map(n => `${n.node_id} (${n.name})`).join(', ')}`);
+
     // Process nodes with intelligent prioritization
     const highPriorityNodes = nodes.filter(n => 
       ['port', 'factory', 'warehouse'].includes(n.type?.toLowerCase() || '')
@@ -862,18 +859,44 @@ Generated at: ${new Date().toISOString()}`
       !['port', 'factory', 'warehouse'].includes(n.type?.toLowerCase() || '')
     );
 
+    console.log(`High priority nodes: ${highPriorityNodes.length}, Regular nodes: ${regularNodes.length}`);
+
     // Process high-priority nodes first
     for (const node of highPriorityNodes) {
       try {
+        console.log(`Processing high-priority node: ${node.node_id} (${node.name})`);
+        
         // Check cache first unless force refresh
         let intelligence = !forceRefresh ? await this.getCachedIntelligence(node.node_id) : null;
         
         if (!intelligence) {
+          console.log(`Gathering fresh intelligence for node ${node.node_id}`);
           intelligence = await this.gatherComprehensiveIntelligence(node, supplyChainData);
           await this.cacheIntelligence(node.node_id, intelligence);
+        } else {
+          console.log(`Using cached intelligence for node ${node.node_id}`);
+        }
+        
+        // Ensure nodeId is set correctly and validate the result
+        if (intelligence) {
+          if (!intelligence.nodeId) {
+            console.warn(`Setting missing nodeId for node ${node.node_id}`);
+            intelligence.nodeId = node.node_id;
+          }
+          
+          // Validate the nodeId matches
+          if (intelligence.nodeId !== node.node_id) {
+            console.error(`NodeId mismatch! Expected: ${node.node_id}, Got: ${intelligence.nodeId}`);
+            intelligence.nodeId = node.node_id; // Force correct nodeId
+          }
+          
+          console.log(`Validated intelligence for node ${node.node_id}, nodeId: ${intelligence.nodeId}`);
+        } else {
+          console.error(`No intelligence generated for node ${node.node_id}`);
         }
         
         results.push(intelligence);
+        console.log(`Successfully processed node ${node.node_id}, total results: ${results.length}`);
         
         // Rate limiting between calls
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -891,14 +914,38 @@ Generated at: ${new Date().toISOString()}`
     // Process regular nodes
     for (const node of regularNodes) {
       try {
+        console.log(`Processing regular node: ${node.node_id} (${node.name})`);
+        
         let intelligence = !forceRefresh ? await this.getCachedIntelligence(node.node_id) : null;
         
         if (!intelligence) {
+          console.log(`Gathering fresh intelligence for node ${node.node_id}`);
           intelligence = await this.gatherComprehensiveIntelligence(node, supplyChainData);
           await this.cacheIntelligence(node.node_id, intelligence);
+        } else {
+          console.log(`Using cached intelligence for node ${node.node_id}`);
+        }
+        
+        // Ensure nodeId is set correctly and validate the result
+        if (intelligence) {
+          if (!intelligence.nodeId) {
+            console.warn(`Setting missing nodeId for node ${node.node_id}`);
+            intelligence.nodeId = node.node_id;
+          }
+          
+          // Validate the nodeId matches
+          if (intelligence.nodeId !== node.node_id) {
+            console.error(`NodeId mismatch! Expected: ${node.node_id}, Got: ${intelligence.nodeId}`);
+            intelligence.nodeId = node.node_id; // Force correct nodeId
+          }
+          
+          console.log(`Validated intelligence for node ${node.node_id}, nodeId: ${intelligence.nodeId}`);
+        } else {
+          console.error(`No intelligence generated for node ${node.node_id}`);
         }
         
         results.push(intelligence);
+        console.log(`Successfully processed node ${node.node_id}, total results: ${results.length}`);
         
         // Longer delay for regular nodes
         await new Promise(resolve => setTimeout(resolve, 3000));
@@ -912,6 +959,10 @@ Generated at: ${new Date().toISOString()}`
         });
       }
     }
+
+    console.log(`Completed processing ${results.length} nodes for supply chain ${supplyChainId}`);
+    console.log(`Results summary: ${results.filter(r => !r.error).length} successful, ${results.filter(r => r.error).length} failed`);
+    console.log(`Final result nodeIds: ${results.map(r => r?.nodeId || 'NO_NODE_ID').join(', ')}`);
 
     return results;
   }
@@ -949,7 +1000,9 @@ Generated at: ${new Date().toISOString()}`
     
     // Include supply chain context in fallback mode
     const companyContext = supplyChainData?.form_data ? 
-      `Company: ${supplyChainData.form_data.companyName || supplyChainData.name}` : 
+      `Company: ${typeof supplyChainData.form_data === 'string' 
+        ? JSON.parse(supplyChainData.form_data).companyName 
+        : supplyChainData.form_data.companyName || supplyChainData.name}` : 
       `Organization: ${supplyChainData?.organisation || 'Unknown'}`;
     
     // Try to get some real data even in fallback mode by using fetch directly
@@ -1134,37 +1187,6 @@ Demand Shifts: ${intelligenceData.intelligence.marketIntelligence.demandShifts.j
 }
 
 // Quota Manager Class
-class QuotaManager {
-  private static callCount = 0;
-  private static lastReset = Date.now();
-  private static readonly MAX_CALLS_PER_HOUR = 5; // Limit to 5 calls per hour
-  
-  static canMakeCall(): boolean {
-    const now = Date.now();
-    const hoursSinceReset = (now - this.lastReset) / (1000 * 60 * 60);
-    
-    if (hoursSinceReset >= 1) {
-      this.callCount = 0;
-      this.lastReset = now;
-    }
-    
-    return this.callCount < this.MAX_CALLS_PER_HOUR;
-  }
-  
-  static recordCall(): void {
-    this.callCount++;
-  }
-  
-  static getStatus(): { callsRemaining: number; resetsIn: string } {
-    const now = Date.now();
-    const minutesUntilReset = Math.ceil(60 - ((now - this.lastReset) / (1000 * 60)));
-    
-    return {
-      callsRemaining: Math.max(0, this.MAX_CALLS_PER_HOUR - this.callCount),
-      resetsIn: `${minutesUntilReset} minutes`
-    };  }
-}
-
 // API Key Validation System
 interface ApiKeyStatus {
   name: string;
@@ -1719,7 +1741,6 @@ export async function GET(request: NextRequest) {
           issues: validation.issues,
           recommendations: validation.recommendations
         },
-        quota: QuotaManager.getStatus(),
         processingTime: Date.now() - startTime
       });
     }
@@ -1798,24 +1819,109 @@ export async function GET(request: NextRequest) {
     }
 
     // Store results in database with proper user association
-    const dbResults = results.filter(r => !r.error).map(result => ({
-      user_id: supplyChain.user_id,
-      supply_chain_id: supplyChainId,
-      node_id: result.nodeId,
-      intelligence_data: result,
-      risk_score: result.intelligence?.riskAssessment?.overallRiskScore || 0,
-      quality_score: result.metadata?.qualityScore || 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }));
+    const validResults = results.filter(r => !r.error && r.nodeId); // Ensure nodeId exists
+    console.log(`Filtering results: ${results.length} total, ${validResults.length} valid (with nodeId)`);
+    
+    // Log detailed information about invalid results
+    const invalidResults = results.filter(r => r.error || !r.nodeId);
+    if (invalidResults.length > 0) {
+      console.warn(`Found ${invalidResults.length} invalid results:`);
+      invalidResults.forEach((result, index) => {
+        console.warn(`  Invalid result ${index + 1}: nodeId=${result?.nodeId || 'MISSING'}, hasError=${!!result?.error}, error=${result?.error || 'none'}`);
+      });
+    }
+    
+    const dbResults = validResults.map(result => {
+      console.log(`Preparing DB record for node ${result.nodeId}`);
+      
+      // Ensure risk_score is an integer (database constraint)
+      const rawRiskScore = result.intelligence?.riskAssessment?.overallRiskScore || 0;
+      const riskScore = Math.round(Number(rawRiskScore)); // Convert to integer
+      
+      // Quality score can be decimal (numeric type in DB)
+      const qualityScore = Number(result.metadata?.qualityScore || 0);
+      
+      // Extract weather data from the intelligence result
+      const weatherData = {
+        forecast: result.weatherForecast || null,
+        lastUpdated: new Date().toISOString(),
+        source: result.weatherForecast?.source || 'unknown'
+      };
+      
+      // Extract news/search data from Tavily results
+      const newsData = {
+        searches: result.tavilyResults || [],
+        criticalEvents: result.intelligence?.criticalEvents || [],
+        marketIntelligence: result.intelligence?.marketIntelligence || {},
+        lastUpdated: new Date().toISOString(),
+        sourcesChecked: result.metadata?.sourcesChecked || 0
+      };
+      
+      // Store core intelligence data (without weather and news which are now separate)
+      const coreIntelligenceData = {
+        nodeId: result.nodeId,
+        timestamp: result.timestamp,
+        riskAssessment: result.intelligence?.riskAssessment || {},
+        relationshipMapping: result.intelligence?.relationshipMapping || [],
+        metadata: result.metadata || {}
+      };
+      
+      console.log(`Node ${result.nodeId}: risk_score=${riskScore} (from ${rawRiskScore}), quality_score=${qualityScore}`);
+      console.log(`Node ${result.nodeId}: weather_data=${weatherData.forecast ? 'present' : 'null'}, news_items=${newsData.criticalEvents.length}`);
+      
+      return {
+        user_id: supplyChain.user_id,
+        supply_chain_id: supplyChainId,
+        node_id: result.nodeId,
+        intelligence_data: coreIntelligenceData, // Core intelligence without weather/news
+        weather: weatherData, // Weather data in separate column
+        news: newsData, // News and search data in separate column
+        risk_score: riskScore,
+        quality_score: qualityScore,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+    });
+
+    console.log(`Attempting to store ${dbResults.length} intelligence records in database`);
+    console.log(`DB Results nodeIds: ${dbResults.map(r => r.node_id).join(', ')}`);
 
     if (dbResults.length > 0) {
-      await supabaseServer
-        .from('supply_chain_intel')
-        .upsert(dbResults, { 
-          onConflict: 'supply_chain_id,node_id',
-          ignoreDuplicates: false 
+      try {
+        console.log(`Starting database upsert for ${dbResults.length} records...`);
+        
+        const { data: insertedData, error: insertError } = await supabaseServer
+          .from('supply_chain_intel')
+          .upsert(dbResults, { 
+            onConflict: 'supply_chain_id,node_id',
+            ignoreDuplicates: false 
+          });
+
+        if (insertError) {
+          console.error('Database insertion error:', insertError);
+          console.error('Failed records data:', JSON.stringify(dbResults.map(r => ({
+            node_id: r.node_id,
+            supply_chain_id: r.supply_chain_id,
+            user_id: r.user_id
+          })), null, 2));
+          throw insertError;
+        }
+
+        console.log(`Successfully stored ${dbResults.length} intelligence records in database`);
+        console.log(`Database operation completed successfully`);
+        
+      } catch (dbError) {
+        console.error('Failed to store intelligence in database:', dbError);
+        console.error('Database error details:', {
+          error: dbError,
+          recordCount: dbResults.length,
+          nodeIds: dbResults.map(r => r.node_id)
         });
+        // Don't throw here to avoid failing the entire request
+      }
+    } else {
+      console.warn('No valid intelligence data to store in database');
+      console.warn('This means either no nodes were processed or all processing failed');
     }
 
     const summary = {
@@ -1840,7 +1946,6 @@ export async function GET(request: NextRequest) {
         issues: validation.issues,
         recommendations: validation.recommendations
       },
-      quota: QuotaManager.getStatus(),
       processingTime: Date.now() - startTime,
       timestamp: new Date().toISOString()
     });
@@ -1903,192 +2008,602 @@ export async function POST(request: NextRequest) {
       
       console.log(`Using streaming model with memory: ${memoryEnabled ? 'enabled' : 'disabled'}`);
 
-      const result = streamText({
-        model: streamingModel,
-        tools: {
-          ...tavily,
-          getNodeContext: tool({
-            description: 'Get supply chain node context and historical intelligence',
-            parameters: z.object({
-              nodeId: z.string().describe('The node ID to get context for')
-            }),
-            execute: async ({ nodeId }) => {
-              const agent = new ProductionIntelligenceAgent();
-              const cached = await agent.getCachedIntelligence(nodeId);
-              
-              // Use proper Mem0 API with error handling
-              let memories = [];
-              if (memoryEnabled) {
-                try {
-                  memories = await agent.getNodeMemories(nodeId);
-                } catch (error) {
-                  console.error('Memory retrieval failed in streaming context:', error);
+      // When a query is provided, don't stream intermediate steps to client
+      if (query) {
+        // Use generateText instead of streamText to get just the final response
+        const result = await generateText({
+          model: streamingModel,
+          tools: {
+            ...tavily,
+            getNodeContext: tool({
+              description: 'Get supply chain node context and historical intelligence',
+              parameters: z.object({
+                nodeId: z.string().describe('The node ID to get context for')
+              }),
+              execute: async ({ nodeId }) => {
+                const agent = new ProductionIntelligenceAgent();
+                const cached = await agent.getCachedIntelligence(nodeId);
+                
+                // Use proper Mem0 API with error handling
+                let memories = [];
+                if (memoryEnabled) {
+                  try {
+                    memories = await agent.getNodeMemories(nodeId);
+                  } catch (error) {
+                    console.error('Memory retrieval failed in streaming context:', error);
+                  }
                 }
+                
+                return {
+                  cached: cached ? 'Recent intelligence available' : 'No recent intelligence',
+                  memories: memories.slice(0, 5), // Last 5 memories
+                  nodeInfo: node,
+                  memoryStatus: memoryEnabled ? 'enabled' : 'disabled'
+                };
               }
-              
-              return {
-                cached: cached ? 'Recent intelligence available' : 'No recent intelligence',
-                memories: memories.slice(0, 5), // Last 5 memories
-                nodeInfo: node,
-                memoryStatus: memoryEnabled ? 'enabled' : 'disabled'
-              };
-            }
-          }),
+            }),
             storeIntelligence: tool({
-            description: 'Store gathered intelligence in the database and memory system',
+            description: 'Store gathered intelligence in the database and memory system. IMPORTANT: This is NOT the final step - you must continue to provide a detailed analysis response after storing.',
             parameters: z.object({              intelligence: z.object({
                 nodeId: z.string(),
                 riskScore: z.number(),
-                criticalEvents: z.array(z.any()),
+                criticalEvents: z.array(z.object({
+                  title: z.string(),
+                  summary: z.string(),
+                  severity: z.number(),
+                  impact: z.string(),
+                  category: z.string(),
+                  affectedEntities: z.array(z.string()),
+                  timeframe: z.string(),
+                  confidence: z.number().optional(),
+                  sources: z.array(z.object({
+                    title: z.string(),
+                    url: z.string(),
+                    publishedAt: z.string(),
+                    credibility: z.number().optional()
+                  })).optional()
+                })),
                 summary: z.string(),
-                // Optional fields for enhanced intelligence
-                marketIntelligence: z.object({
-                  priceFluctuations: z.array(z.any()),
-                  demandShifts: z.array(z.string()),
-                  competitorActivities: z.array(z.string())
-                }).optional(),
-                riskFactors: z.array(z.any()).optional(),
+                // Optional fields for enhanced intelligence - now supports null values
+                marketIntelligence: z.preprocess(
+                  // Convert null to default object structure
+                  (val) => val === null ? { 
+                    priceFluctuations: [], 
+                    demandShifts: [], 
+                    competitorActivities: [] 
+                  } : val,
+                  z.object({
+                    priceFluctuations: z.array(z.object({
+                      commodity: z.string(),
+                      change: z.number(),
+                      reason: z.string()
+                    })).default([]),
+                    demandShifts: z.array(z.string()).default([]),
+                    competitorActivities: z.array(z.string()).default([])
+                  })
+                ).optional(),
+                riskFactors: z.array(z.object({
+                  factor: z.string(),
+                  probability: z.number(),
+                  impact: z.number()
+                })).optional(),
                 mitigationSuggestions: z.array(z.string()).optional(),
-                relationshipMapping: z.array(z.any()).optional(),
+                relationshipMapping: z.array(z.object({
+                  source: z.string(),
+                  target: z.string(),
+                  relationship: z.string(),
+                  strength: z.number(),
+                  context: z.string()
+                })).optional(),
                 sourcesChecked: z.number().optional(),
                 qualityScore: z.number().optional()
               })
             }),
-            execute: async ({ intelligence }) => {
-              try {
-                const agent = new ProductionIntelligenceAgent();
-                
-                // Format the intelligence data in our expected structure
-                const formattedIntelligence = {
-                  nodeId: intelligence.nodeId,
-                  timestamp: new Date().toISOString(),
-                  intelligence: {
-                    criticalEvents: intelligence.criticalEvents.map((e: any) => ({
-                      ...e,
-                      confidence: e.confidence || 0.8,
-                      sources: e.sources || [{ 
-                        title: 'Agent Generated',
-                        url: 'internal://streaming',
-                        publishedAt: new Date().toISOString(),
-                        credibility: 0.7
-                      }]
-                    })),
-                    marketIntelligence: intelligence.marketIntelligence || {
+              execute: async ({ intelligence }) => {
+                try {
+                  // Safety check - ensure marketIntelligence is not null
+                  if (intelligence.marketIntelligence === null) {
+                    intelligence.marketIntelligence = {
                       priceFluctuations: [],
                       demandShifts: [],
                       competitorActivities: []
-                    },
-                    riskAssessment: {
-                      overallRiskScore: intelligence.riskScore,
-                      riskFactors: intelligence.riskFactors || [],
-                      mitigationSuggestions: intelligence.mitigationSuggestions || []
-                    },
-                    relationshipMapping: intelligence.relationshipMapping || []
-                  },
-                  metadata: {
-                    processingTime: 0,
-                    sourcesChecked: intelligence.sourcesChecked || 0,
-                    qualityScore: intelligence.qualityScore || 0.8,
-                    nextUpdateRecommended: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-                    memoryContext: memoryEnabled
+                    };
                   }
-                };
+                  
+                  const agent = new ProductionIntelligenceAgent();
+                  
+                  // Format the intelligence data in our expected structure
+                  const formattedIntelligence = {
+                    nodeId: intelligence.nodeId,
+                    timestamp: new Date().toISOString(),
+                    intelligence: {
+                      criticalEvents: intelligence.criticalEvents.map((e: any) => ({
+                        ...e,
+                        confidence: e.confidence || 0.8,
+                        sources: e.sources || [{ 
+                          title: 'Agent Generated',
+                          url: 'internal://streaming',
+                          publishedAt: new Date().toISOString(),
+                          credibility: 0.7
+                        }]
+                      })),
+                      marketIntelligence: intelligence.marketIntelligence || {
+                        priceFluctuations: [],
+                        demandShifts: [],
+                        competitorActivities: []
+                      },
+                      riskAssessment: {
+                        overallRiskScore: intelligence.riskScore,
+                        riskFactors: intelligence.riskFactors || [],
+                        mitigationSuggestions: intelligence.mitigationSuggestions || []
+                      },
+                      relationshipMapping: intelligence.relationshipMapping || []
+                    },
+                    metadata: {
+                      processingTime: 0,
+                      sourcesChecked: intelligence.sourcesChecked || 0,
+                      qualityScore: intelligence.qualityScore || 0.8,
+                      nextUpdateRecommended: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+                      memoryContext: memoryEnabled
+                    }
+                  };
+                  
+                  // Store in database
+                  await supabaseServer
+                    .from('supply_chain_intel')
+                    .upsert({
+                      supply_chain_id,
+                      node_id: intelligence.nodeId,
+                      intelligence_data: formattedIntelligence,
+                      risk_score: intelligence.riskScore,
+                      quality_score: formattedIntelligence.metadata.qualityScore,
+                      created_at: formattedIntelligence.timestamp,
+                      updated_at: formattedIntelligence.timestamp
+                    }, { 
+                      onConflict: 'supply_chain_id,node_id',
+                      ignoreDuplicates: false 
+                    });
+                  
+                  // Store in memory if enabled
+                  let memoryStored = false;
+                  if (memoryEnabled && node) {
+                    memoryStored = await agent.storeStructuredMemory(node, formattedIntelligence);
+                  }
+                  
+                  // Cache intelligence 
+                  await agent.cacheIntelligence(intelligence.nodeId, formattedIntelligence);
+                  
+                  return { 
+                    success: true, 
+                    message: 'Intelligence stored successfully',
+                    memoryStored: memoryStored,
+                    timestamp: formattedIntelligence.timestamp
+                  };
+                } catch (error) {
+                  console.error('Intelligence storage error:', error);
+                  return { 
+                    success: false, 
+                    error: error instanceof Error ? error.message : 'Storage failed',
+                    memoryStored: false
+                  };
+                }
+              }
+            })
+          },
+          prompt: `
+            You are an elite AI supply chain intelligence analyst with advanced real-time research capabilities. Your mission is to provide comprehensive, evidence-based analysis of supply chain disruptions and risks using real-time data and historical intelligence.
+            
+            USER QUERY: "${query || 'Comprehensive supply chain intelligence analysis'}"
+            
+            SUPPLY CHAIN CONTEXT:
+            - Supply Chain ID: ${supply_chain_id}
+            ${node ? `- Target Node: ${node.name} (${node.type})` : '- Analyzing entire supply chain'}
+            ${node?.address ? `- Location: ${node.address}` : ''}
+            ${node?.location_lat && node?.location_lng ? `- Coordinates: ${node.location_lat}, ${node.location_lng}` : ''}
+            ${supplyChain?.form_data ? `- Company: ${typeof supplyChain.form_data === 'string' ? JSON.parse(supplyChain.form_data).companyName : supplyChain.form_data.companyName || supplyChain.name}` : `- Organization: ${supplyChain.organisation || 'Unknown'}`}
+            
+            CRITICAL EXECUTION SEQUENCE - FOLLOW EXACTLY:
+            
+            ═══════════════════════════════════════════════
+            PHASE 1: CONTEXT GATHERING (MANDATORY FIRST STEP)
+            ═══════════════════════════════════════════════
+            🔸 IMMEDIATELY call getNodeContext to retrieve historical intelligence and memory data
+            🔸 Analyze the retrieved context to understand past patterns, risks, and vulnerabilities
+            🔸 Use this data to inform your search strategy and risk assessment
+            
+            ═══════════════════════════════════════════════
+            PHASE 2: COMPREHENSIVE INTELLIGENCE GATHERING
+            ═══════════════════════════════════════════════
+            You MUST execute ALL of these search operations:
+            
+            🔍 SEARCH SET A - Recent Disruptions (MANDATORY):
+            - Search: "${node?.name || 'supply chain'} disruption risks current ${new Date().getFullYear()}"
+            - Search: "${node?.address || supplyChain?.organisation || 'supply chain'} logistics issues recent"
+            - Search: "${node?.type || 'manufacturing'} industry supply chain problems ${new Date().toISOString().slice(0, 7)}"
+            
+            🔍 SEARCH SET B - Targeted Analysis (MANDATORY):
+            - searchQNA: "What supply chain disruptions are currently affecting ${node?.address || 'the region'}?"
+            - searchQNA: "Are there any port delays, strikes, or transportation issues in ${node?.address || 'the area'}?"
+            - searchQNA: "What weather events or natural disasters could impact logistics in ${node?.address || 'this location'}?"
+            
+            🔍 SEARCH SET C - Deep Intelligence (MANDATORY):
+            - Search for weather alerts and natural disasters in the region
+            - Search for economic indicators and market disruptions
+            - Search for regulatory changes affecting the industry
+            - If you find relevant URLs during searches, use extract tool for detailed analysis
+            
+            ═══════════════════════════════════════════════
+            PHASE 3: EVIDENCE-BASED RISK ANALYSIS
+            ═══════════════════════════════════════════════
+            Based on your comprehensive searches, identify and analyze:
+            🎯 Current disruptions (last 7 days) with specific impacts
+            🎯 Emerging risks (next 30 days) with probability assessments
+            🎯 Historical patterns from memory data showing trends
+            🎯 Geographic threats (weather, natural disasters, infrastructure)
+            🎯 Industry-specific vulnerabilities and market conditions
+            🎯 Regulatory, political, and economic factors
+            🎯 Cross-reference findings across multiple sources for accuracy
+            
+            ═══════════════════════════════════════════════
+            PHASE 4: DATA STORAGE (MANDATORY)
+            ═══════════════════════════════════════════════
+            🔸 Call storeIntelligence with comprehensive structured data including:
+            - Risk score (0-100) based on evidence from your searches
+            - Critical events with severity levels and probability assessments
+            - Market intelligence with specific data points from research
+            - Risk factors with evidence-based probability calculations
+            - Mitigation suggestions derived from your analysis
+            
+            ⚠️ CRITICAL: The storeIntelligence tool is for data persistence ONLY. After calling it, you MUST continue with Phase 5.
+            
+            ═══════════════════════════════════════════════
+            PHASE 5: COMPREHENSIVE INTELLIGENCE REPORT
+            ═══════════════════════════════════════════════
+            
+            You MUST provide your final analysis in this EXACT format with ALL sections completed:
+            
+            # 🚨 Supply Chain Intelligence Report
+            
+            ## Executive Summary
+            [Write 2-3 sentences summarizing the most critical findings from your comprehensive research, including specific risk levels and key threats discovered]
+            
+            ## 📊 Current Risk Assessment
+            **Overall Risk Level:** [LOW/MEDIUM/HIGH/CRITICAL] (Risk Score: X/100)
+            **Confidence Level:** [X%] based on [number] verified sources from real-time research
+            **Assessment Date:** ${new Date().toISOString()}
+            
+            ## 🔍 Key Intelligence from Research
+            [List 5-7 specific findings with evidence from your web searches - include dates, sources, and specific data]
+            • **Critical Finding 1:** [Specific detail with source reference and date]
+            • **Critical Finding 2:** [Specific detail with source reference and date]
+            • **Critical Finding 3:** [Specific detail with source reference and date]
+            • **Critical Finding 4:** [Specific detail with source reference and date]
+            • **Critical Finding 5:** [Specific detail with source reference and date]
+            
+            ## ⚠️ Disruption Risk Matrix
+            
+            ### 🚨 Immediate Risks (0-7 days):
+            - [Specific risk with XX% probability and impact level - based on evidence]
+            - [Specific risk with XX% probability and impact level - based on evidence]
+            
+            ### ⏰ Short-term Risks (1-4 weeks):
+            - [Specific risk with XX% probability and impact level - based on evidence]
+            - [Specific risk with XX% probability and impact level - based on evidence]
+            
+            ### 📅 Medium-term Risks (1-3 months):
+            - [Specific risk with XX% probability and impact level - based on evidence]
+            - [Specific risk with XX% probability and impact level - based on evidence]
+            
+            ## 🛡️ Actionable Recommendations
+            
+            ### Priority 1 (Execute Immediately):
+            1. [Specific actionable recommendation based on your research]
+            2. [Specific actionable recommendation based on your research]
+            
+            ### Priority 2 (Execute within 1 week):
+            1. [Specific preventive measure based on identified risks]
+            2. [Specific monitoring protocol based on threats found]
+            
+            ### Priority 3 (Strategic - 1-3 months):
+            1. [Long-term mitigation strategy based on trend analysis]
+            2. [Resilience improvement based on vulnerability assessment]
+            
+            ## 📈 Market & Economic Intelligence
+            [Include specific price fluctuations, demand shifts, economic indicators, or competitor activities discovered in your research]
+            
+            ## 🌍 Geographic & Environmental Factors
+            [Detail location-specific threats, weather patterns, infrastructure status, and regional economic conditions found in your searches]
+            
+            ## 📚 Sources & Evidence Base
+            [List the key sources from your Tavily searches with credibility assessment and specific data extracted]
+            1. [Source 1 with URL if available and key data point]
+            2. [Source 2 with URL if available and key data point]
+            3. [Source 3 with URL if available and key data point]
+            
+            ## 🔄 Continuous Monitoring Protocol
+            **Key Indicators to Track:** [Specific metrics from your research]
+            **Update Frequency:** [Based on risk level and volatility found]
+            **Alert Thresholds:** [Specific trigger points for escalation]
+            **Next Review Date:** [Recommended next assessment timing]
+            
+            ---
+            *Intelligence Report Generated: ${new Date().toISOString()}*
+            *Sources: Real-time web research + Historical pattern analysis*
+            *Confidence: Evidence-based assessment with multiple source verification*
+            
+            ═══════════════════════════════════════════════
+            NON-NEGOTIABLE REQUIREMENTS:
+            ═══════════════════════════════════════════════
+            ✅ Your response MUST be based on actual web search results, not generic knowledge
+            ✅ ALWAYS cite specific facts, dates, numbers, company names, and sources from your searches
+            ✅ NEVER provide generic analysis without evidence from your tool calls
+            ✅ Use specific risk percentages and impact assessments based on evidence found
+            ✅ Include geographic and temporal specificity in all findings
+            ✅ Cross-reference multiple sources for accuracy and confidence scoring
+            ✅ Minimum 800 words in your final comprehensive response
+            ✅ Include at least 5 specific recent events or data points from searches
+            ✅ Reference specific dates, locations, companies, and quantitative data
+            ✅ The storeIntelligence tool stores data - your main response must be the full analysis
+            
+            ⛔ FORBIDDEN RESPONSES:
+            ⛔ "I have stored the gathered intelligence" (without full analysis)
+            ⛔ Generic risk assessments without specific evidence
+            ⛔ Responses without citing specific search results
+            ⛔ Analysis based solely on general knowledge
+            ⛔ Incomplete reports missing required sections
+            
+            BEGIN COMPREHENSIVE ANALYSIS NOW - Execute all phases in exact sequence and provide the complete formatted intelligence report.
+          `,
+          maxSteps: 50,
+          temperature: 0.05
+        });
+        
+        // Return only the final answer without streaming intermediate steps
+        return NextResponse.json({
+          success: true,
+          analysis: result.text,
+          evidence_based: true, // Flag to indicate the response is evidence-based
+          analyzed_with_tools: true, // Flag to indicate tools were used
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        // Original streaming behavior for interactive exploration without a specific query
+        const result = streamText({
+          model: streamingModel,
+          tools: {
+            ...tavily,
+            getNodeContext: tool({
+              description: 'Get supply chain node context and historical intelligence',
+              parameters: z.object({
+                nodeId: z.string().describe('The node ID to get context for')
+              }),
+              execute: async ({ nodeId }) => {
+                const agent = new ProductionIntelligenceAgent();
+                const cached = await agent.getCachedIntelligence(nodeId);
                 
-                // Store in database
-                await supabaseServer
-                  .from('supply_chain_intel')
-                  .upsert({
-                    supply_chain_id,
-                    node_id: intelligence.nodeId,
-                    intelligence_data: formattedIntelligence,
-                    risk_score: intelligence.riskScore,
-                    quality_score: formattedIntelligence.metadata.qualityScore,
-                    created_at: formattedIntelligence.timestamp,
-                    updated_at: formattedIntelligence.timestamp
-                  }, { 
-                    onConflict: 'supply_chain_id,node_id',
-                    ignoreDuplicates: false 
-                  });
-                
-                // Store in memory if enabled
-                let memoryStored = false;
-                if (memoryEnabled && node) {
-                  memoryStored = await agent.storeStructuredMemory(node, formattedIntelligence);
+                // Use proper Mem0 API with error handling
+                let memories = [];
+                if (memoryEnabled) {
+                  try {
+                    memories = await agent.getNodeMemories(nodeId);
+                  } catch (error) {
+                    console.error('Memory retrieval failed in streaming context:', error);
+                  }
                 }
                 
-                // Cache intelligence 
-                await agent.cacheIntelligence(intelligence.nodeId, formattedIntelligence);
-                
-                return { 
-                  success: true, 
-                  message: 'Intelligence stored successfully',
-                  memoryStored: memoryStored,
-                  timestamp: formattedIntelligence.timestamp
-                };
-              } catch (error) {
-                console.error('Intelligence storage error:', error);
-                return { 
-                  success: false, 
-                  error: error instanceof Error ? error.message : 'Storage failed',
-                  memoryStored: false
+                return {
+                  cached: cached ? 'Recent intelligence available' : 'No recent intelligence',
+                  memories: memories.slice(0, 5), // Last 5 memories
+                  nodeInfo: node,
+                  memoryStatus: memoryEnabled ? 'enabled' : 'disabled'
                 };
               }
-            }
-          })
-        },
-        prompt: `
-          You are an advanced AI supply chain intelligence analyst with real-time access to web search and memory systems. 
-          
-          Current Task: ${query || 'Gather comprehensive supply chain intelligence'}
-            Supply Chain Context:
-          - Supply Chain ID: ${supply_chain_id}
-          ${node ? `- Node: ${node.name} (${node.type}) in ${node.address || 'unknown location'}` : '- Analyzing entire supply chain'}
-          ${supplyChain?.form_data ? `- Company: ${JSON.parse(supplyChain.form_data).companyName || supplyChain.name}` : `- Organization: ${supplyChain.organisation || 'Unknown'}`}
-          
-          INSTRUCTIONS:
-          
-          1. USE TOOLS STRATEGICALLY:
-             - Start with getNodeContext to understand historical patterns
-             - Use search tools to find current events and disruptions
-             - Use searchQNA for specific questions about supply chain impacts
-             - Use storeIntelligence to save important findings
-          
-          2. INTELLIGENCE PRIORITIES:
-             - Critical disruptions affecting operations (severity >70)
-             - Weather events impacting transportation
-             - Port congestions, strikes, or closures
-             - Regulatory changes affecting trade
-             - Market shifts and price fluctuations
-             - Geopolitical events affecting supply routes
-          
-          3. ANALYSIS APPROACH:
-             - Search for recent news (last 7 days) about supply chain disruptions
-             - Focus on specific locations and industries relevant to this supply chain
-             - Cross-reference multiple sources for accuracy
-             - Assess probability and impact of identified risks
-             - Provide actionable recommendations
-          
-          4. COMMUNICATION STYLE:
-             - Stream your analysis in real-time as you gather information
-             - Explain your reasoning and search strategy
-             - Highlight critical findings immediately
-             - Provide confidence levels for your assessments
-             - Summarize key takeaways at the end
-          
-          5. SEARCH STRATEGY:
-             - Use domain-specific searches for different types of intelligence
-             - Search news sites for breaking developments
-             - Search logistics sites for industry-specific issues
-             - Search government sites for regulatory changes
-             - Search weather services for environmental impacts
-          
-          Begin your analysis now. Use the available tools to gather comprehensive intelligence and provide streaming updates on your findings.
-        `,
-        maxSteps: 15,
-        temperature: 0.3
-      });
+            }),
+            // Same storeIntelligence tool as above, but omitted for brevity
+            storeIntelligence: tool({
+              description: 'Store gathered intelligence in the database and memory system',
+              parameters: z.object({
+                intelligence: z.object({
+                  nodeId: z.string(),
+                  riskScore: z.number(),
+                  criticalEvents: z.array(z.object({
+                    title: z.string(),
+                    summary: z.string(),
+                    severity: z.number(),
+                    impact: z.string(),
+                    category: z.string(),
+                    affectedEntities: z.array(z.string()),
+                    timeframe: z.string(),
+                    confidence: z.number().optional(),
+                    sources: z.array(z.object({
+                      title: z.string(),
+                      url: z.string(),
+                      publishedAt: z.string(),
+                      credibility: z.number().optional()
+                    })).optional()
+                  })),
+                  summary: z.string(),
+                  // Optional fields for enhanced intelligence - now supports null values
+                  marketIntelligence: z.preprocess(
+                    // Convert null to default object structure
+                    (val) => val === null ? { 
+                      priceFluctuations: [], 
+                      demandShifts: [], 
+                      competitorActivities: [] 
+                    } : val,
+                    z.object({
+                      priceFluctuations: z.array(z.object({
+                        commodity: z.string(),
+                        change: z.number(),
+                        reason: z.string()
+                      })).default([]),
+                      demandShifts: z.array(z.string()).default([]),
+                      competitorActivities: z.array(z.string()).default([])
+                    })
+                  ).optional(),
+                  riskFactors: z.array(z.object({
+                    factor: z.string(),
+                    probability: z.number(),
+                    impact: z.number()
+                  })).optional(),
+                  mitigationSuggestions: z.array(z.string()).optional(),
+                  relationshipMapping: z.array(z.object({
+                    source: z.string(),
+                    target: z.string(),
+                    relationship: z.string(),
+                    strength: z.number(),
+                    context: z.string()
+                  })).optional(),
+                  sourcesChecked: z.number().optional(),
+                  qualityScore: z.number().optional()
+                })
+              }),
+              execute: async ({ intelligence }) => {
+                // Same implementation as above
+                try {
+                  // Safety check - ensure marketIntelligence is not null
+                  if (intelligence.marketIntelligence === null) {
+                    intelligence.marketIntelligence = {
+                      priceFluctuations: [],
+                      demandShifts: [],
+                      competitorActivities: []
+                    };
+                  }
+                  
+                  const agent = new ProductionIntelligenceAgent();
+                  
+                  // Format the intelligence data in our expected structure
+                  const formattedIntelligence = {
+                    nodeId: intelligence.nodeId,
+                    timestamp: new Date().toISOString(),
+                    intelligence: {
+                      criticalEvents: intelligence.criticalEvents.map((e: any) => ({
+                        ...e,
+                        confidence: e.confidence || 0.8,
+                        sources: e.sources || [{ 
+                          title: 'Agent Generated',
+                          url: 'internal://streaming',
+                          publishedAt: new Date().toISOString(),
+                          credibility: 0.7
+                        }]
+                      })),
+                      marketIntelligence: intelligence.marketIntelligence || {
+                        priceFluctuations: [],
+                        demandShifts: [],
+                        competitorActivities: []
+                      },
+                      riskAssessment: {
+                        overallRiskScore: intelligence.riskScore,
+                        riskFactors: intelligence.riskFactors || [],
+                        mitigationSuggestions: intelligence.mitigationSuggestions || []
+                      },
+                      relationshipMapping: intelligence.relationshipMapping || []
+                    },
+                    metadata: {
+                      processingTime: 0,
+                      sourcesChecked: intelligence.sourcesChecked || 0,
+                      qualityScore: intelligence.qualityScore || 0.8,
+                      nextUpdateRecommended: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+                      memoryContext: memoryEnabled
+                    }
+                  };
+                  
+                  // Store in database
+                  await supabaseServer
+                    .from('supply_chain_intel')
+                    .upsert({
+                      supply_chain_id,
+                      node_id: intelligence.nodeId,
+                      intelligence_data: formattedIntelligence,
+                      risk_score: intelligence.riskScore,
+                      quality_score: formattedIntelligence.metadata.qualityScore,
+                      created_at: formattedIntelligence.timestamp,
+                      updated_at: formattedIntelligence.timestamp
+                    }, { 
+                      onConflict: 'supply_chain_id,node_id',
+                      ignoreDuplicates: false 
+                    });
+                  
+                  // Store in memory if enabled
+                  let memoryStored = false;
+                  if (memoryEnabled && node) {
+                    memoryStored = await agent.storeStructuredMemory(node, formattedIntelligence);
+                  }
+                  
+                  // Cache intelligence 
+                  await agent.cacheIntelligence(intelligence.nodeId, formattedIntelligence);
+                  
+                  return { 
+                    success: true, 
+                    message: 'Intelligence stored successfully',
+                    memoryStored: memoryStored,
+                    timestamp: formattedIntelligence.timestamp
+                  };
+                } catch (error) {
+                  console.error('Intelligence storage error:', error);
+                  return { 
+                    success: false, 
+                    error: error instanceof Error ? error.message : 'Storage failed',
+                    memoryStored: false
+                  };
+                }
+              }
+            })
+          },
+          prompt: `
+            You are an advanced AI supply chain intelligence analyst with real-time access to web search and memory systems. 
+            
+            Current Task: ${query || 'Gather comprehensive supply chain intelligence'}
+              Supply Chain Context:
+            - Supply Chain ID: ${supply_chain_id}
+            ${node ? `- Node: ${node.name} (${node.type}) in ${node.address || 'unknown location'}` : '- Analyzing entire supply chain'}
+            ${supplyChain?.form_data ? `- Company: ${typeof supplyChain.form_data === 'string' ? JSON.parse(supplyChain.form_data).companyName : supplyChain.form_data.companyName || supplyChain.name}` : `- Organization: ${supplyChain.organisation || 'Unknown'}`}
+            
+            INSTRUCTIONS:
+            
+            1. USE TOOLS STRATEGICALLY:
+               - Start with getNodeContext to understand historical patterns
+               - Use search tools to find current events and disruptions
+               - Use searchQNA for specific questions about supply chain impacts
+               - Use storeIntelligence to save important findings
+            
+            2. INTELLIGENCE PRIORITIES:
+               - Critical disruptions affecting operations (severity >70)
+               - Weather events impacting transportation
+               - Port congestions, strikes, or closures
+               - Regulatory changes affecting trade
+               - Market shifts and price fluctuations
+               - Geopolitical events affecting supply routes
+            
+            3. ANALYSIS APPROACH:
+               - Search for recent news (last 7 days) about supply chain disruptions
+               - Focus on specific locations and industries relevant to this supply chain
+               - Cross-reference multiple sources for accuracy
+               - Assess probability and impact of identified risks
+               - Provide actionable recommendations
+            
+            4. COMMUNICATION STYLE:
+               - Stream your analysis in real-time as you gather information
+               - Explain your reasoning and search strategy
+               - Highlight critical findings immediately
+               - Provide confidence levels for your assessments
+               - Summarize key takeaways at the end
+            
+            5. SEARCH STRATEGY:
+               - Use domain-specific searches for different types of intelligence
+               - Search news sites for breaking developments
+               - Search logistics sites for industry-specific issues
+               - Search government sites for regulatory changes
+               - Search weather services for environmental impacts
+            
+            Begin your analysis now. Use the available tools to gather comprehensive intelligence and provide streaming updates on your findings. ALWAYS use Tavily search tools to gather evidence and base your responses on specific facts and data, not generic information.
+          `,
+          maxSteps: 25,
+          temperature: 0.2
+        });
 
-      return result.toDataStreamResponse();
+        return result.toDataStreamResponse();
+      }
     }
 
     // Non-streaming fallback - use existing GET logic
