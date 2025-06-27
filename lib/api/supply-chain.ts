@@ -238,3 +238,31 @@ export async function saveSupplyChainToDatabase(supplyChainData: {
     throw error;
   }
 }
+
+/**
+ * Delete supply chain via edge function
+ */
+export async function deleteSupplyChainViaEdgeFunction(supplyChainId: string, organisationId: string) {
+  try {
+      const { data, error } = await supabaseClient.functions.invoke('quick-api', {
+      body: {
+        supply_chain_id: supplyChainId,
+        organisation_id: organisationId,
+      },
+    });
+
+    if (error) {
+      console.error('Edge function error:', error);
+      throw new Error(error.message || 'Failed to delete supply chain');
+    }
+
+    if (!data) {
+      throw new Error('No data returned from edge function');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error deleting supply chain:', error);
+    throw error;
+  }
+}

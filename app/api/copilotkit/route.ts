@@ -7,12 +7,12 @@ import {
   import { NextRequest } from 'next/server';
    
   
-  const serviceAdapter = new GoogleGenerativeAIAdapter({ model: "gemini-2.5-pro" });
+  const serviceAdapter = new GoogleGenerativeAIAdapter({ model: "gemini-2.0-flash-lite" });
   const runtime = new CopilotRuntime();
    
   export const POST = async (req: NextRequest) => {
-    console.log("CopilotKit API request received");
-    console.log(req);
+    // console.log("CopilotKit API request received");
+    // console.log(req);
     const { handleRequest } = copilotRuntimeNextJSAppRouterEndpoint({
       runtime,
       serviceAdapter,
