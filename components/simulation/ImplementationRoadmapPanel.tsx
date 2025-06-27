@@ -72,7 +72,7 @@ export const ImplementationRoadmapPanel: React.FC<ImplementationRoadmapPanelProp
           </div>
           {isMobile && (
             <DrawerClose asChild>
-              <button onClick={onClose} className="p-2 rounded-full hover:bg-muted/50 transition-colors">
+              <button title="a" onClick={onClose} className="p-2 rounded-full hover:bg-muted/50 transition-colors">
                 <X className="h-5 w-5 text-muted-foreground" />
               </button>
             </DrawerClose>
