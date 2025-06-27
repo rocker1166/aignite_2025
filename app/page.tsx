@@ -13,9 +13,9 @@ import {
   IconActivity,
   IconTruck,
   IconShieldCheck
-} from "@/components/icons"
+} from "@/components/home-page/icons"
 import { motion } from "framer-motion"
-import { GlowyButton } from "@/components/ui/glowy-button"
+import { GlowyButton } from "@/components/home-page"
 import { Hero as FUIHeroWithGridSimple } from "@/components/home-page"
 import { Inter } from 'next/font/google'
 
@@ -79,7 +79,7 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 right-0 h-96 bg-gradient-to-t from-background via-background/95 via-background/80 via-background/60 via-background/40 via-background/20 to-transparent pointer-events-none" />
       </div>
       
-      <main className="flex-1 min-h-screen text-foreground flex flex-col items-center justify-center overflow-hidden relative">
+      <main id="top" className="flex-1 min-h-screen text-foreground flex flex-col items-center justify-center overflow-hidden relative">
         {/* Abstract background elements with motion */}
         <motion.div 
           initial={{ opacity: 0 }}
@@ -156,6 +156,7 @@ export default function Home() {
           whileInView={{ opacity: 1 }}
           transition={{ duration: 1 }}
           viewport={{ once: true }}
+          id="benefits"
           className="w-full relative py-20 md:py-32 px-4 bg-gradient-to-b from-transparent via-blue-50/30 to-transparent dark:from-transparent dark:via-blue-900/5 dark:to-transparent overflow-hidden"
         >
           <motion.div 
@@ -388,10 +389,10 @@ export default function Home() {
                   viewport={{ once: true }}
                   className="text-center mt-12"
                 >
-                  <GlowyButton>
+                  <a href="/analytics" className="btn-donate">
                     <span>Explore Analytics Dashboard</span>
-                    <IconArrowRight className="h-4 w-4 ml-2" />
-                  </GlowyButton>
+                    <IconArrowRight className="h-4 w-4" />
+                  </a>
                 </motion.div>
               </div>
             </div>
@@ -402,6 +403,7 @@ export default function Home() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
+          id="contact"
           className="w-full relative py-20 md:py-32"
         >
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-blue-50/50 dark:from-transparent dark:to-blue-950/10 -z-10"></div>
@@ -413,49 +415,60 @@ export default function Home() {
             </svg>
           </div>
           
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            viewport={{ once: true }}
-            className="container mx-auto px-4 max-w-6xl relative"
-          >
-            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-3xl shadow-2xl p-8 md:p-12 border border-blue-100/50 dark:border-blue-900/30">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div className="container mx-auto px-4 max-w-6xl relative">
+            <div className="bg-[#5B21FF] rounded-3xl shadow-2xl p-8 md:p-12 relative overflow-hidden">
+              {/* Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-600/50 via-[#5B21FF] to-indigo-600/50"></div>
+              {/* Dots Pattern */}
+              <div className="absolute inset-0" style={{
+                backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.15) 1px, transparent 0)`,
+                backgroundSize: '20px 20px'
+              }}></div>
+              {/* Content */}
+              <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                 <div>
-                  <div className="inline-block mb-3 px-4 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium uppercase tracking-wide">
+                  <div className="inline-block mb-3 px-4 py-1.5 rounded-full bg-white/10 text-white text-xs font-medium uppercase tracking-wide">
                     Start Today
                   </div>
-                  <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-700 to-indigo-600 dark:from-blue-500 dark:to-indigo-400 bg-clip-text text-transparent">
+                  <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
                     Ready to Transform Your Supply Chain?
                   </h2>
-                  <p className="text-slate-600 dark:text-slate-300 mb-8 text-lg leading-relaxed">
+                  <p className="text-gray-200 mb-8 text-lg leading-relaxed">
                     Experience the power of AI-driven supply chain resilience. Join industry leaders already using our platform to navigate disruptions with confidence.
                   </p>
                   <div className="flex flex-wrap gap-6">
-                    <GlowyButton href="/dashboard">
+                    <GlowyButton 
+                      href="/dashboard" 
+                      className="bg-white hover:bg-gray-50 text-[#5B21FF] shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+                    >
                       <span className="font-medium">Get Started</span>
-                      <IconArrowRight className="h-4 w-4" />
+                      <IconArrowRight className="h-4 w-4 transform transition-transform duration-300 group-hover:translate-x-1" />
                     </GlowyButton>
                     
-                    <GlowyButton href="#features" className="border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-full px-8">
-                      Learn More
+                    <GlowyButton 
+                      href="#features" 
+                      className="bg-white hover:bg-gray-50 text-[#5B21FF] shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 rounded-full px-8 relative overflow-hidden"
+                    >
+                      <span className="relative z-10">Learn More</span>
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#5B21FF]/10 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
                     </GlowyButton>
                   </div>
                 </div>
                 
                 <div className="relative">
                   <div className="aspect-square max-w-md mx-auto relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/30 to-indigo-500/30 dark:from-blue-500/10 dark:to-indigo-500/10 rounded-3xl blur-3xl opacity-60"></div>
+                    <div className="absolute inset-0 bg-white/5 rounded-3xl"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      {/* Replace with your actual image or 3D illustration */}
-                      <div className="w-4/5 h-4/5 rounded-2xl overflow-hidden bg-white/90 dark:bg-slate-800/90 border border-white/50 dark:border-slate-700/50 shadow-xl backdrop-blur-sm flex items-center justify-center">
+                      <div className="w-4/5 h-4/5 rounded-2xl overflow-hidden bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center">
                         <div className="text-center p-6">
-                          <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                            <IconWorkflow className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                          <div className="relative">
+                            <div className="absolute -inset-3 bg-white/10 rounded-full blur-lg"></div>
+                            <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center relative">
+                              <IconWorkflow className="h-8 w-8 text-white" />
+                            </div>
                           </div>
-                          <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">Resilient Supply Chains</h3>
-                          <p className="text-slate-600 dark:text-slate-300 text-sm">Intelligent optimization and risk management</p>
+                          <h3 className="text-xl font-semibold text-white mb-2">Resilient Supply Chains</h3>
+                          <p className="text-gray-200 text-sm">Intelligent optimization and risk management</p>
                         </div>
                       </div>
                     </div>
@@ -463,7 +476,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </motion.section>
       </main>
       

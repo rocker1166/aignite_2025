@@ -1,112 +1,21 @@
 'use client';
-import { useState, useRef } from "react";
-import LinkItem from "@/components/ui/LinkItem";
-import { IconGithub } from "@/components/icons";
-import { ChevronRight, Play, Pause, Volume2, VolumeX, Maximize } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import LinkItem from "../components/LinkItem";
+import { IconGithub, IconArrowRight } from "../icons";
 import HeroAnimated from "../components/HeroAnimated";
 import BgGradient from "../components/BgGradient";
-import { MediaPlayer, MediaPlayerVideo, MediaPlayerControls, MediaPlayerPlay, MediaPlayerSeek, MediaPlayerVolume, MediaPlayerFullscreen } from "@/components/ui/media-player";
-import { TooltipProvider } from "@/components/ui/tooltip";
-
-interface VideoPlayerProps {
-  src: string;
-  poster?: string;
-  className?: string;
-}
-
-const VideoPlayer = ({ src, poster, className = "" }: VideoPlayerProps) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-  const [showControls, setShowControls] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-    }
-  };
-
-  const toggleFullscreen = () => {
-    if (videoRef.current) {
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-      } else {
-        videoRef.current.requestFullscreen();
-      }
-    }
-  };
-
-  return (
-    <div 
-      className={`relative group ${className}`}
-      onMouseEnter={() => setShowControls(true)}
-      onMouseLeave={() => setShowControls(false)}
-    >
-      <video
-        ref={videoRef}
-        src={src}
-        poster={poster}
-        muted={isMuted}
-        loop
-        playsInline
-        className="w-full h-full object-cover rounded-xl border border-gray-200/50 dark:border-white/10 shadow-2xl bg-gray-100 dark:bg-gray-900"
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-      />
-      
-      {/* Video Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent rounded-xl" />
-      
-      {/* Controls */}
-      <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
-        <button
-          onClick={togglePlay}
-          className="bg-white/90 dark:bg-white/20 backdrop-blur-sm border border-gray-200/50 dark:border-white/20 rounded-full p-4 hover:bg-white dark:hover:bg-white/30 transition-all duration-200 shadow-lg"
-        >
-          {isPlaying ? (
-            <Pause className="w-8 h-8 text-gray-700 dark:text-white" />
-          ) : (
-            <Play className="w-8 h-8 text-gray-700 dark:text-white ml-1" />
-          )}
-        </button>
-      </div>
-
-      {/* Bottom Controls */}
-      <div className={`absolute bottom-4 left-4 right-4 flex items-center justify-between transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={toggleMute}
-            className="bg-white/90 dark:bg-white/20 backdrop-blur-sm border border-gray-200/50 dark:border-white/20 rounded-full p-2 hover:bg-white dark:hover:bg-white/30 transition-all duration-200 shadow-lg"
-          >
-            {isMuted ? (
-              <VolumeX className="w-4 h-4 text-gray-700 dark:text-white" />
-            ) : (
-              <Volume2 className="w-4 h-4 text-gray-700 dark:text-white" />
-            )}
-          </button>
-        </div>
-        <button
-          onClick={toggleFullscreen}
-          className="bg-white/90 dark:bg-white/20 backdrop-blur-sm border border-gray-200/50 dark:border-white/20 rounded-full p-2 hover:bg-white dark:hover:bg-white/30 transition-all duration-200 shadow-lg"
-        >
-          <Maximize className="w-4 h-4 text-gray-700 dark:text-white" />
-        </button>
-      </div>
-    </div>
-  );
-};
+import {
+  VideoPlayer,
+  VideoPlayerContent,
+  VideoPlayerControlBar,
+  VideoPlayerMuteButton,
+  VideoPlayerPlayButton,
+  VideoPlayerSeekBackwardButton,
+  VideoPlayerSeekForwardButton,
+  VideoPlayerTimeDisplay,
+  VideoPlayerTimeRange,
+  VideoPlayerVolumeRange,
+} from '../video-player';
 
 const FUIHeroWithGridSimple = () => {
   return (
@@ -266,32 +175,44 @@ const FUIHeroWithGridSimple = () => {
 
             {/* Right Column - Video Player */}
             <div className="relative lg:pl-6 lg:col-span-3">
-              <TooltipProvider>
-                <MediaPlayer className="aspect-video w-full max-w-3xl mx-auto lg:mx-0">
-                  <MediaPlayerVideo 
-                    src="/demo-video.mp4" 
-                    poster="/placeholder.jpg" 
-                    autoPlay 
-                    loop 
-                    muted 
-                    playsInline 
+              <div className="relative">
+                <VideoPlayer className="aspect-video w-full max-w-3xl mx-auto lg:mx-0">
+                  <VideoPlayerContent
+                    src="https://stream.mux.com/DS00Spx1CV902MCtPj5WknGlR102V5HFkDe/high.mp4"
+                    slot="media"
+                    muted
+                    preload="auto"
+                    autoPlay
+                    loop
+                    crossOrigin="anonymous"
                   />
-                  <MediaPlayerControls>
-                    <MediaPlayerPlay />
-                    <MediaPlayerSeek withTime />
-                    <MediaPlayerVolume />
-                    <MediaPlayerFullscreen />
-                  </MediaPlayerControls>
-                </MediaPlayer>
-              </TooltipProvider>
+                  <VideoPlayerControlBar>
+                    <VideoPlayerPlayButton />
+                    <VideoPlayerSeekBackwardButton />
+                    <VideoPlayerSeekForwardButton />
+                    <VideoPlayerTimeRange />
+                    <VideoPlayerTimeDisplay showDuration />
+                    <VideoPlayerMuteButton />
+                    <VideoPlayerVolumeRange />
+                  </VideoPlayerControlBar>
+                </VideoPlayer>
+                
+                {/* Enhanced Video Effects - Light/Dark Mode Aware */}
+                <div className="absolute -inset-6 bg-gradient-to-r from-blue-300/40 via-indigo-300/40 to-purple-300/40 dark:from-blue-500/20 dark:to-purple-500/20 rounded-2xl blur-2xl -z-10 animate-pulse [animation-duration:8s]" />
+                <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-gradient-to-br from-purple-300/60 to-pink-300/60 dark:from-purple-500/30 dark:to-pink-500/30 rounded-full blur-3xl -z-10 animate-pulse [animation-duration:10s] [animation-delay:2s]" />
+                <div className="absolute -top-8 -left-8 w-40 h-40 bg-gradient-to-br from-blue-300/50 to-cyan-300/50 dark:from-blue-500/20 dark:to-cyan-500/20 rounded-full blur-3xl -z-10 animate-pulse [animation-duration:12s] [animation-delay:1s]" />
+                {/* Additional decorative elements around video */}
+                <div className="absolute -top-4 -right-4 w-6 h-6 border-2 border-indigo-400/50 dark:border-indigo-400/30 rounded-full animate-spin [animation-duration:15s]" />
+                <div className="absolute -bottom-4 -left-4 w-4 h-4 bg-purple-400/60 dark:bg-purple-400/30 rounded-full animate-bounce [animation-duration:3s] [animation-delay:1s]" />
+              </div>
               
-              {/* Enhanced Video Effects - Light/Dark Mode Aware */}
-              <div className="absolute -inset-6 bg-gradient-to-r from-blue-300/40 via-indigo-300/40 to-purple-300/40 dark:from-blue-500/20 dark:to-purple-500/20 rounded-2xl blur-2xl -z-10 animate-pulse [animation-duration:8s]" />
-              <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-gradient-to-br from-purple-300/60 to-pink-300/60 dark:from-purple-500/30 dark:to-pink-500/30 rounded-full blur-3xl -z-10 animate-pulse [animation-duration:10s] [animation-delay:2s]" />
-              <div className="absolute -top-8 -left-8 w-40 h-40 bg-gradient-to-br from-blue-300/50 to-cyan-300/50 dark:from-blue-500/20 dark:to-cyan-500/20 rounded-full blur-3xl -z-10 animate-pulse [animation-duration:12s] [animation-delay:1s]" />
-              {/* Additional decorative elements around video */}
-              <div className="absolute -top-4 -right-4 w-6 h-6 border-2 border-indigo-400/50 dark:border-indigo-400/30 rounded-full animate-spin [animation-duration:15s]" />
-              <div className="absolute -bottom-4 -left-4 w-4 h-4 bg-purple-400/60 dark:bg-purple-400/30 rounded-full animate-bounce [animation-duration:3s] [animation-delay:1s]" />
+              {/* CTA Button below video */}
+              <div className="text-center mt-8">
+                <a href="/digital-twin" className="btn-donate">
+                  <span>See It In Action</span>
+                  <IconArrowRight className="h-4 w-4" />
+                </a>
+              </div>
             </div>
           </div>
         </div>
