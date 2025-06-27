@@ -15,6 +15,7 @@ import {
   VideoPlayerTimeDisplay,
   VideoPlayerTimeRange,
   VideoPlayerVolumeRange,
+  VideoPlayerFullscreenButton,
 } from '../video-player';
 
 const FUIHeroWithGridSimple = () => {
@@ -194,6 +195,7 @@ const FUIHeroWithGridSimple = () => {
                     <VideoPlayerTimeDisplay showDuration />
                     <VideoPlayerMuteButton />
                     <VideoPlayerVolumeRange />
+                    <VideoPlayerFullscreenButton />
                   </VideoPlayerControlBar>
                 </VideoPlayer>
                 
@@ -204,14 +206,6 @@ const FUIHeroWithGridSimple = () => {
                 {/* Additional decorative elements around video */}
                 <div className="absolute -top-4 -right-4 w-6 h-6 border-2 border-indigo-400/50 dark:border-indigo-400/30 rounded-full animate-spin [animation-duration:15s]" />
                 <div className="absolute -bottom-4 -left-4 w-4 h-4 bg-purple-400/60 dark:bg-purple-400/30 rounded-full animate-bounce [animation-duration:3s] [animation-delay:1s]" />
-              </div>
-              
-              {/* CTA Button below video */}
-              <div className="text-center mt-8">
-                <a href="/digital-twin" className="btn-donate">
-                  <span>See It In Action</span>
-                  <IconArrowRight className="h-4 w-4" />
-                </a>
               </div>
             </div>
           </div>

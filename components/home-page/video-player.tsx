@@ -10,6 +10,7 @@ import {
   MediaTimeDisplay,
   MediaTimeRange,
   MediaVolumeRange,
+  MediaFullscreenButton,
 } from 'media-chrome/react';
 import type { ComponentProps, CSSProperties } from 'react';
 import { cn } from '@/lib/utils';
@@ -102,4 +103,9 @@ export const VideoPlayerMuteButton = (props: VideoPlayerMuteButtonProps) => (
 export type VideoPlayerVolumeRangeProps = ComponentProps<typeof MediaVolumeRange>;
 export const VideoPlayerVolumeRange = (props: VideoPlayerVolumeRangeProps) => (
   <MediaVolumeRange {...props} />
+);
+
+export type VideoPlayerFullscreenButtonProps = ComponentProps<typeof MediaFullscreenButton>;
+export const VideoPlayerFullscreenButton = (props: VideoPlayerFullscreenButtonProps) => (
+  <MediaFullscreenButton {...props} />
 ); 
