@@ -160,6 +160,7 @@ export function useDigitalTwinManager({
     },
     leftPanelProps: {
       onAddNode: nodeEdgeActions.handleAddNode,
+      onAddNodeAtPosition: nodeEdgeActions.handleAddNodeAtPosition,
       onClearAllNodes: nodeEdgeActions.handleClearAllNodes,
       onLoadTemplate: finalTemplateManager.handleLoadTemplate,
       simulationMode,
@@ -195,7 +196,7 @@ export function useDigitalTwinManager({
       onUpdate,
       onDelete: nodeEdgeActions.handleDeleteNode,
       onUngroup: finalTemplateManager.handleUngroupTemplate,
-      onSave: handleSave,
+      onSave: async () => { await handleSave(); },
     },
     // Add AI fix handler for ValidationDialog
     handleAIFixRequest,

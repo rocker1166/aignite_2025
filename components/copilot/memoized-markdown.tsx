@@ -5,7 +5,6 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import { visit } from 'unist-util-visit';
-import { WebSearchResult } from '@/components/ui/web-search-result';
 
 const customSchema = {
   ...defaultSchema,
@@ -139,28 +138,6 @@ const MemoizedMarkdownBlock = memo(
           components={{
             // Custom web search component
             // @ts-ignore: custom element
-            "web_search": ({ type, query, answer, results, error, children }) => {
-              // Parse results if it's a JSON string
-              let parsedResults;
-              try {
-                parsedResults = typeof results === 'string' ? JSON.parse(results) : results;
-              } catch {
-                parsedResults = results;
-              }
-              
-              return (
-                <WebSearchResult
-                  type={type}
-                  query={query}
-                  answer={answer}
-                  results={parsedResults}
-                  error={error}
-                >
-                  {children}
-                </WebSearchResult>
-              );
-            },
-            // Customize components for chat message styling with accessibility
             p: ({ children }) => (
               <p className="my-1 text-xs leading-relaxed">
                 {children}

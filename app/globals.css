@@ -35,6 +35,15 @@
 
     --radius: 0.5rem;
 
+    --main: oklch(0.97 0 0);
+    --main-secondary: oklch(97% 0 0);
+    --main-foreground: oklch(0.925 0 0);
+    --main-muted: oklch(0.96 0 0);
+    --main-background: oklch(0.97 0 0);
+    --main-invert: oklch(0.205 0 0);
+    --primary-muted: oklch(0.556 0 0);
+    --primary-invert: oklch(1 0 0);
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -84,6 +93,15 @@
 
     --radius: 0.5rem;
 
+    --main: oklch(0.178 0 0);
+    --main-secondary: oklch(0.205 0 0);
+    --main-foreground: oklch(0.269 0 0);
+    --main-muted: oklch(0.168 0 0);
+    --main-background: oklch(0.145 0 0);
+    --main-invert: oklch(0.8 0 0);
+    --primary-invert: oklch(0 0 0);
+    --primary-muted: oklch(0.708 0 0);
+
     --sidebar-background: 240 5.9% 10%;
 
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -107,6 +125,18 @@
     --animate-shimmer-slide: shimmer-slide var(--speed) ease-in-out infinite alternate;
     --animate-spin-around: spin-around calc(var(--speed) * 2) infinite linear;
     --animate-shiny-text: shiny-text 8s infinite;
+    --color-main: var(--main);
+    --color-main-secondary: var(--main-secondary);
+    --color-main-foreground: var(--main-foreground);
+    --color-main-muted: var(--main-muted);
+    --color-main-background: var(--main-background);
+    --color-main-invert: var(--main-invert);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary-muted: var(--primary-muted);
+    --color-primary-invert: var(--primary-invert);
+    --color-border: var(--border);
+    --animate-shine: shine 6s linear infinite;
   }
 }
 
@@ -249,5 +279,14 @@
   .scrollbar-hide {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
+  }
+}
+
+@keyframes shine {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -400% 0;
   }
 }

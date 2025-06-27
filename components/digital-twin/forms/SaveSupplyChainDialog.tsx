@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 interface SaveSupplyChainDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (name: string, description: string) => void;
+  onSave: (name: string, description: string) => Promise<void>;
   initialName?: string;
   initialDescription?: string;
   nodes: Node[];

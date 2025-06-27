@@ -14,6 +14,7 @@ import { AIChatPanel } from './assistant';
 
 interface LeftPanelProps {
   onAddNode: (nodeType: string, label: string, enhancedData?: any) => void;
+  onAddNodeAtPosition?: (nodeType: string, position: { x: number; y: number }, label?: string, enhancedData?: any) => void;
   onClearAllNodes: () => void;
   onLoadTemplate?: (templateId: string) => void;
   simulationMode: boolean;
@@ -47,7 +48,8 @@ interface LeftPanelProps {
 }
 
 const LeftPanel: FC<LeftPanelProps> = ({ 
-  onAddNode, 
+  onAddNode,
+  onAddNodeAtPosition,
   onClearAllNodes, 
   onLoadTemplate, 
   simulationMode, 
@@ -82,6 +84,23 @@ const LeftPanel: FC<LeftPanelProps> = ({
   const [chatMode, setChatMode] = useQueryState('chat');
 
   const isImmersiveMode = chatMode === 'immersive';
+
+  const onDragStart = (event: React.DragEvent, nodeType: string) => {
+    event.dataTransfer.setData('application/reactflow', nodeType);
+    event.dataTransfer.effectAllowed = 'move';
+    
+    // Add visual feedback during drag
+    const target = event.target as HTMLElement;
+    target.style.opacity = '0.6';
+    target.style.transform = 'scale(0.95)';
+  };
+
+  const onDragEnd = (event: React.DragEvent) => {
+    // Reset visual feedback after drag
+    const target = event.target as HTMLElement;
+    target.style.opacity = '1';
+    target.style.transform = 'scale(1)';
+  };
 
   const handleImmersiveModeChange = (immersive: boolean) => {
     setChatMode(immersive ? 'immersive' : null);
@@ -197,6 +216,7 @@ const LeftPanel: FC<LeftPanelProps> = ({
               nodes={nodes}
               edges={edges}
               onAddNode={onAddNode}
+              onAddNodeAtPosition={onAddNodeAtPosition}
               onAddMultipleNodes={onAddMultipleNodes}
               onAddMultipleEdges={onAddMultipleEdges}
               onAddEdges={onAddEdges}
@@ -288,9 +308,12 @@ const LeftPanel: FC<LeftPanelProps> = ({
                                 <Button
                                   variant="outline"
                                   onClick={() => onAddNode(node.id, `New ${node.id}`)}
+                                  onDragStart={(event) => onDragStart(event, node.id)}
+                                  onDragEnd={onDragEnd}
+                                  draggable
                                   disabled={simulationMode}
-                                  className={`w-full h-auto p-3 justify-start ${node.color} dark:bg-card dark:hover:bg-muted/50 dark:border-border shadow-md ${
-                                    simulationMode ? 'opacity-50 cursor-not-allowed' : ''
+                                  className={`w-full h-auto p-3 justify-start ${node.color} dark:bg-card dark:hover:bg-muted/50 dark:border-border shadow-md transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] ${
+                                    simulationMode ? 'opacity-50 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'
                                   }`}
                                 >
                                   <div className="flex items-center gap-3">

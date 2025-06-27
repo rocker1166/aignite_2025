@@ -81,6 +81,11 @@ export const SupplierNode = memo(({ data, isConnectable, selected }: NodeProps) 
       className={`${data.nodeColor ? 'border-0' : typeClass} ${riskClass} ${selectionClass}`}
     >
       <Handle
+        type="target"
+        position={Position.Left}
+        isConnectable={isConnectable}
+      />
+      <Handle
         type="source"
         position={Position.Right}
         isConnectable={isConnectable}

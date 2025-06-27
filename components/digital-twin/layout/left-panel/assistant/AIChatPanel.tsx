@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState,  useEffect, useCallback } from 'react';
 import { useCopilotChat } from "@copilotkit/react-core";
 import { TextMessage, Role } from "@copilotkit/runtime-client-gql";
 import { Node, Edge } from 'reactflow';
@@ -15,8 +15,10 @@ import { MessagesArea } from './MessagesArea';
 import { AutocompleteInput } from './AutocompleteInput';
 import { useCopilotActions } from './useCopilotActions';
 import { useAISuggestions } from './useAISuggestions';
+import { useChatPersistence } from './hooks/useChatPersistence';
 import { parseError } from './error-parser';
 import { AIChatPanelProps, AutocompleteSuggestion, ChatError } from './types';
+import { decompressArchData } from '@/lib/utils/url-compression';
 
 const AIChatPanel: React.FC<AIChatPanelProps> = ({ 
   simulationMode = false, 
@@ -64,9 +66,18 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
   const [retryCount, setRetryCount] = useState(0);
   const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
   const [errorCount, setErrorCount] = useState(0);
+  
+  // Track if we've loaded from storage to prevent re-loading
+  const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
 
   // Get URL state to read current canvas data
   const [archParam] = useQueryState('arch', {
+    defaultValue: '',
+    shallow: false
+  });
+
+  // Get twinId from URL for localStorage key
+  const [twinId] = useQueryState('twinId', {
     defaultValue: '',
     shallow: false
   });
@@ -80,16 +91,8 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
     const decodeFromURL = async () => {
       if (archParam) {
         try {
-          console.log('🔍 AI Chat Panel: Decoding canvas state from URL');
-
-          // Add back padding if needed for base64
-          const padding = '='.repeat((4 - (archParam.length % 4)) % 4);
-          const paddedBase64 = archParam
-            .replace(/-/g, '+')
-            .replace(/_/g, '/') + padding;
-
-          const jsonString = atob(paddedBase64);
-          const canvasData = JSON.parse(jsonString);
+          console.log('🔍 AI Chat Panel: Decompressing canvas state from URL');
+          const canvasData = decompressArchData(archParam);
 
           if (canvasData.nodes && canvasData.edges) {
             console.log('🔍 AI Chat Panel: Setting nodes and edges from URL', {
@@ -122,6 +125,15 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
   const nodes = urlNodes.length > 0 ? urlNodes : propNodes;
   const edges = urlEdges.length > 0 ? urlEdges : propEdges;
 
+  // Chat persistence hook
+  const {
+    saveChatToStorage,
+    loadChatFromStorage,
+    clearChatFromStorage,
+    getLocalStorageInfo,
+    cleanupOldChats
+  } = useChatPersistence();
+
   // Load recent queries from localStorage
   useEffect(() => {
     const stored = localStorage.getItem('ai-recent-queries');
@@ -147,6 +159,30 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
   
   // Use CopilotKit messages as the source of truth
   const messages = visibleMessages as TextMessage[];
+
+  // Load chat from localStorage when twinId is available
+  useEffect(() => {
+    if (twinId && setMessages && !hasLoadedFromStorage) {
+      const storedMessages = loadChatFromStorage(twinId);
+      if (storedMessages.length > 0) {
+        console.log('📁 Loading stored chat messages for twinId:', twinId);
+        setMessages(storedMessages);
+      }
+      setHasLoadedFromStorage(true);
+    }
+  }, [twinId, setMessages, hasLoadedFromStorage, loadChatFromStorage]);
+
+  // Save chat to localStorage whenever messages change
+  useEffect(() => {
+    if (twinId && messages.length > 0 && hasLoadedFromStorage) {
+      // Only save if we've finished loading from storage and have messages
+      // Small delay to avoid saving during rapid changes
+      const timer = setTimeout(() => {
+        saveChatToStorage(messages, twinId);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [twinId, messages, hasLoadedFromStorage, saveChatToStorage]);
 
   // Intercept fetch requests to catch GraphQL errors
   useEffect(() => {
@@ -447,11 +483,17 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
         }
       }
       
+      // Clear chat from localStorage
+      clearChatFromStorage(twinId);
+      
+      // Reset storage loading state
+      setHasLoadedFromStorage(false);
+      
       // Clear any error state
       clearError();
       
       // Show success toast
-      // toast.success("Chat cleared successfully");
+      toast.success("Chat cleared successfully");
       
       console.log("✅ Chat cleared successfully");
     } catch (error) {

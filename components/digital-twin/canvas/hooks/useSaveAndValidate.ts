@@ -28,7 +28,7 @@ export function useSaveAndValidate({
   const [showValidationDialog, setShowValidationDialog] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const performSave = useCallback(async () => {
+  const performSave = useCallback(async (): Promise<string | null> => {
     setIsSaving(true);
     try {
       const connections = edges.map(edge => {
@@ -67,9 +67,19 @@ export function useSaveAndValidate({
           industry: userData?.industry, sub_industry: userData?.sub_industry, location: userData?.location
         }
       };
-      await saveSupplyChainToDatabase(supplyChainData);
+      const savedData = await saveSupplyChainToDatabase(supplyChainData);
       toast.success('Supply chain saved successfully!');
-      router.push('/digital-twin');
+
+      // Notify interested components (e.g., SimulationToolbar) that the supply chain
+      // has been saved and provide the new supply_chain_id so that follow-up dialogs
+      // like IntelligenceAnalysisDialog can be opened consistently.
+      if (typeof window !== 'undefined' && savedData?.supply_chain_id) {
+        window.dispatchEvent(
+          new CustomEvent('supply_chain_saved', {
+            detail: { supplyChainId: savedData.supply_chain_id },
+          })
+        );
+      }
       setShowValidationDialog(false);
       if (saveNameFromUrl || saveDescriptionFromUrl) {
         const newUrl = new URL(window.location.href);
@@ -77,6 +87,7 @@ export function useSaveAndValidate({
         newUrl.searchParams.delete('saveDescription');
         window.history.replaceState({}, '', newUrl.toString());
       }
+      return savedData.supply_chain_id;
     } catch (error) {
       console.error('Error saving supply chain:', error);
       toast.error('Failed to save supply chain.');
@@ -86,20 +97,20 @@ export function useSaveAndValidate({
     }
   }, [nodes, edges, selectedSupplyChain, supplyChainName, description, userData, router]);
 
-  const handleSave = useCallback(async () => {
+  const handleSave = useCallback(async (): Promise<string | null> => {
     const issues = validateSupplyChain(nodes, edges);
     setValidationIssues(issues);
     const errors = issues.filter(issue => issue.severity === 'error');
     if (errors.length > 0) {
       setShowValidationDialog(true);
-      return;
+      return null;
     }
     const warnings = issues.filter(issue => issue.severity === 'warning');
     if (warnings.length > 0) {
       setShowValidationDialog(true);
-      return;
+      return null;
     }
-    await performSave();
+    return await performSave();
   }, [nodes, edges, performSave]);
 
   const handleValidateSupplyChain = useCallback(() => {

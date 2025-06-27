@@ -8,7 +8,7 @@ import CreationForm from '@/components/digital-twin/forms/creation-form';
 import DigitalTwinCanvas from '@/components/digital-twin/canvas/digital-twin-canvas';
 import DigitalTwinSkeleton from '@/components/digital-twin/display/DigitalTwinSkeleton';
 import { selectTemplate, getTemplateInfo } from '@/lib/template-selector';
-import { toast } from 'sonner';
+import { decompressArchData } from '@/lib/utils/url-compression';
 import {
   Dialog,
   DialogContent,
