@@ -581,7 +581,7 @@ export default function Home() {
                   </p>
                   <div className="flex flex-wrap gap-4">
                     <Button asChild size="lg" className="bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white shadow-lg rounded-full px-8">
-                      <a href="/dashboard">Get Started</a>
+                      <a href="/signin">Get Started</a>
                     </Button>
                     <Button asChild size="lg" variant="outline" className="border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-full px-8">
                       <a href="#features">Learn More</a>

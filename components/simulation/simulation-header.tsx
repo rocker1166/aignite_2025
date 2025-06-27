@@ -1,6 +1,6 @@
 "use client"
 
-import { User } from "lucide-react"
+import { User ,LogOut } from "lucide-react"
 import Link from "next/link"
 import { motion, type Variants } from "framer-motion"
 import { SidebarTrigger } from "@/components/ui/sidebar"
@@ -16,6 +16,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { BellIcon } from "@/components/icons"
+import { logout } from "@/lib/functions/signout"
 
 // Animation variants for dropdown content
 const dropdownContent: Variants = {
@@ -161,6 +162,16 @@ export function SimulationHeader() {
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </Link>
+                </DropdownMenuItem>
+              </motion.div>
+              <DropdownMenuSeparator />
+              <motion.div variants={dropdownItem}>
+                <DropdownMenuItem 
+                  className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950" 
+                  onClick={logout}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
                 </DropdownMenuItem>
               </motion.div>
             </motion.div>
