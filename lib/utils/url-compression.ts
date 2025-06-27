@@ -34,8 +34,12 @@ export function compressUrlData(data: any): string {
     // Compress using gzip
     const compressed = pako.gzip(jsonString);
     
-    // Convert to base64
-    const base64 = btoa(String.fromCharCode(...compressed));
+    // Convert to base64 (handle large arrays safely)
+    let binaryString = '';
+    for (let i = 0; i < compressed.length; i++) {
+      binaryString += String.fromCharCode(compressed[i]);
+    }
+    const base64 = btoa(binaryString);
     
     // Make URL-safe and add version prefix
     const urlSafe = toBase64Url(base64);
