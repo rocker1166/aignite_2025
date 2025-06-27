@@ -148,4 +148,14 @@ export function decompressArchData(compressedData: string): any {
     console.error('Failed to decompress arch data:', error);
     throw error;
   }
+}
+
+export function storeArchInSession(id: string, arch: any): void {
+  try {
+    const key = `view-arch-${id}`;
+    sessionStorage.setItem(key, JSON.stringify(arch));
+  } catch (error) {
+    // SessionStorage might be unavailable (e.g. Safari private mode)
+    console.warn('⚠️  Unable to store architecture in sessionStorage:', error);
+  }
 } 

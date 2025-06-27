@@ -1,4 +1,7 @@
+"use client";
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import {
   Card,
@@ -7,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { ArrowRight, Clock, MapPin } from 'lucide-react';
+import { ArrowRight, Clock } from 'lucide-react';
 
 interface DigitalTwin {
   id: string;
@@ -29,13 +32,13 @@ export default function DigitalTwinCard({ twin }: DigitalTwinCardProps) {
   };
 
   return (
-    <Link href={`/digital-twin?twinId=${twin.id}`}>
-      <Card className="hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer h-full dark:bg-slate-950 border shadow-md group relative overflow-hidden">
+    <Link href={`/digital-twin/view/${twin.id}`} className="block h-full">
+      <Card className="hover:shadow-lg hover:scale-[1.02] transition-all duration-300 h-full dark:bg-slate-950 border shadow-md group relative overflow-visible cursor-pointer">
         {/* Subtle animated gradient overlay on hover */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
         
         {/* Floating action indicator */}
-        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0 z-50">
           <div className="bg-white/90 dark:bg-gray-700/90 rounded-full p-2 shadow-sm">
             <ArrowRight className="h-4 w-4 text-gray-600 dark:text-gray-300" />
           </div>

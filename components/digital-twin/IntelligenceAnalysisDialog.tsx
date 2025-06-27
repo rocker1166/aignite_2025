@@ -70,6 +70,44 @@ function SuccessRedirect({ onGoToDashboard }: { onGoToDashboard: () => void }) {
   );
 }
 
+function ErrorRedirect({ onGoToDashboard, error }: { onGoToDashboard: () => void; error?: Error }) {
+  const router = useRouter();
+
+  const handleGoToDashboard = () => {
+    onGoToDashboard();
+    router.push('/dashboard');
+  };
+
+  return (
+    <div className="flex flex-col justify-between h-full w-full min-h-[400px]">
+      <div className="text-center flex-grow flex flex-col justify-center items-center">
+        <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mb-4">
+          <span className="text-orange-500 text-2xl">⚠️</span>
+        </div>
+        <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
+          Analysis Temporarily Unavailable
+        </h3>
+        <p className="mt-2 text-gray-500 dark:text-gray-400 max-w-sm">
+          Don't worry! Our system will continue trying to analyze your supply chain in the background. 
+          You can return to the dashboard and check back later.
+        </p>
+        <p className="mt-4 text-sm text-gray-400 dark:text-gray-500 max-w-md">
+          We'll notify you once the analysis is complete. No action is required from your side.
+        </p>
+      </div>
+      <div className="pt-4 mt-4 w-full">
+        <Button
+          onClick={handleGoToDashboard}
+          className="w-full shadow-md"
+          variant="secondary"
+        >
+          Back to Dashboard
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 const IntelligenceAnalysisDialog: FC<IntelligenceAnalysisDialogProps> = ({
   isOpen,
   onClose,
@@ -159,6 +197,8 @@ const IntelligenceAnalysisDialog: FC<IntelligenceAnalysisDialogProps> = ({
           />
         ) : status === "completed" ? (
           <SuccessRedirect onGoToDashboard={handleGoToDashboard} />
+        ) : status === "error" ? (
+          <ErrorRedirect onGoToDashboard={handleGoToDashboard} error={error} />
         ) : (
           <div
             ref={contentRef}
@@ -167,12 +207,6 @@ const IntelligenceAnalysisDialog: FC<IntelligenceAnalysisDialogProps> = ({
             {assistantMessages.map((m) => (
               <MemoizedMarkdown key={m.id} content={m.content} id={m.id} />
             ))}
-
-            {status === "error" && (
-              <div className="text-red-600 text-sm mt-4">
-                {error?.message || "Unknown error"}
-              </div>
-            )}
           </div>
         )}
 

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Save, X } from 'lucide-react';
 import { Node, Edge } from 'reactflow';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface SaveSupplyChainDialogProps {
   isOpen: boolean;
@@ -77,14 +78,14 @@ const SaveSupplyChainDialog: FC<SaveSupplyChainDialogProps> = ({
   // Debounced URL parameter updates
   const debouncedSetNameParam = useCallback(
     debounce((value: string) => {
-      setNameParam(value || null);
+      setNameParam(value);
     }, 500),
     [setNameParam]
   );
 
   const debouncedSetDescriptionParam = useCallback(
     debounce((value: string) => {
-      setDescriptionParam(value || null);
+      setDescriptionParam(value);
     }, 500),
     [setDescriptionParam]
   );
@@ -92,8 +93,8 @@ const SaveSupplyChainDialog: FC<SaveSupplyChainDialogProps> = ({
   // Initialize values from URL params or props when dialog opens
   useEffect(() => {
     if (isOpen) {
-      const initialNameValue = nameParam || initialName || 'Default Supply Chain';
-      const initialDescValue = descriptionParam || initialDescription || '';
+      const initialNameValue = nameParam ?? initialName ?? 'Default Supply Chain';
+      const initialDescValue = descriptionParam ?? initialDescription ?? '';
       
       setName(initialNameValue);
       setDescription(initialDescValue);
@@ -139,14 +140,16 @@ const SaveSupplyChainDialog: FC<SaveSupplyChainDialogProps> = ({
 
   // Handle save action
   const handleSave = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      return;
+    }
 
     setIsLoading(true);
     try {
       await onSave(name.trim(), description.trim());
       handleClose();
     } catch (error) {
-      console.error('Error saving supply chain:', error);
+      toast.error('Failed to save supply chain. Please try again.');
     } finally {
       setIsLoading(false);
     }

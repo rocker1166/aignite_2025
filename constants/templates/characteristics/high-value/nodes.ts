@@ -1,67 +1,126 @@
 import { Node } from 'reactflow';
 
-// Use when: productCharacteristics includes "high_value" AND operationsLocation includes multiple regions
-// Characteristics: High-value/Low-volume, Air shipping, Security-focused
-// Typical risks: Cybersecurity, Political/regulatory, Quality/compliance
+// Use when: productCharacteristics includes "high_value" AND operationsLocation includes global markets
+// Characteristics: High-value/low-volume goods, Global operations, Air shipping, Security focus
+// Typical risks: Theft/security, Political/regulatory, Cybersecurity
 export const HIGH_VALUE_GLOBAL_TEMPLATE: Node[] = [
   {
-    id: 'luxury-supplier-1',
+    id: 'precision-supplier-1',
     type: 'supplierNode',
     data: {
-      label: 'Luxury Component Supplier',
-      description: 'High-end materials with premium quality',
+      label: 'Precision Components',
+      description: 'High-precision manufacturing components',
       type: 'Supplier',
-      capacity: 1000,
-      leadTime: 14,
+      capacity: 5000,
+      leadTime: 30,
       riskScore: 0.3,
-      location: { lat: 45.764, lng: 4.835 },
-      address: 'Lyon Luxury District, France'
+      location: { lat: 47.368, lng: 8.539, country: 'CHE' },
+      address: 'Zurich Precision Industries, Switzerland',
+      country: 'CHE',
+      // Supplier-specific required fields
+      supplierTier: 'tier1',
+      supplyCapacity: 5000,
+      materialType: 'Precision Components',
+      reliabilityPct: 98
     },
-    position: { x: 200, y: 100 },
+    position: { x: 100, y: 100 },
   },
   {
-    id: 'secure-facility-1',
+    id: 'aerospace-supplier-1',
+    type: 'supplierNode',
+    data: {
+      label: 'Aerospace Supplier',
+      description: 'Certified aerospace components',
+      type: 'Supplier',
+      capacity: 3000,
+      leadTime: 45,
+      riskScore: 0.2,
+      location: { lat: 48.858, lng: 2.294, country: 'FRA' },
+      address: 'Toulouse Aerospace Complex, France',
+      country: 'FRA',
+      // Supplier-specific required fields
+      supplierTier: 'tier1',
+      supplyCapacity: 3000,
+      materialType: 'Aerospace Components',
+      reliabilityPct: 99
+    },
+    position: { x: 100, y: 250 },
+  },
+  {
+    id: 'assembly-facility-1',
     type: 'factoryNode',
     data: {
-      label: 'Secure Assembly',
-      description: 'High-security manufacturing with quality controls',
+      label: 'High-Value Assembly',
+      description: 'Secure assembly of high-value products',
       type: 'Factory',
-      capacity: 500,
-      leadTime: 7,
+      capacity: 2000,
+      leadTime: 21,
       riskScore: 0.1,
-      location: { lat: 47.608, lng: -122.335 },
-      address: 'Seattle Secure Facility, WA'
+      location: { lat: 52.520, lng: 13.405, country: 'DEU' },
+      address: 'Munich High-Tech Assembly, Germany',
+      country: 'DEU',
+      // Factory-specific required fields
+      cycleTime: 10, // days per unit
+      utilizationPct: 75
     },
-    position: { x: 500, y: 150 },
+    position: { x: 450, y: 175 },
   },
   {
-    id: 'air-freight-hub-1',
-    type: 'portNode',
+    id: 'secure-warehouse-1',
+    type: 'warehouseNode',
     data: {
-      label: 'Air Freight Hub',
-      description: 'Express air shipping for high-value goods',
-      type: 'Port',
+      label: 'Secure Storage',
+      description: 'High-security storage facility',
+      type: 'Warehouse',
+      capacity: 8000,
+      leadTime: 2,
+      riskScore: 0.1,
+      location: { lat: 51.507, lng: -0.128, country: 'GBR' },
+      address: 'London Secure Storage, UK',
+      country: 'GBR',
+      // Warehouse-specific required fields
+      storageCapacity: 8000,
+      temperatureControl: true,
+      storageCostPerUnit: 15.0,
+      handlingCostPerUnit: 8.5
+    },
+    position: { x: 750, y: 120 },
+  },
+  {
+    id: 'express-distribution-1',
+    type: 'distributionNode',
+    data: {
+      label: 'Express Distribution',
+      description: 'High-priority express delivery network',
+      type: 'Distribution',
       capacity: 5000,
       leadTime: 1,
       riskScore: 0.2,
-      location: { lat: 35.047, lng: -106.061 },
-      address: 'Albuquerque Air Cargo, NM'
+      location: { lat: 40.712, lng: -74.006, country: 'USA' },
+      address: 'New York Express Hub, NY',
+      country: 'USA',
+      // Distribution-specific required fields
+      fleetSize: 20,
+      deliveryRangeKm: 1000
     },
-    position: { x: 800, y: 120 },
+    position: { x: 1050, y: 200 },
   },
   {
-    id: 'premium-distribution-1',
-    type: 'distributionNode',
+    id: 'premium-retail-1',
+    type: 'retailerNode',
     data: {
-      label: 'Premium Distribution',
-      description: 'White-glove delivery service',
-      type: 'Distribution',
-      capacity: 200,
-      leadTime: 2,
-      riskScore: 0.4,
-      location: { lat: 40.748, lng: -73.985 },
-      address: 'Manhattan Premium Service, NY'
+      label: 'Premium Retail',
+      description: 'High-end retail channels',
+      type: 'Retailer',
+      capacity: 3000,
+      leadTime: 3,
+      riskScore: 0.1,
+      location: { lat: 37.774, lng: -122.419, country: 'USA' },
+      address: 'San Francisco Premium Stores, CA',
+      country: 'USA',
+      // Retailer-specific required fields
+      demandRate: 150 // units per day
     },
-    position: { x: 1100, y: 180 },
+    position: { x: 1350, y: 250 },
   }
 ]; 

@@ -3,14 +3,16 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import DigitalTwinCard from '@/components/digital-twin/display/digital-twin-card';
 import { useQueryState, parseAsString } from 'nuqs';
-import { getUserSupplyChains } from '@/lib/api/supply-chain';
+import { getUserSupplyChains, deleteSupplyChainViaEdgeFunction } from '@/lib/api/supply-chain';
 import { useUser } from '@/lib/stores/user';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Trash2 } from 'lucide-react';
 import { RefreshCWIcon, PlusIcon } from '@/components/icons';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
 
 interface SupplyChainData {
   supply_chain_id: string;
@@ -56,6 +58,10 @@ export default function DigitalTwinDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [supplyChainToDelete, setSupplyChainToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [dataFetched, setDataFetched] = useState(false);
   const [view, setView] = useQueryState('view', parseAsString);
   const { userData, userLoading } = useUser();
 
@@ -72,6 +78,7 @@ export default function DigitalTwinDashboard() {
       
       if (response.status === 'success' && response.data) {
         setSupplyChains(response.data);
+        setDataFetched(true);
       } else {
         setError('Failed to load supply chains');
       }
@@ -96,14 +103,60 @@ export default function DigitalTwinDashboard() {
       return;
     }
 
+    // Skip fetching if data has already been fetched
+    if (dataFetched) {
+      return;
+    }
+
     // User is loaded and available, fetch supply chains
     setLoading(true);
     fetchSupplyChains();
-  }, [userLoading, userData?.id]);
+  }, [userLoading, userData?.id, dataFetched]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
+    setDataFetched(false); // Reset the flag to allow refetching
     await fetchSupplyChains();
+  };
+
+  const handleDelete = async (supplyChainId: string, supplyChainName: string) => {
+    if (!userData?.id) {
+      toast.error('User not found. Please log in.');
+      return;
+    }
+
+    // Open confirmation dialog
+    setSupplyChainToDelete({ id: supplyChainId, name: supplyChainName });
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!supplyChainToDelete || !userData?.id) {
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      await deleteSupplyChainViaEdgeFunction(supplyChainToDelete.id, userData.id);
+      toast.success('Supply chain deleted successfully');
+      
+      // Update local state directly by removing the deleted supply chain
+      setSupplyChains(prevChains => 
+        prevChains.filter(chain => chain.supply_chain_id !== supplyChainToDelete.id)
+      );
+    } catch (error) {
+      console.error('Error deleting supply chain:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to delete supply chain');
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+      setSupplyChainToDelete(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setSupplyChainToDelete(null);
   };
 
   const formatSupplyChainForCard = (chain: SupplyChainData) => {
@@ -278,12 +331,26 @@ export default function DigitalTwinDashboard() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {supplyChains.map((chain) => (
-                  <div key={chain.supply_chain_id} className="group">
-                    <GlassmorphicCard className="h-full overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:bg-white/80 dark:hover:bg-slate-900/10">
+                  <div key={chain.supply_chain_id} className="group relative">
+                    <GlassmorphicCard className="h-full transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:bg-white/80 dark:hover:bg-slate-900/10">
                       <DigitalTwinCard 
                         twin={formatSupplyChainForCard(chain)} 
                       />
                     </GlassmorphicCard>
+                    
+                    {/* Delete Icon - appears on hover */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute bottom-2 right-2 h-8 w-8 p-0 opacity-0 group-hover:opacity-70 hover:opacity-100 transition-all duration-200 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400 z-10"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDelete(chain.supply_chain_id, chain.name);
+                      }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -291,6 +358,50 @@ export default function DigitalTwinDashboard() {
           )}
         </main>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md border border-white/30 dark:border-slate-700/10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+              <AlertCircle className="h-5 w-5" />
+              Delete Supply Chain
+            </DialogTitle>
+            <DialogDescription className="text-slate-600 dark:text-slate-300">
+              Are you sure you want to delete <span className="font-semibold">"{supplyChainToDelete?.name}"</span>? 
+              This action cannot be undone and will permanently remove all associated data.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 mt-6">
+            <Button
+              variant="outline"
+              onClick={cancelDelete}
+              disabled={deleting}
+              className="flex-1 border-white/30 dark:border-slate-700/10 bg-white/70 dark:bg-slate-900/5 backdrop-blur-xl hover:bg-white/80 dark:hover:bg-slate-900/10"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleting}
+              className="flex-1 bg-red-600 hover:bg-red-700 shadow-md"
+            >
+              {deleting ? (
+                <>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

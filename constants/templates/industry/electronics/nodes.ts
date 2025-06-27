@@ -14,8 +14,14 @@ export const ELECTRONICS_TEMPLATE: Node[] = [
       capacity: 50000,
       leadTime: 21,
       riskScore: 0.6,
-      location: { lat: 25.032, lng: 121.565 },
-      address: 'Hsinchu Science Park, Taiwan'
+      location: { lat: 25.032, lng: 121.565, country: 'TWN' },
+      address: 'Hsinchu Science Park, Taiwan',
+      country: 'TWN',
+      // Supplier-specific required fields
+      supplierTier: 'tier3+',
+      supplyCapacity: 50000,
+      materialType: 'Semiconductors',
+      reliabilityPct: 92
     },
     position: { x: 100, y: 50 },
   },
@@ -29,8 +35,14 @@ export const ELECTRONICS_TEMPLATE: Node[] = [
       capacity: 80000,
       leadTime: 14,
       riskScore: 0.4,
-      location: { lat: 22.543, lng: 114.057 },
-      address: 'Shenzhen Tech Hub, China'
+      location: { lat: 22.543, lng: 114.057, country: 'CHN' },
+      address: 'Shenzhen Tech Hub, China',
+      country: 'CHN',
+      // Supplier-specific required fields
+      supplierTier: 'tier2',
+      supplyCapacity: 80000,
+      materialType: 'PCB & Electronic Components',
+      reliabilityPct: 88
     },
     position: { x: 400, y: 120 },
   },
@@ -44,8 +56,12 @@ export const ELECTRONICS_TEMPLATE: Node[] = [
       capacity: 30000,
       leadTime: 7,
       riskScore: 0.3,
-      location: { lat: 10.823, lng: 106.629 },
-      address: 'Ho Chi Minh Industrial Zone, Vietnam'
+      location: { lat: 10.823, lng: 106.629, country: 'VNM' },
+      address: 'Ho Chi Minh Industrial Zone, Vietnam',
+      country: 'VNM',
+      // Factory-specific required fields
+      cycleTime: 0.5, // days per unit
+      utilizationPct: 85
     },
     position: { x: 700, y: 200 },
   },
@@ -59,8 +75,9 @@ export const ELECTRONICS_TEMPLATE: Node[] = [
       capacity: 100000,
       leadTime: 2,
       riskScore: 0.2,
-      location: { lat: 1.290, lng: 103.851 },
-      address: 'Port of Singapore Authority, Singapore'
+      location: { lat: 1.290, lng: 103.851, country: 'SGP' },
+      address: 'Port of Singapore Authority, Singapore',
+      country: 'SGP'
     },
     position: { x: 1000, y: 150 },
   },
@@ -74,8 +91,9 @@ export const ELECTRONICS_TEMPLATE: Node[] = [
       capacity: 80000,
       leadTime: 1,
       riskScore: 0.3,
-      location: { lat: 33.739, lng: -118.262 },
-      address: 'Port of Los Angeles, CA'
+      location: { lat: 33.739, lng: -118.262, country: 'USA' },
+      address: 'Port of Los Angeles, CA',
+      country: 'USA'
     },
     position: { x: 1300, y: 200 },
   },
@@ -89,8 +107,14 @@ export const ELECTRONICS_TEMPLATE: Node[] = [
       capacity: 40000,
       leadTime: 3,
       riskScore: 0.1,
-      location: { lat: 34.052, lng: -118.243 },
-      address: 'Los Angeles Distribution Center, CA'
+      location: { lat: 34.052, lng: -118.243, country: 'USA' },
+      address: 'Los Angeles Distribution Center, CA',
+      country: 'USA',
+      // Warehouse-specific required fields
+      storageCapacity: 40000,
+      temperatureControl: true,
+      storageCostPerUnit: 2.5,
+      handlingCostPerUnit: 1.2
     },
     position: { x: 1600, y: 120 },
   },
@@ -104,8 +128,12 @@ export const ELECTRONICS_TEMPLATE: Node[] = [
       capacity: 20000,
       leadTime: 2,
       riskScore: 0.1,
-      location: { lat: 37.774, lng: -122.419 },
-      address: 'San Francisco Bay Area, CA'
+      location: { lat: 37.774, lng: -122.419, country: 'USA' },
+      address: 'San Francisco Bay Area, CA',
+      country: 'USA',
+      // Distribution-specific required fields
+      fleetSize: 50,
+      deliveryRangeKm: 200
     },
     position: { x: 1900, y: 200 },
   }

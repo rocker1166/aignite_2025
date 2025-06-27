@@ -17,6 +17,7 @@ interface LeftPanelProps {
   onAddNodeAtPosition?: (nodeType: string, position: { x: number; y: number }, label?: string, enhancedData?: any) => void;
   onClearAllNodes: () => void;
   onLoadTemplate?: (templateId: string) => void;
+  onLoadTemplateAtPosition?: (templateId: string, position: { x: number, y: number }) => void;
   simulationMode: boolean;
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
@@ -100,6 +101,16 @@ const LeftPanel: FC<LeftPanelProps> = ({
     const target = event.target as HTMLElement;
     target.style.opacity = '1';
     target.style.transform = 'scale(1)';
+  };
+
+  const onTemplateDragStart = (event: React.DragEvent, templateId: string) => {
+    event.dataTransfer.setData('application/reactflow-template', templateId);
+    event.dataTransfer.effectAllowed = 'move';
+
+    // Add visual feedback during drag
+    const target = event.target as HTMLElement;
+    target.style.opacity = '0.6';
+    target.style.transform = 'scale(0.95)';
   };
 
   const handleImmersiveModeChange = (immersive: boolean) => {
@@ -387,9 +398,12 @@ const LeftPanel: FC<LeftPanelProps> = ({
                                           <Button
                                             variant="outline"
                                             onClick={() => onLoadTemplate?.(template.id)}
+                                            onDragStart={(event) => onTemplateDragStart(event, template.id)}
+                                            onDragEnd={onDragEnd}
+                                            draggable={!simulationMode}
                                             disabled={simulationMode || !onLoadTemplate}
                                             className={`w-full h-auto p-2.5 justify-start hover:bg-muted/80 shadow-sm transition-all duration-200 ${
-                                              simulationMode ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md'
+                                              simulationMode ? 'opacity-50 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing hover:shadow-md'
                                             }`}
                                           >
                                             <div className="flex items-center w-full min-h-[40px]">
