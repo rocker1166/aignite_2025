@@ -9,7 +9,7 @@ import * as Sentry from "@sentry/nextjs";
 // Only initialize Sentry on the client side
 if (typeof window !== 'undefined') {
   Sentry.init({
-    dsn: "https://b55db809fba3391b904a569ed20ba3f7@o4509570168520704.ingest.us.sentry.io/4509570170552320",
+    dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
     // Add optional integrations for additional features
     integrations: [
@@ -45,7 +45,7 @@ if (typeof window !== 'undefined') {
     ],
 
     // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
-    tracesSampleRate: 1,
+   tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1,
     
     // Session Replay sampling rates
     replaysSessionSampleRate: 0.1, // 10% of sessions

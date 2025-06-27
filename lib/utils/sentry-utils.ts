@@ -31,7 +31,9 @@ export function withSentry(handler: ApiHandler): ApiHandler {
       return NextResponse.json(
         { 
           error: "Internal Server Error",
-          message: process.env.NODE_ENV === "development" ? (error as Error).message : "Something went wrong"
+         message: process.env.NODE_ENV === "development" ? 
++          (error as Error).message : 
++          "An unexpected error occurred. Please try again."
         },
         { status: 500 }
       );

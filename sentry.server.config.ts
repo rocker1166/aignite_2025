@@ -21,7 +21,7 @@ Sentry.init({
   // Add context for API routes and server errors
   beforeSend(event, hint) {
     // Log server-side errors for debugging
-    if (event.exception) {
+    if (event.exception && process.env.NODE_ENV === 'development') {
       console.log('Server-side Sentry captured error:', hint.originalException);
     }
     return event;

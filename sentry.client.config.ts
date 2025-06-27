@@ -53,7 +53,7 @@ Sentry.init({
   // Add context for better debugging
   beforeSend(event, hint) {
     // Add additional context
-    if (event.exception) {
+    if (event.exception && process.env.NODE_ENV === 'development') {
       const error = hint.originalException;
       console.log('Sentry captured error:', error);
     }
