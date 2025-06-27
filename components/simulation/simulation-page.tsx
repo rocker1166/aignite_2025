@@ -1,17 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from 'sonner'
 import { Sparkles } from "lucide-react"
 import { WorkflowIcon, HistoryIcon } from "@/components/icons"
 import { PlusIcon } from "@/components/icons/plus-icon"
-import { parseAsString, useQueryState } from "nuqs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
 
-import { SimulationResults } from "@/components/simulation/simulation-results"
 import { SimulationHistory } from "@/components/simulation/simulation-history"
 import { SimulationLoader } from "@/components/simulation/test/simulation-loader"
 import { AIScenarioSuggestions } from "@/components/simulation/test/ai-scenario-suggestions"
@@ -53,13 +52,14 @@ function GlassmorphicCard({ children, className = "", variant = "default", ...pr
 }
 
 function SimulationPageContent() {
+  const router = useRouter()
   const [simulationHistory, setSimulationHistory] = useState<Simulation[]>([])
   const [currentSimulation, setCurrentSimulation] = useState<Simulation | null>(null)
   const [isAIScenarioOpen, setIsAIScenarioOpen] = useState(false)
   const [progress, setProgress] = useState(0)
 
-  // URL state management with nuqs
-  const [view, setView] = useQueryState('view', parseAsString.withDefault('templates'))
+  // View state management - simplified without query params
+  const [view, setView] = useState('templates')
   const [simulationRunning, setSimulationRunning] = useState(false)
   const [simulationComplete, setSimulationComplete] = useState(false)
 
@@ -270,13 +270,15 @@ function SimulationPageContent() {
         setIsLoading(false)
       }
 
-      const interval = setInterval(() => {
+        const interval = setInterval(() => {
         setProgress((prev) => {
           if (prev >= 100) {
             clearInterval(interval)
             setSimulationRunning(false)
             setSimulationComplete(true)
-            setView('results')
+            
+            // Navigate to results page instead of changing view
+            router.push('/simulation/result')
 
             if (created) {
               updateSimulation(created.simulation_id, {
@@ -406,46 +408,6 @@ function SimulationPageContent() {
               <GlassmorphicCard variant="accent" className="p-12">
                 <SimulationLoader progress={progress} />
               </GlassmorphicCard>
-            </div>
-          </div>
-        )}
-
-        {view === 'results' && simulationComplete && (
-          <div className="p-6 px-10 space-y-8">
-            <div className="max-w-7xl mx-auto">
-              <GlassmorphicCard variant="accent" className="p-8 mb-8">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-3">
-                    <h1 className="text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 via-blue-600 to-indigo-600 dark:from-emerald-400 dark:via-blue-400 dark:to-indigo-400">
-                      Simulation Results
-                    </h1>
-                    <p className="text-slate-600 dark:text-slate-300 text-xl leading-relaxed">
-                      Analysis complete - review your supply chain impact assessment and resilience metrics
-                    </p>
-                    <div className="flex items-center gap-4 pt-2">
-                      <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
-                        <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                        Simulation completed successfully
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                        <WorkflowIcon className="w-4 h-4" />
-                        Monte Carlo analysis
-                      </div>
-                    </div>
-                  </div>
-                  <Button 
-                    onClick={handleNewSimulation} 
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-xl hover:shadow-2xl transition-all duration-300 h-12 px-8 text-base text-white rounded-xl"
-                  >
-                    <PlusIcon size={18} className="mr-3" />
-                    New Simulation
-                  </Button>
-                </div>
-              </GlassmorphicCard>
-              
-              <div className="space-y-6">
-                <SimulationResults simulationId={currentSimulation?.simulation_id} />
-              </div>
             </div>
           </div>
         )}
