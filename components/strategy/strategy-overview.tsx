@@ -50,11 +50,11 @@ export function StrategyOverview({ strategy }: StrategyOverviewProps) {
   return (
     <div className="p-6 space-y-6">
       {/* Strategy Header */}
-      <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/30 rounded-xl p-6 border border-slate-700/50">
+      <div className="bg-gradient-to-r from-gray-100/80 to-gray-50/80 dark:from-slate-800/50 dark:to-slate-700/30 rounded-xl p-6 border border-gray-200 dark:border-slate-700/50">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-bold text-white mb-2">{strategy.name}</h2>
-            <p className="text-slate-300 text-sm leading-relaxed max-w-2xl">{strategy.description}</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{strategy.name}</h2>
+            <p className="text-gray-700 dark:text-slate-300 text-sm leading-relaxed max-w-2xl">{strategy.description}</p>
           </div>
           <div className="flex items-center gap-3">
             <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">{strategy.status}</Badge>
@@ -74,12 +74,12 @@ export function StrategyOverview({ strategy }: StrategyOverviewProps) {
 
         <div className="grid grid-cols-4 gap-6">
           {keyMetrics.map((metric, index) => (
-            <div key={index} className="bg-slate-800/40 rounded-lg p-4 border border-slate-700/30">
+            <div key={index} className="bg-white border-gray-200 dark:bg-slate-800/40 dark:border-slate-700/50 shadow-md">
               <div className="flex items-center gap-3 mb-2">
                 <metric.icon className={`w-5 h-5 ${metric.color}`} />
-                <span className="text-slate-400 text-sm">{metric.label}</span>
+                <span className="text-gray-600 dark:text-slate-400 text-sm">{metric.label}</span>
               </div>
-              <div className="text-xl font-bold text-white">{metric.value}</div>
+              <div className="text-xl font-bold text-gray-900 dark:text-white">{metric.value}</div>
             </div>
           ))}
         </div>
@@ -87,9 +87,9 @@ export function StrategyOverview({ strategy }: StrategyOverviewProps) {
 
       <div className="grid grid-cols-2 gap-6">
         {/* Progress Overview */}
-        <Card className="bg-slate-800/40 border-slate-700/50">
+        <Card className="bg-white border-gray-200 dark:bg-slate-800/40 dark:border-slate-700/50 shadow-md">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
               <Target className="w-5 h-5 text-blue-400" />
               Progress Overview
             </CardTitle>
@@ -97,26 +97,26 @@ export function StrategyOverview({ strategy }: StrategyOverviewProps) {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Overall Progress</span>
-                <span className="text-white font-medium">{strategy.progress}%</span>
+                <span className="text-gray-600 dark:text-slate-400">Overall Progress</span>
+                <span className="text-gray-900 dark:text-white font-medium">{strategy.progress}%</span>
               </div>
-              <Progress value={strategy.progress} className="h-2 bg-slate-700" />
+              <Progress value={strategy.progress} className="h-2 bg-gray-200 dark:bg-slate-700" />
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Tasks Completed</span>
-                <span className="text-white font-medium">
+                <span className="text-gray-600 dark:text-slate-400">Tasks Completed</span>
+                <span className="text-gray-900 dark:text-white font-medium">
                   {strategy.completedTasks}/{strategy.totalTasks}
                 </span>
               </div>
-              <Progress value={(strategy.completedTasks / strategy.totalTasks) * 100} className="h-2 bg-slate-700" />
+              <Progress value={(strategy.completedTasks / strategy.totalTasks) * 100} className="h-2 bg-gray-200 dark:bg-slate-700" />
             </div>
 
-            <div className="pt-4 border-t border-slate-700/50">
+            <div className="pt-4 border-t border-gray-200 dark:border-slate-700/50">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-400">Estimated Completion</span>
-                <span className="text-white font-medium">{strategy.estimatedCompletion}</span>
+                <span className="text-gray-600 dark:text-slate-400">Estimated Completion</span>
+                <span className="text-gray-900 dark:text-white font-medium">{strategy.estimatedCompletion}</span>
               </div>
             </div>
           </CardContent>
@@ -170,7 +170,7 @@ export function StrategyOverview({ strategy }: StrategyOverviewProps) {
             {milestones.map((milestone, index) => (
               <div
                 key={index}
-                className="flex items-center gap-4 p-3 rounded-lg bg-slate-700/30 border border-slate-600/30"
+                className="flex items-center gap-4 p-3 rounded-lg bg-gray-50 border border-gray-100 dark:bg-slate-700/30 dark:border-slate-600/30"
               >
                 <div className="flex-shrink-0">
                   {milestone.status === "completed" ? (
@@ -205,7 +205,7 @@ export function StrategyOverview({ strategy }: StrategyOverviewProps) {
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
             {riskFactors.map((risk, index) => (
-              <div key={index} className="p-4 rounded-lg bg-slate-700/30 border border-slate-600/30">
+              <div key={index} className="p-4 rounded-lg bg-gray-50 border border-gray-100 dark:bg-slate-700/30 dark:border-slate-600/30">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-white font-medium">{risk.factor}</span>
                   <Badge

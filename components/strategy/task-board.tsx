@@ -177,25 +177,34 @@ export function TaskBoard({ strategy }: TaskBoardProps) {
   }
 
   return (
-    <div className="p-6 h-full">
+    <div className="p-6 h-full bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-xl font-bold text-white mb-1">Task Management Board</h2>
-          <p className="text-slate-400">Track and manage strategy implementation tasks</p>
+      <div className="flex flex-row items-center mb-6">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Task Kanban Board</h2>
+          <p className="text-gray-700 dark:text-slate-400">Drag and drop tasks to update their status and track progress</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-x-2 flex-shrink-0">
           <Button
             variant="outline"
             size="sm"
-            className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent"
+            className="flex items-center border-slate-300 text-slate-500 hover:bg-slate-100 bg-white"
           >
-            <Filter className="w-4 h-4 mr-2" />
-            Filter
+            <Filter className="w-4 h-4 mr-1" />
+            <span>Filter</span>
           </Button>
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Task
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center border-slate-300 text-slate-400 bg-white cursor-not-allowed"
+            disabled
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            <span>Add Section</span>
+          </Button>
+          <Button size="sm" className="flex items-center bg-blue-600 hover:bg-blue-700 text-white shadow-md">
+            <Plus className="w-4 h-4 mr-1" />
+            <span>Add Task</span>
           </Button>
         </div>
       </div>
@@ -205,12 +214,20 @@ export function TaskBoard({ strategy }: TaskBoardProps) {
         {taskColumns.map((column) => (
           <div key={column.id} className="flex flex-col">
             {/* Column Header */}
-            <div className="flex items-center justify-between mb-4 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+            <div className="flex items-center justify-between mb-4 p-3 rounded-lg bg-white border border-gray-200 shadow-md shadow-lg dark:bg-slate-800/50 dark:border-slate-700/50">
               <div className="flex items-center gap-3">
                 <div className={`w-3 h-3 rounded-full ${column.color}`} />
-                <span className="font-medium text-white">{column.title}</span>
+                <span style={{ color: '#000', fontWeight: 700 }}>{column.title}</span>
               </div>
-              <Badge className="bg-slate-700/50 text-slate-300 border-slate-600/50">{column.count}</Badge>
+              <Badge className={
+                column.id === "todo"
+                  ? "bg-gray-200 text-black border-gray-300 dark:bg-slate-600 dark:text-white dark:border-slate-600"
+                  : column.id === "in-progress"
+                  ? "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-600 dark:text-white dark:border-blue-600"
+                  : column.id === "blocked"
+                  ? "bg-red-100 text-red-800 border-red-200 dark:bg-red-600 dark:text-white dark:border-red-600"
+                  : "bg-gray-200 text-black border-gray-300 dark:bg-slate-700/50 dark:text-white dark:border-slate-600"
+              }>{column.count}</Badge>
             </div>
 
             {/* Tasks */}
