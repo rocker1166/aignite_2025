@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from "react"
 import { Loader2 } from "lucide-react"
 import { Button } from "./button"
 import { useRouter } from "next/navigation"
+import { MemoizedMarkdown } from "@/components/copilot/memoized-markdown"
 
 interface AILoadingStateProps {
   /**
@@ -45,15 +46,16 @@ export default function AILoadingState({ content = "" }: AILoadingStateProps) {
       </div>
 
       {/* Streaming text block */}
-      <div className="relative border rounded-lg bg-gray-50 p-4">
+      <div className="relative border rounded-lg bg-gray-50 p-4 shadow-md">
         <div
           ref={textContainerRef}
           className="w-full h-[300px] overflow-y-auto bg-transparent pr-2"
           style={{ scrollBehavior: "smooth" }}
         >
-          <div className="text-sm text-gray-800 whitespace-pre-wrap">
-            {content}
-          </div>
+          <MemoizedMarkdown 
+            content={content} 
+            id="ai-loading-stream" 
+          />
         </div>
 
         {/* Gradient overlay to soften top edges */}
