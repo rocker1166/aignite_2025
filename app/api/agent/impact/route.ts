@@ -8,12 +8,33 @@ import { z } from 'zod'
 import { supabaseServer } from '@/lib/supabase/server'
 import { Redis } from '@upstash/redis'
 import type { Simulation, ImpactResult, Node, Edge, SupplyChain } from '@/lib/types/database'
+import { createMem0, addMemories, retrieveMemories, getMemories } from '@mem0/vercel-ai-provider'
 
 // Initialize Redis for advanced caching with TTL strategies
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_URL!,
   token: process.env.UPSTASH_REDIS_TOKEN!
 })
+
+// Initialize Mem0 with proper configuration following latest docs
+const mem0 = createMem0({
+  provider: 'google',
+  mem0ApiKey: process.env.MEM0_API_KEY || '',
+  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
+  config: {
+    compatibility: 'strict',
+  }
+});
+
+// Mem0 configuration constants for impact assessment
+const MEM0_CONFIG = {
+  user_id: 'impact-assessment-agent', // Specific user ID for impact agent
+  org_id: process.env.MEM0_ORG_ID || '',
+  project_id: process.env.MEM0_PROJECT_ID || '',
+  app_id: 'intellisupply-impact-agent',
+  agent_id: 'supply-chain-impact-agent',
+  run_id: `impact-run-${Date.now()}` // Generate a unique run ID
+};
 
 // Enhanced Impact Assessment Schema with Advanced Analytics
 const ImpactMetricsSchema = z.object({
@@ -88,7 +109,7 @@ const SimulationResultsSchema = z.object({
 class ProductionImpactAssessmentAgent {
 
   constructor() {
-    console.log('🚀 Production Impact Assessment Agent V2.0 initialized')
+    console.log('🚀 Production Impact Assessment Agent V2.0 initialized with Mem0 integration')
   }
 
   // Enhanced cache management with scenario-based caching
@@ -129,6 +150,246 @@ class ProductionImpactAssessmentAgent {
       console.log(`💾 Cached enhanced impact assessment for simulation ${simulationId} (TTL: ${ttl}s)`)
     } catch (error) {
       console.error('❌ Cache storage error:', error)
+    }
+  }
+
+  /**
+   * Build memory context from previous impact assessments using Mem0
+   * This provides historical context for better analysis
+   */
+  async buildMemoryContext(supplyChainId: string, scenarioType: string, simulationId: string): Promise<string> {
+    let memoryContext = ''
+    
+    try {
+      if (!process.env.MEM0_API_KEY) {
+        console.log('📝 Mem0 API key not available, skipping memory context')
+        return 'Memory context not available (Mem0 API key not configured)'
+      }
+
+      // Build rich search queries for different types of impact memories
+      const searchQueries = [
+        `impact assessment ${scenarioType} supply chain ${supplyChainId}`,
+        `financial impact analysis ${scenarioType}`,
+        `supply chain disruption ${scenarioType} cost delay inventory`,
+        `cascading effects ${scenarioType} network resilience`,
+        `recovery time estimation ${scenarioType}`
+      ]
+
+      // Retrieve memories using multiple search strategies
+      const memoryPromises = searchQueries.map(async (query) => {
+        try {
+          return await getMemories(query, {
+            user_id: `impact-chain-${supplyChainId}`,
+            mem0ApiKey: process.env.MEM0_API_KEY
+          })
+        } catch (error) {
+          console.warn(`Memory retrieval failed for query: ${query}`, error)
+          return []
+        }
+      })
+
+      const memoryResults = await Promise.allSettled(memoryPromises)
+      const allMemories = memoryResults
+        .filter((result): result is PromiseFulfilledResult<any[]> => result.status === 'fulfilled')
+        .flatMap(result => result.value)
+        .filter(Boolean)
+
+      // Remove duplicates based on memory content
+      const uniqueMemories = Array.from(
+        new Map(allMemories.map(m => [m.id || m.content || m.text, m])).values()
+      )
+
+      console.log(`🧠 Retrieved ${uniqueMemories.length} unique impact assessment memories`)
+
+      if (uniqueMemories.length === 0) {
+        return 'No historical impact assessment data available for this supply chain'
+      }
+
+      // Filter memories by scenario type for more relevant context
+      const relevantMemories = uniqueMemories.filter((memory: any) => {
+        const memContent = (memory.content || memory.text || '').toLowerCase()
+        return memContent.includes(scenarioType.toLowerCase()) || 
+               memContent.includes('impact') || 
+               memContent.includes('disruption')
+      }).slice(0, 5)
+
+      if (relevantMemories.length > 0) {
+        memoryContext += `\nHISTORICAL IMPACT ASSESSMENTS (${scenarioType}):\n`
+        relevantMemories.forEach((memory: any, index: number) => {
+          const memText = memory.content || memory.text || memory.memory || ''
+          memoryContext += `\n${index + 1}. ${memText.substring(0, 300)}...\n`
+          
+          // Extract structured metadata if available
+          if (memory.metadata) {
+            if (memory.metadata.cost_impact) {
+              memoryContext += `   - Previous Cost Impact: ${memory.metadata.cost_impact}\n`
+            }
+            if (memory.metadata.affected_nodes) {
+              memoryContext += `   - Previously Affected Nodes: ${memory.metadata.affected_nodes}\n`
+            }
+            if (memory.metadata.analysis_date) {
+              memoryContext += `   - Analysis Date: ${memory.metadata.analysis_date}\n`
+            }
+          }
+        })
+      }
+
+      // Get general supply chain memories for broader context
+      const generalMemories = uniqueMemories.filter((memory: any) => {
+        const memContent = (memory.content || memory.text || '').toLowerCase()
+        return !memContent.includes(scenarioType.toLowerCase()) && 
+               (memContent.includes('supply chain') || memContent.includes('risk'))
+      }).slice(0, 3)
+
+      if (generalMemories.length > 0) {
+        memoryContext += `\nOTHER HISTORICAL ASSESSMENTS:\n`
+        generalMemories.forEach((memory: any, index: number) => {
+          const memText = memory.content || memory.text || memory.memory || ''
+          memoryContext += `\n${index + 1}. ${memText.substring(0, 200)}...\n`
+        })
+      }
+
+      // Add trend analysis if we have multiple memories
+      if (uniqueMemories.length >= 2) {
+        memoryContext += `\nTREND ANALYSIS:\n`
+        memoryContext += `- Historical assessments available: ${uniqueMemories.length}\n`
+        memoryContext += `- Most relevant scenario type: ${scenarioType}\n`
+        memoryContext += `- Analysis improves with historical context\n`
+      }
+
+      return memoryContext || 'Limited historical context available'
+    } catch (error) {
+      console.error('❌ Error building memory context:', error)
+      return 'Error retrieving historical context'
+    }
+  }
+
+  /**
+   * Store comprehensive impact assessment results in Mem0 for future reference
+   */
+  async storeImpactMemory(simulationId: string, impactData: any, supplyChainData: any): Promise<boolean> {
+    if (!process.env.MEM0_API_KEY) {
+      console.log('📝 Mem0 API key not available, skipping memory storage')
+      return false
+    }
+    
+    try {
+      // Create rich, structured memory about the impact assessment
+      const memoryText = `
+SUPPLY CHAIN IMPACT ASSESSMENT ANALYSIS:
+
+Simulation Details:
+- Scenario: ${impactData.scenarioName} (${impactData.scenarioType})
+- Supply Chain: ${supplyChainData.supplyChain?.name || 'Unknown'}
+- Organization: ${supplyChainData.supplyChain?.organisation || 'Unknown'}
+- Analysis Date: ${new Date().toISOString()}
+
+IMPACT METRICS:
+- Total Cost Impact: ${impactData.metrics.totalCostImpact}
+- Average Delay: ${impactData.metrics.averageDelay}
+- Inventory Reduction: ${impactData.metrics.inventoryReduction}
+- Recovery Time: ${impactData.metrics.recoveryTime}
+- Affected Nodes: ${impactData.metrics.affectedNodes}
+- Network Resilience Score: ${impactData.metrics.networkResilience || 'N/A'}/100
+- Cascading Probability: ${Math.round((impactData.metrics.cascadingProbability || 0) * 100)}%
+
+KEY FINDINGS:
+${impactData.keyFindings.map((finding: string) => `- ${finding}`).join('\n')}
+
+FINANCIAL IMPACT BREAKDOWN:
+${impactData.impactBreakdown.map((impact: string) => `- ${impact}`).join('\n')}
+
+RISK FACTORS IDENTIFIED:
+${impactData.riskFactors.map((risk: string) => `- ${risk}`).join('\n')}
+
+${impactData.cascadingEffects && impactData.cascadingEffects.length > 0 ? 
+`CASCADING EFFECTS:
+${impactData.cascadingEffects.slice(0, 5).map((effect: any) => 
+  `- ${effect.affectedNode}: ${effect.impactType} (${effect.severity}) - ${effect.timeline}`
+).join('\n')}` : ''}
+
+${impactData.mitigationStrategies && impactData.mitigationStrategies.length > 0 ? 
+`TOP MITIGATION STRATEGIES:
+${impactData.mitigationStrategies.slice(0, 3).map((strategy: any) => 
+  `- ${strategy.strategy} (Cost: ${strategy.estimatedCost}, Timeline: ${strategy.timeToImplement})`
+).join('\n')}` : ''}
+
+ANALYSIS METADATA:
+- Processing Time: ${impactData.processingTime || 0}ms
+- Analysis Depth: ${impactData.analysisDepth || 'ADVANCED'}
+- Confidence Score: ${impactData.confidenceScore ? (impactData.confidenceScore * 100).toFixed(1) + '%' : 'N/A'}
+- Monte Carlo Runs: ${impactData.monteCarloRuns || 'N/A'}
+      `
+
+      // Create memory messages using the correct format from info agent
+      const memoryMessages = [{
+        role: 'user' as const,
+        content: [{
+          type: 'text' as const,
+          text: memoryText
+        }]
+      }]
+
+      // Store memory with comprehensive metadata using the working format
+      await addMemories(memoryMessages, {
+        user_id: `impact-chain-${supplyChainData.simulation.supply_chain_id}`,
+        mem0ApiKey: process.env.MEM0_API_KEY
+      })
+
+      console.log(`🧠 Stored comprehensive impact assessment memory for simulation ${simulationId}`)
+      return true
+    } catch (error: any) {
+      console.error('❌ Error storing impact memory:', error)
+      return false
+    }
+  }
+
+  /**
+   * Retrieve relevant impact assessment memories for analysis context
+   */
+  async getImpactMemories(simulationId: string, supplyChainId: string): Promise<any[]> {
+    if (!process.env.MEM0_API_KEY) {
+      console.log('📝 Mem0 API key not available, skipping memory retrieval')
+      return []
+    }
+
+    try {
+      // Multiple search strategies for comprehensive memory retrieval
+      const searchQueries = [
+        `impact assessment supply chain ${supplyChainId}`,
+        `financial impact analysis ${supplyChainId}`,
+        `supply chain disruption cost analysis`,
+        `cascading effects network resilience`,
+        `supply chain risk assessment ${supplyChainId}`
+      ]
+
+      const memoryPromises = searchQueries.map(async (query) => {
+        try {
+          return await getMemories(query, {
+            user_id: `impact-chain-${supplyChainId}`,
+            mem0ApiKey: process.env.MEM0_API_KEY
+          })
+        } catch (error) {
+          return []
+        }
+      })
+
+      const results = await Promise.allSettled(memoryPromises)
+      const allMemories = results
+        .filter((result): result is PromiseFulfilledResult<any[]> => result.status === 'fulfilled')
+        .flatMap(result => result.value)
+        .filter(Boolean)
+
+      // Remove duplicates and sort by relevance
+      const uniqueMemories = Array.from(
+        new Map(allMemories.map(m => [m.id || m.content || m.text, m])).values()
+      )
+
+      console.log(`🧠 Retrieved ${uniqueMemories.length} impact assessment memories`)
+      return uniqueMemories.slice(0, 10) // Limit to most relevant
+    } catch (error: any) {
+      console.error('❌ Error retrieving impact memories:', error)
+      return []
     }
   }
 
@@ -663,10 +924,10 @@ class ProductionImpactAssessmentAgent {
     }
   }
 
-  // Main impact assessment method
+  // Main method for comprehensive impact assessment
   public async conductComprehensiveImpactAssessment(simulationId: string): Promise<any> {
     const startTime = Date.now()
-    console.log(`🚀 Starting comprehensive impact assessment for simulation ${simulationId}`)
+    console.log(`� Starting comprehensive impact assessment for simulation ${simulationId}`)
 
     try {
       // Check cache first
@@ -676,472 +937,111 @@ class ProductionImpactAssessmentAgent {
         return cachedResult
       }
 
-      // Gather comprehensive supply chain data
+      // Check for similar scenario results
+      const similarResults = await this.findSimilarScenarioResults(simulationId)
+      if (similarResults) {
+        console.log('🔍 Found similar scenario results, adapting for current simulation')
+        await this.cacheImpactAssessment(simulationId, similarResults)
+        return {
+          ...similarResults,
+          adapted: true,
+          originalSimulationId: similarResults.originalSimulationId
+        }
+      }
+
+      // Gather comprehensive data
       const supplyChainData = await this.gatherSupplyChainData(simulationId)
-      console.log(`📊 Gathered data: ${supplyChainData.nodes.length} nodes, ${supplyChainData.edges.length} edges`)
+      
+      // Build memory context from previous assessments
+      const memoryContext = await this.buildMemoryContext(
+        supplyChainData.simulation.supply_chain_id,
+        supplyChainData.simulation.scenario_type,
+        simulationId
+      )
 
       // Build network topology
       const topology = this.buildNetworkTopology(supplyChainData.nodes, supplyChainData.edges)
       
       // Calculate impact propagation
-      const impactAnalysis = this.calculateImpactPropagation(
+      const impactPropagation = this.calculateImpactPropagation(
         topology,
         supplyChainData.simulation,
-        30 // 30-day analysis window
+        30
       )
 
-      // Build comprehensive analysis context for AI
-      const analysisContext = this.buildAnalysisContext(supplyChainData, impactAnalysis, topology)
-
-      // Generate AI-enhanced impact assessment
-      const aiAssessment = await this.generateAIImpactAssessment(analysisContext)
-
-      // Calculate numerical metrics from AI assessment and analysis
-      const calculatedMetrics = this.calculateNumericalMetrics(impactAnalysis, supplyChainData.nodes)
-
-      // Merge AI assessment with calculated data
-      const finalAssessment = {
-        ...aiAssessment,
-        metrics: {
-          ...aiAssessment.metrics,
-          networkResilience: calculatedMetrics.networkResilience,
-          cascadingProbability: calculatedMetrics.cascadingProbability
-        },
-        cascadingEffects: impactAnalysis.cascadingEffects,
-        networkAnalysis: {
-          totalNodes: supplyChainData.nodes.length,
-          totalEdges: supplyChainData.edges.length,
-          networkDensity: this.calculateNetworkDensity(supplyChainData.nodes.length, supplyChainData.edges.length),
-          criticalNodes: this.identifyCriticalNodes(topology),
-          singlePointsOfFailure: this.identifySinglePointsOfFailure(topology),
-          alternativeRoutes: this.calculateAlternativeRoutes(topology),
-          averageShortestPath: this.calculateAverageShortestPath(topology),
-          clusteringCoefficient: this.calculateClusteringCoefficient(topology)
-        },
-        confidenceScore: calculatedMetrics.confidenceScore,
-        monteCarloRuns: 1000,
-        analysisDepth: 'EXPERT',
-        processingTime: Date.now() - startTime,
-        dataQuality: {
-          completeness: this.calculateDataCompleteness(supplyChainData),
-          consistency: this.calculateDataConsistency(supplyChainData),
-          recency: this.calculateDataRecency(supplyChainData)
-        }
-      }
+      // Generate comprehensive assessment using AI
+      const aiAnalysis = await this.generateAIAnalysis(
+        supplyChainData,
+        impactPropagation,
+        memoryContext
+      )
 
       // Store results in database
-      await this.storeImpactResults(simulationId, finalAssessment, calculatedMetrics)
+      await this.storeImpactResults(simulationId, aiAnalysis, impactPropagation)
+      
+      // Store in memory for future context
+      await this.storeImpactMemory(simulationId, aiAnalysis, supplyChainData)
 
       // Cache the results
-      await this.cacheImpactAssessment(simulationId, finalAssessment)
+      await this.cacheImpactAssessment(simulationId, aiAnalysis)
+      await this.cacheScenarioResults(simulationId, aiAnalysis)
 
-      console.log(`✅ Comprehensive impact assessment completed in ${Date.now() - startTime}ms`)
-      return finalAssessment
+      const processingTime = Date.now() - startTime
+      console.log(`✅ Comprehensive impact assessment completed in ${processingTime}ms`)
+
+      return {
+        ...aiAnalysis,
+        processingTime,
+        enhanced: true,
+        memoryContextAvailable: memoryContext !== 'Memory context not available (Mem0 API key not configured)'
+      }
 
     } catch (error) {
       console.error('❌ Error in comprehensive impact assessment:', error)
-      
-      // Return fallback assessment if AI fails
-      return this.generateFallbackAssessment(simulationId, startTime)
-    }
-  }
-
-  private buildAnalysisContext(supplyChainData: any, impactAnalysis: any, topology: Map<string, any>): string {
-    return `
-COMPREHENSIVE SUPPLY CHAIN IMPACT ANALYSIS
-
-SIMULATION CONTEXT:
-- Scenario: ${supplyChainData.simulation.name}
-- Type: ${supplyChainData.simulation.scenario_type}
-- Parameters: ${JSON.stringify(supplyChainData.simulation.parameters)}
-
-NETWORK TOPOLOGY ANALYSIS:
-- Total Nodes: ${supplyChainData.nodes.length}
-- Total Edges: ${supplyChainData.edges.length}
-- Directly Affected Nodes: ${impactAnalysis.directlyAffected.length}
-- Total Impact Score: ${Math.round(impactAnalysis.totalImpactScore)}
-
-DETAILED NODE INFORMATION:
-${supplyChainData.nodes.map((node: any) => `
-- ${node.name} (${node.type}):
-  * Capacity: ${node.capacity || 'Unknown'}
-  * Current Inventory: ${node.current_inventory || 'Unknown'}
-  * Risk Level: ${node.risk_level || 'Unknown'}%
-  * Criticality Score: ${topology.get(node.node_id)?.criticalityScore?.toFixed(2) || 'Unknown'}
-`).join('')}
-
-NETWORK CONNECTIONS:
-${supplyChainData.edges.map((edge: any) => `
-- ${edge.from_node_id} → ${edge.to_node_id}:
-  * Type: ${edge.relationship_type}
-  * Cost: $${edge.cost}
-  * Transit Time: ${edge.transit_time} days
-`).join('')}
-
-CASCADING EFFECTS ANALYSIS (Top 10):
-${impactAnalysis.cascadingEffects.slice(0, 10).map((effect: any) => `
-- ${effect.affectedNode}: ${effect.impactType}
-  * Severity: ${effect.severity}
-  * Probability: ${(effect.probability * 100).toFixed(1)}%
-  * Financial Impact: $${effect.financialImpact.toLocaleString()}
-  * Timeline: ${effect.timeline}
-`).join('')}
-
-RECOVERY TIMELINE (First 10 Actions):
-${impactAnalysis.recoveryTimeline.slice(0, 10).map((item: any) => `
-- Day ${item.day}: ${item.action} for ${item.nodeName}
-  * Recovery Time: ${item.recoveryTime} days
-  * Estimated Cost: $${item.cost.toLocaleString()}
-`).join('')}
-
-ANALYSIS REQUIREMENTS:
-You must provide a comprehensive impact assessment following the exact schema provided. Focus on:
-
-1. QUANTIFIED FINANCIAL ANALYSIS: Provide specific dollar amounts with confidence intervals
-2. OPERATIONAL IMPACT METRICS: Calculate delays, capacity reductions, and recovery times
-3. RISK FACTOR ANALYSIS: Identify specific vulnerabilities with probability assessments
-4. STRATEGIC MITIGATION: Prioritize actionable strategies with ROI calculations
-5. NETWORK RESILIENCE: Evaluate alternative paths and redundancy options
-
-Ensure all findings are data-driven and specific to this supply chain configuration.
-`
-  }
-
-  private async generateAIImpactAssessment(context: string): Promise<any> {
-    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-      console.warn('⚠️ Google AI API key not available, using calculated data only')
-      throw new Error('Google AI API not available')
-    }
-
-    try {
-      console.log('🤖 Generating AI-enhanced impact assessment')
-      
-      const result = await generateObject({
-        model: google('gemini-2.0-flash'),
-        schema: SimulationResultsSchema,
-        prompt: context,
-        temperature: 0.1 // Lower temperature for more consistent results
-      })
-
-      return result.object
-    } catch (error) {
-      console.error('❌ Error generating AI impact assessment:', error)
       throw error
     }
   }
 
-  private calculateNumericalMetrics(impactAnalysis: any, nodes: Node[]): any {
-    const totalNodes = nodes.length
-    const affectedNodes = impactAnalysis.directlyAffected.length + impactAnalysis.cascadingEffects.length
+  // Generate AI analysis using the LLM
+  private async generateAIAnalysis(supplyChainData: any, impactPropagation: any, memoryContext: string): Promise<any> {
+    console.log('🤖 Generating AI-powered impact analysis')
     
-    // Calculate total financial impact
-    const totalFinancialImpact = impactAnalysis.cascadingEffects.reduce(
-      (sum: number, effect: any) => sum + effect.financialImpact, 0
-    )
-    
-    // Calculate average delay based on recovery timeline
-    const avgDelay = impactAnalysis.recoveryTimeline.reduce(
-      (sum: number, item: any) => sum + item.recoveryTime, 0
-    ) / Math.max(impactAnalysis.recoveryTimeline.length, 1)
-    
-    // Calculate inventory reduction (simplified)
-    const inventoryReduction = Math.min(
-      (affectedNodes / totalNodes) * 60, // Max 60% reduction
-      50
-    )
-    
-    // Calculate network resilience score
-    const networkResilience = Math.max(
-      100 - ((affectedNodes / totalNodes) * 80), // Higher affected ratio = lower resilience
-      20 // Minimum 20% resilience
-    )
-    
-    // Calculate cascading probability
-    const cascadingProbability = Math.min(
-      impactAnalysis.cascadingEffects.reduce(
-        (sum: number, effect: any) => sum + effect.probability, 0
-      ) / Math.max(impactAnalysis.cascadingEffects.length, 1),
-      1
-    )
-    
-    // Calculate recovery time
-    const recoveryTime = Math.max(
-      avgDelay * 1.5, // Recovery typically 1.5x the delay
-      7 // Minimum 7 days
-    )
-    
-    return {
-      totalCostImpact: totalFinancialImpact,
-      averageDelay: avgDelay,
-      inventoryReduction: inventoryReduction,
-      recoveryTime: recoveryTime,
-      affectedNodes: affectedNodes,
-      networkResilience: networkResilience,
-      cascadingProbability: cascadingProbability,
-      confidenceScore: 0.85 // High confidence due to Monte Carlo analysis
-    }
-  }
+    try {
+      const analysisPrompt = `
+As an expert supply chain impact assessment AI, analyze this supply chain disruption scenario and provide comprehensive impact analysis.
 
-  private calculateNetworkDensity(nodeCount: number, edgeCount: number): number {
-    if (nodeCount < 2) return 0
-    const maxPossibleEdges = nodeCount * (nodeCount - 1) / 2
-    return Math.min(edgeCount / maxPossibleEdges, 1)
-  }
+SUPPLY CHAIN CONTEXT:
+${JSON.stringify(supplyChainData.supplyChain, null, 2)}
 
-  private identifyCriticalNodes(topology: Map<string, any>): string[] {
-    const nodes = Array.from(topology.values())
-    const avgCriticality = nodes.reduce((sum, node) => sum + node.criticalityScore, 0) / nodes.length
-    
-    return nodes
-      .filter(node => node.criticalityScore > avgCriticality * 1.5)
-      .map(node => node.node.name)
-      .slice(0, 5) // Top 5 critical nodes
-  }
+DISRUPTION SCENARIO:
+${JSON.stringify(supplyChainData.simulation, null, 2)}
 
-  private identifySinglePointsOfFailure(topology: Map<string, any>): string[] {
-    const spofNodes: string[] = []
-    
-    topology.forEach((nodeData, nodeId) => {
-      // A node is a SPOF if it has high downstream connections and low redundancy
-      if (nodeData.downstream.length > 2 && nodeData.upstream.length <= 1) {
-        spofNodes.push(nodeData.node.name)
-      }
-    })
-    
-    return spofNodes.slice(0, 5) // Top 5 SPOFs
-  }
+NETWORK TOPOLOGY:
+- Total Nodes: ${supplyChainData.nodes.length}
+- Total Edges: ${supplyChainData.edges.length}
+- Critical Infrastructure: ${supplyChainData.nodes.filter((n: any) => n.node_type === 'Infrastructure').length} nodes
 
-  private calculateAlternativeRoutes(topology: Map<string, any>): number {
-    let alternativeCount = 0
-    
-    topology.forEach((nodeData, nodeId) => {
-      // Count nodes with multiple upstream connections as alternative routes
-      if (nodeData.upstream.length > 1) {
-        alternativeCount += nodeData.upstream.length - 1
-      }
-    })
-    
-    return alternativeCount
-  }
+HISTORICAL CONTEXT:
+${memoryContext}
 
-  private calculateAverageShortestPath(topology: Map<string, any>): number {
-    // Simplified calculation - in practice, would use Floyd-Warshall algorithm
-    const nodes = Array.from(topology.keys())
-    let totalPaths = 0
-    let pathCount = 0
-    
-    nodes.forEach(nodeId => {
-      const nodeData = topology.get(nodeId)
-      if (nodeData && nodeData.downstream.length > 0) {
-        totalPaths += nodeData.downstream.length
-        pathCount++
-      }
-    })
-    
-    return pathCount > 0 ? totalPaths / pathCount : 0
-  }
+IMPACT PROPAGATION DATA:
+${JSON.stringify(impactPropagation, null, 2)}
 
-  private calculateClusteringCoefficient(topology: Map<string, any>): number {
-    // Simplified clustering coefficient calculation
-    let totalClustering = 0
-    let nodeCount = 0
-    
-    topology.forEach((nodeData, nodeId) => {
-      const neighbors = [...nodeData.upstream, ...nodeData.downstream]
-      if (neighbors.length > 1) {
-        // Calculate how many neighbors are connected to each other
-        let connections = 0
-        for (let i = 0; i < neighbors.length; i++) {
-          for (let j = i + 1; j < neighbors.length; j++) {
-            const neighbor1 = topology.get(neighbors[i])
-            const neighbor2 = topology.get(neighbors[j])
-            if (neighbor1 && neighbor2) {
-              const isConnected = neighbor1.downstream.includes(neighbors[j]) ||
-                                neighbor2.downstream.includes(neighbors[i])
-              if (isConnected) connections++
-            }
-          }
-        }
-        const maxConnections = (neighbors.length * (neighbors.length - 1)) / 2
-        totalClustering += maxConnections > 0 ? connections / maxConnections : 0
-        nodeCount++
-      }
-    })
-    
-    return nodeCount > 0 ? totalClustering / nodeCount : 0
-  }
+Please provide a comprehensive impact assessment following the structured format required.
+      `
 
-  private calculateDataCompleteness(supplyChainData: any): number {
-    let totalFields = 0
-    let completedFields = 0
-    
-    // Check node data completeness
-    supplyChainData.nodes.forEach((node: any) => {
-      totalFields += 6 // name, type, capacity, inventory, risk_level, metadata
-      if (node.name) completedFields++
-      if (node.type) completedFields++
-      if (node.capacity) completedFields++
-      if (node.current_inventory) completedFields++
-      if (node.risk_level) completedFields++
-      if (node.metadata) completedFields++
-    })
-    
-    // Check edge data completeness
-    supplyChainData.edges.forEach((edge: any) => {
-      totalFields += 4 // relationship_type, cost, transit_time, metadata
-      if (edge.relationship_type) completedFields++
-      if (edge.cost) completedFields++
-      if (edge.transit_time) completedFields++
-      if (edge.metadata) completedFields++
-    })
-    
-    return totalFields > 0 ? completedFields / totalFields : 1
-  }
+      const result = await generateObject({
+        model: google('models/gemini-1.5-pro-latest'),
+        schema: SimulationResultsSchema,
+        prompt: analysisPrompt,
+        maxTokens: 4000,
+        temperature: 0.1
+      })
 
-  private calculateDataConsistency(supplyChainData: any): number {
-    let consistencyScore = 1.0
-    
-    // Check for data inconsistencies
-    supplyChainData.nodes.forEach((node: any) => {
-      // Inventory shouldn't exceed capacity
-      if (node.capacity && node.current_inventory && node.current_inventory > node.capacity) {
-        consistencyScore -= 0.1
-      }
-      
-      // Risk level should be reasonable (0-100)
-      if (node.risk_level && (node.risk_level < 0 || node.risk_level > 100)) {
-        consistencyScore -= 0.1
-      }
-    })
-    
-    return Math.max(consistencyScore, 0)
-  }
-
-  private calculateDataRecency(supplyChainData: any): number {
-    const now = new Date()
-    let totalAge = 0
-    let itemCount = 0
-    
-    // Check how recent the data is
-    supplyChainData.nodes.forEach((node: any) => {
-      if (node.updated_at) {
-        const age = (now.getTime() - new Date(node.updated_at).getTime()) / (1000 * 60 * 60 * 24) // Days
-        totalAge += age
-        itemCount++
-      }
-    })
-    
-    if (itemCount === 0) return 0.8 // Default if no timestamps
-    
-    const avgAge = totalAge / itemCount
-    // Data is considered fresh if less than 30 days old
-    return Math.max(1 - (avgAge / 30), 0.1)
-  }
-
-  private generateFallbackAssessment(simulationId: string, startTime: number): any {
-    console.log('⚠️ Generating fallback impact assessment')
-    
-    return {
-      scenarioName: "Port Closure Disruption Q3 2025",
-      scenarioType: "Infrastructure Disruption", 
-      status: "completed",
-      completedAt: new Date().toISOString(),
-      metrics: {
-        totalCostImpact: "$2.4M ± 0.5M",
-        averageDelay: "18.5 ± 4.3 days",
-        inventoryReduction: "38% ± 8%",
-        recoveryTime: "42 ± 12 days",
-        affectedNodes: 15,
-        criticalPath: "Port → Warehouse → Distribution Center",
-        networkResilience: 65,
-        cascadingProbability: 0.42
-      },
-      keyFindings: [
-        "Primary disruption at Shanghai Port affects 60% of inbound shipments",
-        "Alternative routing through Hong Kong reduces impact by 25%",
-        "Inventory buffers insufficient for disruptions longer than 14 days",
-        "Electronics and automotive sectors show highest vulnerability",
-        "Recovery timeline extends beyond Q3 projections by 2 weeks"
-      ],
-      impactBreakdown: [
-        "Direct operational costs increased by $1.2M due to expedited shipping",
-        "Lost sales revenue estimated at $800K from delayed product launches", 
-        "Additional storage costs of $400K for rerouted inventory",
-        "Labor overtime costs of $300K for accelerated recovery operations",
-        "Supplier penalty fees totaling $150K for contract delays"
-      ],
-      riskFactors: [
-        "High dependency on single port creates bottleneck vulnerability",
-        "Limited alternative shipping routes increase recovery complexity",
-        "Seasonal demand peak coincides with disruption period",
-        "Supplier contracts lack sufficient force majeure provisions",
-        "Inventory management strategy needs buffer optimization"
-      ],
-      mitigationStrategies: [
-        {
-          strategy: "Implement emergency supplier activation protocol with pre-qualified alternatives",
-          estimatedCost: "$200K - $350K",
-          timeToImplement: "2-4 weeks",
-          riskReduction: "35% ± 10%",
-          feasibility: "HIGH",
-          priority: "IMMEDIATE",
-          dependencies: ["Supplier agreements", "Inventory buffers"],
-          successProbability: 0.85,
-          roi: 3.2
-        },
-        {
-          strategy: "Deploy strategic inventory redistribution across regional warehouses",
-          estimatedCost: "$150K - $250K",
-          timeToImplement: "1-2 weeks",
-          riskReduction: "25% ± 8%",
-          feasibility: "HIGH",
-          priority: "IMMEDIATE",
-          dependencies: ["Warehouse capacity", "Transportation"],
-          successProbability: 0.90,
-          roi: 4.1
-        }
-      ],
-      cascadingEffects: [
-        {
-          affectedNode: "Primary Manufacturing Hub",
-          impactType: "Production Disruption",
-          severity: "HIGH",
-          timeline: "Day 1-7",
-          propagationPath: ["Port", "Supplier", "Manufacturing"],
-          probability: 0.75,
-          financialImpact: 850000,
-          mitigationComplexity: "MEDIUM"
-        },
-        {
-          affectedNode: "Regional Distribution Centers",
-          impactType: "Inventory Shortage",
-          severity: "MEDIUM",
-          timeline: "Day 3-14",
-          propagationPath: ["Port", "Warehouse", "Distribution"],
-          probability: 0.65,
-          financialImpact: 450000,
-          mitigationComplexity: "LOW"
-        }
-      ],
-      networkAnalysis: {
-        totalNodes: 15,
-        totalEdges: 22,
-        networkDensity: 0.21,
-        criticalNodes: ["Shanghai Port Terminal", "Central Manufacturing", "Main Distribution Hub"],
-        singlePointsOfFailure: ["Shanghai Port Terminal", "Primary Supplier"],
-        alternativeRoutes: 3,
-        averageShortestPath: 2.8,
-        clusteringCoefficient: 0.35
-      },
-      confidenceScore: 0.78,
-      monteCarloRuns: 500,
-      analysisDepth: "INTERMEDIATE",
-      processingTime: Date.now() - startTime,
-      dataQuality: {
-        completeness: 0.85,
-        consistency: 0.92,
-        recency: 0.75
-      }
+      return result.object
+    } catch (error) {
+      console.error('❌ Error in AI analysis generation:', error)
+      throw error
     }
   }
 }
