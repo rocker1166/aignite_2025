@@ -16,11 +16,16 @@ import { generateAIFixPrompt } from '../../forms/ValidationDialog';
 export interface DigitalTwinManagerProps {
   initialNodes?: Node[];
   initialEdges?: Edge[];
+  /**
+   * When true the canvas operates in read-only mode (no mutations, no save UI).
+   */
+  viewOnly?: boolean;
 }
 
 export function useDigitalTwinManager({
   initialNodes = [],
-  initialEdges = []
+  initialEdges = [],
+  viewOnly = false,
 }: DigitalTwinManagerProps) {
   
   const {
@@ -60,7 +65,7 @@ export function useDigitalTwinManager({
     selectedSupplyChain,
   });
 
-  const { handleUngroupTemplate, handleLoadTemplate } = useTemplateManager({
+  const { handleUngroupTemplate, handleLoadTemplate, handleLoadTemplateAtPosition } = useTemplateManager({
       nodes,
       setNodes,
       setEdges,
@@ -80,6 +85,7 @@ export function useDigitalTwinManager({
     setNodes,
     setEdges,
     setSelectedElement,
+    viewOnly,
   });
 
   const canvasViewActions = useCanvasView({
@@ -157,12 +163,14 @@ export function useDigitalTwinManager({
       setDescription,
       nodes,
       edges,
+      viewOnly,
     },
     leftPanelProps: {
       onAddNode: nodeEdgeActions.handleAddNode,
       onAddNodeAtPosition: nodeEdgeActions.handleAddNodeAtPosition,
       onClearAllNodes: nodeEdgeActions.handleClearAllNodes,
       onLoadTemplate: finalTemplateManager.handleLoadTemplate,
+      onLoadTemplateAtPosition: finalTemplateManager.handleLoadTemplateAtPosition,
       simulationMode,
       isCollapsed: isLeftPanelCollapsed,
       setIsCollapsed: setIsLeftPanelCollapsed,

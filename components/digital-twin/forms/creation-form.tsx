@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQueryState, parseAsInteger, parseAsString, parseAsArrayOf } from 'nuqs';
+import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { compressArchData, decompressArchData } from "@/lib/utils/url-compression";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,34 +31,44 @@ export default function CreationForm({ onSuccess, onCancel }: CreationFormProps)
   const [step, setStep] = useQueryState('step', parseAsInteger.withDefault(0));
   const [showCountryDialog, setShowCountryDialog] = useState(false);
   
-  // URL state for form data
-  const [industryParam, setIndustryParam] = useQueryState('industry', parseAsString);
-  const [customIndustryParam, setCustomIndustryParam] = useQueryState('customIndustry', parseAsString);
-  const [productCharacteristicsParam, setProductCharacteristicsParam] = useQueryState('productCharacteristics', parseAsArrayOf(parseAsString));
-  const [supplierTiersParam, setSupplierTiersParam] = useQueryState('supplierTiers', parseAsString);
-  const [operationsLocationParam, setOperationsLocationParam] = useQueryState('operationsLocation', parseAsArrayOf(parseAsString));
-  const [countryParam, setCountryParam] = useQueryState('country', parseAsString);
-  const [currencyParam, setCurrencyParam] = useQueryState('currency', parseAsString);
-  const [shippingMethodsParam, setShippingMethodsParam] = useQueryState('shippingMethods', parseAsArrayOf(parseAsString));
-  const [annualVolumeTypeParam, setAnnualVolumeTypeParam] = useQueryState('annualVolumeType', parseAsString);
-  const [annualVolumeValueParam, setAnnualVolumeValueParam] = useQueryState('annualVolumeValue', parseAsInteger);
-  const [risksParam, setRisksParam] = useQueryState('risks', parseAsArrayOf(parseAsString));
-  
+  // Compressed form data
+  const [formParam, setFormParam] = useQueryState('form', parseAsString);
+
+  // Access raw query string for backward-compatibility pre-fill (legacy URLs)
+  const searchParams = useSearchParams();
+
+  // Helper to parse comma-separated list → string[]
+  const parseArray = (key: string): string[] => {
+    const val = searchParams.get(key);
+    return val ? val.split(',') : [];
+  };
+
+  // Build legacy defaults only once per render pass
+  const legacyDefaults = useMemo(() => ({
+    productCharacteristics: parseArray('productCharacteristics'),
+    operationsLocation: parseArray('operationsLocation'),
+    shippingMethods: parseArray('shippingMethods'),
+    risks: parseArray('risks'),
+    annualVolumeType: (searchParams.get('annualVolumeType') as 'units' | 'currency') || 'units',
+    annualVolumeValue: Number(searchParams.get('annualVolumeValue') || 0),
+    industry: searchParams.get('industry') || '',
+    customIndustry: searchParams.get('customIndustry') || '',
+    supplierTiers: searchParams.get('supplierTiers') || '',
+    country: searchParams.get('country') || '',
+    currency: searchParams.get('currency') || '',
+  }), [searchParams]);
+
+  // Merge defaults: compressed > legacy
+  const mergedDefaultValues: FormData = formParam ? {
+    ...legacyDefaults,
+    ...(decompressArchData(formParam) as Partial<FormData>),
+  } as FormData : legacyDefaults as FormData;
+
+  const router = useRouter();
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-        productCharacteristics: productCharacteristicsParam || [],
-        operationsLocation: operationsLocationParam || [],
-        shippingMethods: shippingMethodsParam || [],
-        risks: risksParam || [],
-        annualVolumeType: (annualVolumeTypeParam as "units" | "currency") || "units",
-        annualVolumeValue: annualVolumeValueParam || 0,
-        industry: industryParam || "",
-        customIndustry: customIndustryParam || "",
-        supplierTiers: supplierTiersParam || "",
-        country: countryParam || "",
-        currency: currencyParam || "",
-    }
+    defaultValues: mergedDefaultValues,
   });
 
   const watchOperationsLocation = form.watch("operationsLocation");
@@ -97,21 +109,34 @@ export default function CreationForm({ onSuccess, onCancel }: CreationFormProps)
   };
   
   const onSubmit = (data: FormData) => {
-    // Store all form data in URL parameters
-    setIndustryParam(data.industry);
-    setCustomIndustryParam(data.customIndustry || null);
-    setProductCharacteristicsParam(data.productCharacteristics);
-    setSupplierTiersParam(data.supplierTiers);
-    setOperationsLocationParam(data.operationsLocation);
-    setCountryParam(data.country || null);
-    setCurrencyParam(data.currency);
-    setShippingMethodsParam(data.shippingMethods);
-    setAnnualVolumeTypeParam(data.annualVolumeType);
-    setAnnualVolumeValueParam(data.annualVolumeValue);
-    setRisksParam(data.risks);
-    
-    console.log('Form data stored in URL parameters:', data);
-    
+    try {
+      const compressed = compressArchData(data);
+
+      // Build a clean query string: keep step & form only
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        const params = new URLSearchParams(url.search);
+
+        // List of legacy keys to remove
+        const legacyKeys = [
+          'industry', 'customIndustry', 'productCharacteristics', 'supplierTiers', 'operationsLocation',
+          'country', 'currency', 'shippingMethods', 'annualVolumeType', 'annualVolumeValue', 'risks'
+        ];
+        legacyKeys.forEach(k => params.delete(k));
+
+        params.set('form', compressed);
+
+        // Update URL without full reload
+        router.replace(`${url.pathname}?${params.toString()}`);
+      } else {
+        setFormParam(compressed, { scroll: false, shallow: true });
+      }
+
+      console.log('✅ Compressed form data stored in URL.');
+    } catch (error) {
+      console.error('Failed to compress form data:', error);
+    }
+
     onSuccess(data);
   };
 

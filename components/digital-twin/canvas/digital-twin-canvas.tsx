@@ -9,7 +9,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
-import SimulationToolbar from '../layout/SimulationToolbar';
+import SimulationToolbar from '../layout/digital-twin-toolbar';
 import { LeftPanel } from '../layout/left-panel';
 import RightPanel from '../layout/RightPanel';
 import ValidationDialog from '../forms/ValidationDialog';
@@ -23,7 +23,7 @@ interface CustomSimulationToolbarProps extends Omit<React.ComponentProps<typeof 
   edges: Edge[];
 }
 
-export default function DigitalTwinCanvas({ initialNodes, initialEdges }: DigitalTwinManagerProps) {
+export default function DigitalTwinCanvas({ initialNodes, initialEdges, viewOnly = false }: DigitalTwinManagerProps) {
   const [isDragOver, setIsDragOver] = React.useState(false);
   
   const {
@@ -48,11 +48,15 @@ export default function DigitalTwinCanvas({ initialNodes, initialEdges }: Digita
     handleAIFixRequest,
     selectedElement,
     handleDeleteNode
-  } = useDigitalTwinManager({ initialNodes, initialEdges });
+  } = useDigitalTwinManager({ initialNodes, initialEdges, viewOnly });
 
   // Add keyboard event listener for Delete key and Ctrl+S
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Skip all keyboard mutations in viewOnly mode
+      if (viewOnly) {
+        return;
+      }
       // Check if we're typing in an input field, textarea, or contenteditable element
       const target = event.target as HTMLElement;
       const isTyping = target.tagName === 'INPUT' || 
@@ -100,15 +104,17 @@ export default function DigitalTwinCanvas({ initialNodes, initialEdges }: Digita
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedElement, handleDeleteNode, simulationToolbarProps.simulationMode, simulationToolbarProps.onSave]);
+  }, [selectedElement, handleDeleteNode, simulationToolbarProps.simulationMode, simulationToolbarProps.onSave, viewOnly]);
 
   const onDragOver = (event: React.DragEvent) => {
+    if (viewOnly) return; // disable drag interactions in view-only
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
     setIsDragOver(true);
   };
 
   const onDragLeave = (event: React.DragEvent) => {
+    if (viewOnly) return;
     // Only set to false if we're actually leaving the drop zone
     const rect = event.currentTarget.getBoundingClientRect();
     const x = event.clientX;
@@ -120,30 +126,40 @@ export default function DigitalTwinCanvas({ initialNodes, initialEdges }: Digita
   };
 
   const onDrop = (event: React.DragEvent) => {
+    if (viewOnly) return; // disable drop
     event.preventDefault();
     setIsDragOver(false);
 
     const nodeType = event.dataTransfer.getData('application/reactflow');
-    
-    // Check if node type is valid
-    if (typeof nodeType === 'undefined' || !nodeType) {
-      return;
-    }
+    const templateId = event.dataTransfer.getData('application/reactflow-template');
 
-    // Get the position where the node was dropped
+    // Get the position where the element was dropped
     const reactFlowBounds = event.currentTarget.getBoundingClientRect();
     const position = {
       x: event.clientX - reactFlowBounds.left,
       y: event.clientY - reactFlowBounds.top,
     };
+    
+    // check if node type is valid
+    if (typeof nodeType !== 'undefined' && nodeType) {
+      // Convert screen position to flow position
+      if (reactFlowInstance.current) {
+        const flowPosition = reactFlowInstance.current.project(position);
+        leftPanelProps.onAddNodeAtPosition?.(nodeType, flowPosition, `New ${nodeType}`);
+      } else {
+        // Fallback if reactFlowInstance is not available
+        leftPanelProps.onAddNodeAtPosition?.(nodeType, position, `New ${nodeType}`);
+      }
+      return;
+    }
 
-    // Convert screen position to flow position
-    if (reactFlowInstance.current) {
-      const flowPosition = reactFlowInstance.current.project(position);
-      leftPanelProps.onAddNodeAtPosition?.(nodeType, flowPosition, `New ${nodeType}`);
-    } else {
-      // Fallback if reactFlowInstance is not available
-      leftPanelProps.onAddNodeAtPosition?.(nodeType, position, `New ${nodeType}`);
+    if (typeof templateId !== 'undefined' && templateId) {
+      if (reactFlowInstance.current) {
+        const flowPosition = reactFlowInstance.current.project(position);
+        leftPanelProps.onLoadTemplateAtPosition?.(templateId, flowPosition);
+      } else {
+        leftPanelProps.onLoadTemplateAtPosition?.(templateId, position);
+      }
     }
   };
 
@@ -157,16 +173,18 @@ export default function DigitalTwinCanvas({ initialNodes, initialEdges }: Digita
 
   return (
     <div className="flex flex-col h-screen">
-      <SimulationToolbar {...simulationToolbarProps} />
+      {/* Only show SimulationToolbar in edit mode */}
+      {!viewOnly && <SimulationToolbar {...simulationToolbarProps} />}
 
       <div className="flex flex-1 overflow-hidden">
-        <LeftPanel {...leftPanelProps} />
+        {/* Only show LeftPanel in edit mode */}
+        {!viewOnly && <LeftPanel {...leftPanelProps} />}
 
         <div 
-          className={`flex-1 h-full border-2 transition-all duration-200 relative ${
+          className={`flex-1 h-full ${viewOnly ? '' : 'border-2'} transition-all duration-200 relative ${
             isDragOver 
               ? 'border-blue-400 border-dashed bg-blue-50/30 dark:bg-blue-900/20' 
-              : 'border-gray-200 dark:border-gray-700'
+              : viewOnly ? '' : 'border-gray-200 dark:border-gray-700'
           }`}
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
@@ -204,6 +222,8 @@ export default function DigitalTwinCanvas({ initialNodes, initialEdges }: Digita
             zoomOnDoubleClick={false}
             onNodeDoubleClick={onNodeDoubleClick}
             deleteKeyCode={null} // Disable default delete handling, we'll handle it ourselves
+            nodesDraggable={!viewOnly}
+            nodesConnectable={!viewOnly}
           >
             <Controls />
             <MiniMap />
@@ -211,7 +231,8 @@ export default function DigitalTwinCanvas({ initialNodes, initialEdges }: Digita
           </ReactFlow>
         </div>
 
-        <RightPanel {...rightPanelProps} />
+        {/* Only show RightPanel in edit mode */}
+        {!viewOnly && <RightPanel {...rightPanelProps} />}
       </div>
 
       <ValidationDialog

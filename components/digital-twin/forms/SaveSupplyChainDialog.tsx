@@ -77,14 +77,14 @@ const SaveSupplyChainDialog: FC<SaveSupplyChainDialogProps> = ({
   // Debounced URL parameter updates
   const debouncedSetNameParam = useCallback(
     debounce((value: string) => {
-      setNameParam(value || null);
+      setNameParam(value);
     }, 500),
     [setNameParam]
   );
 
   const debouncedSetDescriptionParam = useCallback(
     debounce((value: string) => {
-      setDescriptionParam(value || null);
+      setDescriptionParam(value);
     }, 500),
     [setDescriptionParam]
   );
@@ -92,8 +92,8 @@ const SaveSupplyChainDialog: FC<SaveSupplyChainDialogProps> = ({
   // Initialize values from URL params or props when dialog opens
   useEffect(() => {
     if (isOpen) {
-      const initialNameValue = nameParam || initialName || 'Default Supply Chain';
-      const initialDescValue = descriptionParam || initialDescription || '';
+      const initialNameValue = nameParam ?? initialName ?? 'Default Supply Chain';
+      const initialDescValue = descriptionParam ?? initialDescription ?? '';
       
       setName(initialNameValue);
       setDescription(initialDescValue);

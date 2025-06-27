@@ -39,6 +39,17 @@ export function useSaveAndValidate({
           mode: edge.data.mode, cost: edge.data.cost, transitTime: edge.data.transitTime, riskMultiplier: edge.data.riskMultiplier
         };
       });
+      // Ensure each node carries its on-screen position when persisted. This duplicates the position
+      // into the `data` payload so that the backend – which already stores the `data` column as JSON –
+      // receives the coordinates even if it strips unknown top-level properties.
+      const nodesWithPositions = nodes.map((node) => ({
+        ...node,
+        data: {
+          ...(node.data || {}),
+          /** Store position explicitly so it survives backend transformations */
+          position: node.position,
+        },
+      }));
       const urlParams = new URLSearchParams(window.location.search);
       const saveNameFromUrl = urlParams.get('saveName');
       const saveDescriptionFromUrl = urlParams.get('saveDescription');
@@ -60,7 +71,7 @@ export function useSaveAndValidate({
       } catch (error) { console.error('Error parsing localStorage data:', error); }
       const supplyChainData = {
         id: selectedSupplyChain, name: finalSupplyChainName, description: finalDescription,
-        nodes, edges, connections, timestamp: new Date().toISOString(),
+        nodes: nodesWithPositions, edges, connections, timestamp: new Date().toISOString(),
         formData: formDataFromLocalStorage || formDataFromUrl,
         organisation: {
           id: userData?.id, name: userData?.organisation_name, description: userData?.description,

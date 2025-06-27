@@ -1,11 +1,19 @@
 "use client";
-import React, { useCallback, useState, forwardRef, useEffect } from "react";
+import React, {
+  useCallback,
+  useState,
+  forwardRef,
+  useEffect,
+  useMemo,
+} from "react";
+
+// react-window for list virtualization
+import { FixedSizeList as List, ListChildComponentProps } from "react-window";
 
 // shadcn
 import {
   Command,
   CommandEmpty,
-  CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
@@ -65,9 +73,10 @@ const CountryDropdownComponent = (
   ref: React.ForwardedRef<HTMLButtonElement>
 ) => {
   const [open, setOpen] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<Country | undefined>(
-    undefined
-  );
+  const [selectedCountry, setSelectedCountry] = useState<Country | undefined>();
+
+  // local search state (replaces cmdk internal filtering)
+  const [searchValue, setSearchValue] = useState("");
 
   useEffect(() => {
     if (defaultValue) {
@@ -88,13 +97,19 @@ const CountryDropdownComponent = (
 
   const handleSelect = useCallback(
     (country: Country) => {
-      console.log("🌍 CountryDropdown value: ", country);
       setSelectedCountry(country);
       onChange?.(country);
       setOpen(false);
     },
     [onChange]
   );
+
+  // Memoised filtered list for performance
+  const filteredOptions = useMemo(() => {
+    if (!searchValue) return options;
+    const lower = searchValue.toLowerCase();
+    return options.filter((c) => c.name.toLowerCase().includes(lower));
+  }, [options, searchValue]);
 
   const triggerClasses = cn(
     "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-background dark:bg-gray-800 px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 shadow-md",
@@ -126,7 +141,7 @@ const CountryDropdownComponent = (
         ) : (
           <span>
             {slim === false ? (
-              placeholder || setSelectedCountry.name
+              placeholder || setSelectedCountry?.name
             ) : (
               <Globe size={20} />
             )}
@@ -140,50 +155,68 @@ const CountryDropdownComponent = (
         className="min-w-[--radix-popper-anchor-width] p-0"
         style={{ touchAction: 'auto' }}
       >
-        <Command className="w-full">
+        {/* Disable internal filtering to handle it manually*/}
+        <Command className="w-full" shouldFilter={false}>
           <div className="sticky top-0 z-10 bg-popover border-b">
-            <CommandInput placeholder="Search country..." />
+            <CommandInput
+              placeholder="Search country..."
+              value={searchValue}
+              onValueChange={setSearchValue}
+            />
           </div>
-          <CommandList 
-            className="max-h-[200px] sm:max-h-[270px] overflow-y-auto"
-            style={{ 
-              touchAction: 'auto',
-              overscrollBehavior: 'contain',
-              scrollBehavior: 'smooth'
+          <CommandList
+            className="max-h-[200px] sm:max-h-[270px] overflow-y-auto p-0"
+            style={{
+              touchAction: "auto",
+              overscrollBehavior: "contain",
+              scrollBehavior: "smooth",
             }}
           >
-            <CommandEmpty>No country found.</CommandEmpty>
-            <CommandGroup>
-              {options
-                .filter((x) => x.name)
-                .map((option, key: number) => (
-                  <CommandItem
-                    className="flex items-center w-full gap-2"
-                    key={key}
-                    onSelect={() => handleSelect(option)}
-                  >
-                    <div className="flex flex-grow w-0 space-x-2 overflow-hidden">
-                      <div className="inline-flex items-center justify-center w-5 h-5 shrink-0 overflow-hidden rounded-full">
-                        <CircleFlag
-                          countryCode={option.alpha2.toLowerCase()}
-                          height={20}
-                        />
+            {filteredOptions.length === 0 && (
+              <CommandEmpty>No country found.</CommandEmpty>
+            )}
+
+            {/* Virtualized list */}
+            {filteredOptions.length > 0 && (
+              <List
+                height={200}
+                width="100%"
+                itemCount={filteredOptions.length}
+                itemSize={40}
+              >
+                {({ index, style }: ListChildComponentProps) => {
+                  const option = filteredOptions[index];
+                  return (
+                    <CommandItem
+                      key={option.alpha3}
+                      onSelect={() => handleSelect(option)}
+                      className="flex items-center w-full gap-2"
+                      style={style}
+                    >
+                      <div className="flex flex-grow w-0 space-x-2 overflow-hidden">
+                        <div className="inline-flex items-center justify-center w-5 h-5 shrink-0 overflow-hidden rounded-full">
+                          <CircleFlag
+                            countryCode={option.alpha2.toLowerCase()}
+                            height={20}
+                          />
+                        </div>
+                        <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                          {option.name}
+                        </span>
                       </div>
-                      <span className="overflow-hidden text-ellipsis whitespace-nowrap">
-                        {option.name}
-                      </span>
-                    </div>
-                    <CheckIcon
-                      className={cn(
-                        "ml-auto h-4 w-4 shrink-0",
-                        option.name === selectedCountry?.name
-                          ? "opacity-100"
-                          : "opacity-0"
-                      )}
-                    />
-                  </CommandItem>
-                ))}
-            </CommandGroup>
+                      <CheckIcon
+                        className={cn(
+                          "ml-auto h-4 w-4 shrink-0",
+                          option.name === selectedCountry?.name
+                            ? "opacity-100"
+                            : "opacity-0"
+                        )}
+                      />
+                    </CommandItem>
+                  );
+                }}
+              </List>
+            )}
           </CommandList>
         </Command>
       </PopoverContent>

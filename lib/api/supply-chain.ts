@@ -1,5 +1,10 @@
 import { supabaseClient } from "@/lib/supabase/client"
-import type { SupplyChain, Node, Edge } from "@/lib/types/database"
+import type {
+  SupplyChain,
+  Node as DbNode,
+  Edge as DbEdge,
+} from "@/lib/types/database"
+import type { SupplyChainArch } from "@/types/supply-chain"
 
 // Supply Chain CRUD operations
 export async function getSupplyChains(userId :any): Promise<SupplyChain[]> {
@@ -16,20 +21,6 @@ export async function getSupplyChains(userId :any): Promise<SupplyChain[]> {
   return data || []
 }
 
-export async function getSupplyChainById(supplyChainId: string): Promise<SupplyChain | null> {
-  const { data, error } = await supabaseClient
-    .from("supply_chains")
-    .select("*")
-    .eq("supply_chain_id", supplyChainId)
-    .single()
-
-  if (error) {
-    console.error("Error fetching supply chain:", error)
-    throw error
-  }
-
-  return data
-}
 
 export async function createSupplyChain(supplyChain: Partial<SupplyChain>): Promise<SupplyChain> {
   const { data, error } = await supabaseClient.from("supply_chains").insert(supplyChain).select().single()
@@ -68,7 +59,7 @@ export async function deleteSupplyChain(supplyChainId: string): Promise<void> {
 }
 
 // Node CRUD operations
-export async function getNodes(supplyChainId: string): Promise<Node[]> {
+export async function getNodes(supplyChainId: string): Promise<DbNode[]> {
   const { data, error } = await supabaseClient.from("nodes").select("*").eq("supply_chain_id", supplyChainId)
 
   if (error) {
@@ -79,7 +70,7 @@ export async function getNodes(supplyChainId: string): Promise<Node[]> {
   return data || []
 }
 
-export async function createNode(node: Partial<Node>): Promise<Node> {
+export async function createNode(node: Partial<DbNode>): Promise<DbNode> {
   const { data, error } = await supabaseClient.from("nodes").insert(node).select().single()
 
   if (error) {
@@ -90,7 +81,7 @@ export async function createNode(node: Partial<Node>): Promise<Node> {
   return data
 }
 
-export async function updateNode(nodeId: string, updates: Partial<Node>): Promise<Node> {
+export async function updateNode(nodeId: string, updates: Partial<DbNode>): Promise<DbNode> {
   const { data, error } = await supabaseClient.from("nodes").update(updates).eq("node_id", nodeId).select().single()
 
   if (error) {
@@ -111,7 +102,7 @@ export async function deleteNode(nodeId: string): Promise<void> {
 }
 
 // Edge CRUD operations
-export async function getEdges(supplyChainId: string): Promise<Edge[]> {
+export async function getEdges(supplyChainId: string): Promise<DbEdge[]> {
   const { data, error } = await supabaseClient.from("edges").select("*").eq("supply_chain_id", supplyChainId)
 
   if (error) {
@@ -122,7 +113,7 @@ export async function getEdges(supplyChainId: string): Promise<Edge[]> {
   return data || []
 }
 
-export async function createEdge(edge: Partial<Edge>): Promise<Edge> {
+export async function createEdge(edge: Partial<DbEdge>): Promise<DbEdge> {
   const { data, error } = await supabaseClient.from("edges").insert(edge).select().single()
 
   if (error) {
@@ -133,7 +124,7 @@ export async function createEdge(edge: Partial<Edge>): Promise<Edge> {
   return data
 }
 
-export async function updateEdge(edgeId: string, updates: Partial<Edge>): Promise<Edge> {
+export async function updateEdge(edgeId: string, updates: Partial<DbEdge>): Promise<DbEdge> {
   const { data, error } = await supabaseClient.from("edges").update(updates).eq("edge_id", edgeId).select().single()
 
   if (error) {
@@ -154,19 +145,25 @@ export async function deleteEdge(edgeId: string): Promise<void> {
 }
 
 // Get complete supply chain with nodes and edges
-export async function getCompleteSupplyChain(supplyChainId: string): Promise<{
-  supplyChain: SupplyChain | null
-  nodes: Node[]
-  edges: Edge[]
+export async function getCompleteSupplyChain(
+  supplyChainId: string,
+): Promise<{
+  arch: SupplyChainArch | null
+  nodes: DbNode[]
+  edges: DbEdge[]
 }> {
-  const supplyChainPromise = getSupplyChainById(supplyChainId)
+  const archPromise = getSupplyChainById(supplyChainId)
   const nodesPromise = getNodes(supplyChainId)
   const edgesPromise = getEdges(supplyChainId)
 
-  const [supplyChain, nodes, edges] = await Promise.all([supplyChainPromise, nodesPromise, edgesPromise])
+  const [arch, nodes, edges] = await Promise.all([
+    archPromise,
+    nodesPromise,
+    edgesPromise,
+  ])
 
   return {
-    supplyChain,
+    arch,
     nodes,
     edges,
   }
@@ -266,3 +263,83 @@ export async function deleteSupplyChainViaEdgeFunction(supplyChainId: string, or
     throw error;
   }
 }
+
+/**
+ * Get a single supply chain via the dynamic-endpoint edge function.
+ * @param supplyChainId The ID of the supply chain to fetch.
+ */
+export async function getSupplyChainById(
+  supplyChainId: string,
+): Promise<SupplyChainArch> {
+  try {
+    const { data, error } = await supabaseClient.functions.invoke('dynamic-endpoint', {
+      body: {
+        supply_chain_id: supplyChainId,
+      },
+    })
+
+    if (error) {
+      console.error('Edge function error:', error)
+      throw new Error(error.message || 'Failed to fetch supply chain via dynamic-endpoint')
+    }
+
+    if (!data) {
+      throw new Error('No data returned from dynamic-endpoint edge function')
+    }
+
+    // ---- Transform to React Flow compatible format ----------------------
+    const rawNodes: any[] = data.data?.nodes || data.nodes || []
+    const rawEdges: any[] = data.data?.edges || data.edges || []
+
+    const transformedNodes = rawNodes.map((node: any) => {
+      const id = node.id || node.node_id || String(Math.random())
+
+      // Prefer explicit position; fallback to data.position; fallback to lat/lng (scaled)
+      let position = node.position
+      if (!position && node.data?.position) {
+        position = node.data.position
+      }
+      if (!position && typeof node.location_lat === 'number' && typeof node.location_lng === 'number') {
+        // Use lat/lng as pseudo coordinates (simple projection); scale down
+        position = {
+          x: node.location_lng * 100, // crude mapping; adjust as needed
+          y: node.location_lat * -100 // negate to match typical coordinate system
+        }
+      }
+      if (!position) {
+        position = { x: 0, y: 0 }
+      }
+
+      return {
+        ...node,
+        id,
+        position,
+      }
+    })
+
+    const transformedEdges = rawEdges.map((edge: any) => {
+      const id = edge.id || edge.edge_id || `${edge.from_node_id}-${edge.to_node_id}`
+      return {
+        ...edge,
+        id,
+        source: edge.source || edge.from_node_id,
+        target: edge.target || edge.to_node_id,
+      }
+    })
+
+    const arch: SupplyChainArch = {
+      nodes: transformedNodes,
+      edges: transformedEdges,
+    }
+
+    return arch
+  } catch (error) {
+    console.error('Error fetching from dynamic-endpoint:', error)
+    throw error
+  }
+}
+
+// Re-export shared types so downstream consumers can import from the API layer
+export type {
+  SupplyChainArch,
+} from "@/types/supply-chain"

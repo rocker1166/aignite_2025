@@ -332,7 +332,7 @@ export default function DigitalTwinDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {supplyChains.map((chain) => (
                   <div key={chain.supply_chain_id} className="group relative">
-                    <GlassmorphicCard className="h-full overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:bg-white/80 dark:hover:bg-slate-900/10">
+                    <GlassmorphicCard className="h-full transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:bg-white/80 dark:hover:bg-slate-900/10">
                       <DigitalTwinCard 
                         twin={formatSupplyChainForCard(chain)} 
                       />

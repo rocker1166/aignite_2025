@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useQueryState, parseAsString, parseAsInteger, parseAsArrayOf } from 'nuqs';
+import { decompressArchData } from '@/lib/utils/url-compression';
 import { Header } from '@/components/header';
 import DigitalTwinDashboard from '@/components/digital-twin/display/dashboard';
 import CreationForm from '@/components/digital-twin/forms/creation-form';
 import DigitalTwinCanvas from '@/components/digital-twin/canvas/digital-twin-canvas';
-import DigitalTwinSkeleton from '@/components/digital-twin/display/DigitalTwinSkeleton';
 import { selectTemplate, getTemplateInfo } from '@/lib/template-selector';
-import { decompressArchData } from '@/lib/utils/url-compression';
 import {
   Dialog,
   DialogContent,
@@ -16,11 +15,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import DigitalTwinEditSkeleton from '@/components/digital-twin/display/DigitalTwinEditSkeleton';
 
 export default function DigitalTwinClientPage() {
   const [twinId, setTwinId] = useQueryState('twinId', parseAsString);
   const [view, setView] = useQueryState('view', parseAsString);
   const [archParam] = useQueryState('arch', parseAsString);
+  const [formParam] = useQueryState('form', parseAsString);
   const [activeTwinData, setActiveTwinData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -40,17 +41,21 @@ export default function DigitalTwinClientPage() {
   // Determine if header should be shown (only when neither twinId nor arch are present)
   const shouldShowHeader = !twinId && !archParam;
 
-  // Helper function to check if we have form data in URL
+  // Helper to check compressed form data or legacy individual params
   const hasFormDataInUrl = () => {
-    return industryParam && 
-           productCharacteristicsParam && 
-           supplierTiersParam && 
-           operationsLocationParam && 
-           currencyParam && 
-           shippingMethodsParam && 
-           annualVolumeTypeParam && 
-           annualVolumeValueParam && 
-           risksParam;
+    return (
+      !!formParam || (
+        industryParam && 
+        productCharacteristicsParam && 
+        supplierTiersParam && 
+        operationsLocationParam && 
+        currencyParam && 
+        shippingMethodsParam && 
+        annualVolumeTypeParam && 
+        annualVolumeValueParam && 
+        risksParam
+      )
+    );
   };
 
   // Load twin data when twinId changes
@@ -62,7 +67,32 @@ export default function DigitalTwinClientPage() {
       // Only load from localStorage if there's no arch parameter
       if (!archParam) {
         // First, try to recreate twin from URL parameters if available
-        if (hasFormDataInUrl()) {
+        if (formParam) {
+          try {
+            const formDataFromUrl = decompressArchData(formParam);
+
+            console.log('🔄 Recreating twin from COMPRESSED URL parameters...');
+
+            // Select template based on decompressed form data
+            const { nodes, edges } = selectTemplate(formDataFromUrl);
+            const templateInfo = getTemplateInfo(formDataFromUrl);
+
+            const twinData = {
+              ...formDataFromUrl,
+              nodes,
+              edges,
+              templateInfo,
+              createdAt: new Date().toISOString(),
+            };
+
+            console.log('✅ Twin recreated from COMPRESSED URL:', twinData);
+            setActiveTwinData(twinData);
+            setIsLoading(false);
+            return;
+          } catch (error) {
+            console.error('Error recreating twin from compressed form param:', error);
+          }
+        } else if (hasFormDataInUrl()) {
           console.log('🔄 Recreating twin from URL parameters...');
           
           const formDataFromUrl = {
@@ -142,7 +172,7 @@ export default function DigitalTwinClientPage() {
       setActiveTwinData(null);
       setIsLoading(false);
     }
-  }, [twinId, archParam, industryParam, productCharacteristicsParam, supplierTiersParam, operationsLocationParam, currencyParam, shippingMethodsParam, annualVolumeTypeParam, annualVolumeValueParam, risksParam]);
+  }, [twinId, archParam, formParam, industryParam, productCharacteristicsParam, supplierTiersParam, operationsLocationParam, currencyParam, shippingMethodsParam, annualVolumeTypeParam, annualVolumeValueParam, risksParam]);
 
   const handleCreationCancel = () => {
     setView(null, { scroll: false });
@@ -200,7 +230,7 @@ export default function DigitalTwinClientPage() {
   // If a twinId is present, we would show the canvas/details view.
   if (twinId) {
     if (isLoading) {
-      return <DigitalTwinSkeleton />;
+      return <DigitalTwinEditSkeleton />;
     }
 
     if (activeTwinData) {

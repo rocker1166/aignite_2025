@@ -1,6 +1,16 @@
 import { Factory, Truck, Warehouse, Ship, Building2, Store } from 'lucide-react';
 import { Node, Edge } from 'reactflow';
 import { PropertySpec, NodeType } from '../lib/types/digital-twin';
+import { SUPPLIER_TIER_INFO } from './supply-chain-form';
+
+// Helper function to create supplier tier tooltip text
+const createSupplierTierTooltip = () => {
+  const tierDescriptions = SUPPLIER_TIER_INFO.tiers
+    .map(tier => `• ${tier.level} ${tier.description}`)
+    .join('\n');
+  
+  return `${SUPPLIER_TIER_INFO.description}\n${tierDescriptions}`;
+};
 
 // Import all templates from organized structure
 import {
@@ -94,6 +104,8 @@ export const NODE_PROPERTY_SPECS: Record<NodeType, PropertySpec[]> = {
       type: 'enum',   
       options: ['tier1', 'tier2', 'tier3+'], 
       label: 'Supplier Tier',
+      showInfoIcon: true,
+      infoText: createSupplierTierTooltip(),
       defaultValue: 0
     },
     { 

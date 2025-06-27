@@ -14,8 +14,14 @@ export const AUTOMOTIVE_JIT_TEMPLATE: Node[] = [
       capacity: 100000,
       leadTime: 30,
       riskScore: 0.3,
-      location: { lat: 41.878, lng: -87.629 },
-      address: 'Chicago Steel Works, IL'
+      location: { lat: 41.878, lng: -87.629, country: 'USA' },
+      address: 'Chicago Steel Works, IL',
+      country: 'USA',
+      // Supplier-specific required fields
+      supplierTier: 'tier3+',
+      supplyCapacity: 100000,
+      materialType: 'Steel & Raw Materials',
+      reliabilityPct: 85
     },
     position: { x: 100, y: 80 },
   },
@@ -29,8 +35,14 @@ export const AUTOMOTIVE_JIT_TEMPLATE: Node[] = [
       capacity: 50000,
       leadTime: 14,
       riskScore: 0.2,
-      location: { lat: 42.331, lng: -83.045 },
-      address: 'Detroit Parts Manufacturing, MI'
+      location: { lat: 42.331, lng: -83.045, country: 'USA' },
+      address: 'Detroit Parts Manufacturing, MI',
+      country: 'USA',
+      // Supplier-specific required fields
+      supplierTier: 'tier2',
+      supplyCapacity: 50000,
+      materialType: 'Engine Components',
+      reliabilityPct: 95
     },
     position: { x: 100, y: 200 },
   },
@@ -44,8 +56,14 @@ export const AUTOMOTIVE_JIT_TEMPLATE: Node[] = [
       capacity: 25000,
       leadTime: 7,
       riskScore: 0.4,
-      location: { lat: 39.739, lng: -121.302 },
-      address: 'Silicon Valley Auto Tech, CA'
+      location: { lat: 39.739, lng: -121.302, country: 'USA' },
+      address: 'Silicon Valley Auto Tech, CA',
+      country: 'USA',
+      // Supplier-specific required fields
+      supplierTier: 'tier1',
+      supplyCapacity: 25000,
+      materialType: 'Automotive Electronics',
+      reliabilityPct: 90
     },
     position: { x: 100, y: 320 },
   },
@@ -59,8 +77,12 @@ export const AUTOMOTIVE_JIT_TEMPLATE: Node[] = [
       capacity: 1000,
       leadTime: 1,
       riskScore: 0.1,
-      location: { lat: 36.084, lng: -86.660 },
-      address: 'Nashville Assembly Plant, TN'
+      location: { lat: 36.084, lng: -86.660, country: 'USA' },
+      address: 'Nashville Assembly Plant, TN',
+      country: 'USA',
+      // Factory-specific required fields
+      cycleTime: 8, // days per vehicle
+      utilizationPct: 92
     },
     position: { x: 600, y: 200 },
   },
@@ -74,8 +96,14 @@ export const AUTOMOTIVE_JIT_TEMPLATE: Node[] = [
       capacity: 5000,
       leadTime: 0.5,
       riskScore: 0.1,
-      location: { lat: 36.100, lng: -86.700 },
-      address: 'Assembly Staging, TN'
+      location: { lat: 36.100, lng: -86.700, country: 'USA' },
+      address: 'Assembly Staging, TN',
+      country: 'USA',
+      // Warehouse-specific required fields
+      storageCapacity: 5000,
+      temperatureControl: false,
+      storageCostPerUnit: 1.5,
+      handlingCostPerUnit: 0.8
     },
     position: { x: 350, y: 150 },
   },
@@ -89,8 +117,12 @@ export const AUTOMOTIVE_JIT_TEMPLATE: Node[] = [
       capacity: 2000,
       leadTime: 7,
       riskScore: 0.2,
-      location: { lat: 35.207, lng: -80.831 },
-      address: 'Southeast Dealerships, NC'
+      location: { lat: 35.207, lng: -80.831, country: 'USA' },
+      address: 'Southeast Dealerships, NC',
+      country: 'USA',
+      // Distribution-specific required fields
+      fleetSize: 25,
+      deliveryRangeKm: 500
     },
     position: { x: 850, y: 200 },
   }
