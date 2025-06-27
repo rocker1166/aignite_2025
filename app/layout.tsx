@@ -7,7 +7,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Poppins } from 'next/font/google'
 import { CopilotProvider } from "@/components/copilot/copilot-provider";
 import "@copilotkit/react-textarea/styles.css";
-
+import { ErrorBoundary } from "@/components/error-boundary";
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -20,15 +20,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`dark ${poppins.variable}`} suppressHydrationWarning>
       <body className="min-h-screen flex flex-col">
-        <NuqsAdapter>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <CopilotProvider> 
-            {children}
-            </CopilotProvider>
-            <Toaster position="top-right" richColors />
-            <SessionProvider />
-          </ThemeProvider>
-        </NuqsAdapter>
+        <ErrorBoundary>
+          <NuqsAdapter>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+              <CopilotProvider> 
+                {children}
+              </CopilotProvider>
+              <Toaster position="top-right" richColors />
+              <SessionProvider />
+            </ThemeProvider>
+          </NuqsAdapter>
+        </ErrorBoundary>
       </body>
     </html>
   );

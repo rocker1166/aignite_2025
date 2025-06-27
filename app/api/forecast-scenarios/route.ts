@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
+import { withSentry } from '@/lib/utils/sentry-utils';
+import * as Sentry from '@sentry/nextjs';
 
-export async function GET(request: NextRequest) {
+const handler = async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);
     const supplyChainId = searchParams.get('supply_chain_id');
     
     if (!supplyChainId) {
+      const error = new Error('Validation error: Supply chain ID is required');
+      Sentry.captureException(error);
       return NextResponse.json(
         { error: 'Supply chain ID is required' },
         { status: 400 }
@@ -26,6 +30,7 @@ export async function GET(request: NextRequest) {
 
     if (forecastError) {
       console.error('❌ Database error:', forecastError);
+      Sentry.captureException(forecastError);
       return NextResponse.json(
         { error: 'Failed to fetch forecast data' },
         { status: 500 }
@@ -90,6 +95,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Error fetching forecast scenarios:', error);
+    Sentry.captureException(error);
     return NextResponse.json(
       { 
         error: 'Internal server error',
@@ -98,4 +104,6 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
+
+export const GET = withSentry(handler);

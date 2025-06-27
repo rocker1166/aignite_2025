@@ -3,6 +3,8 @@ import { google } from '@ai-sdk/google';
 import { generateObject } from 'ai';
 import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase/server';
+import { withSentry } from '@/lib/utils/sentry-utils';
+import * as Sentry from '@sentry/nextjs';
 
 // ─────────────────────────────────────────────────────────
 // 🧠 Zod Schema for Scenario Output (Strictly Matched)
@@ -88,12 +90,14 @@ const MODEL_CONFIG = {
 // ─────────────────────────────────────────────────────────
 // 🚀 POST: Generates 5 Disruption Scenarios via LLM
 // ─────────────────────────────────────────────────────────
-export async function POST(request: Request) {
+export const POST = withSentry(async (request: Request) => {
   try {
     const supabase = supabaseServer;
     const { userId } = await request.json();
 
     if (!userId) {
+      const validationError = new Error('userId is required in request body');
+      Sentry.captureException(validationError);
       return NextResponse.json({ error: 'userId is required in request body' }, { status: 400 });
     }
 
@@ -142,6 +146,7 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error('❌ Scenario Generation Error:', error);
+    Sentry.captureException(error);
     return NextResponse.json({ error: 'Failed to generate scenarios' }, { status: 500 });
   }
-}
+});

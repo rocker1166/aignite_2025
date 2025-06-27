@@ -6,6 +6,8 @@ import { Redis } from '@upstash/redis';
 import { createMem0, getMemories, addMemories } from '@mem0/vercel-ai-provider';
 import { supabaseServer } from '@/lib/supabase/server';
 import { sampleSize, shuffle } from 'lodash';
+import { withSentry } from '@/lib/utils/sentry-utils';
+import * as Sentry from '@sentry/nextjs';
 
 // ─────────────────────────────────────────────────────────
 // 🔧 Configuration & Initialization
@@ -125,6 +127,7 @@ class ProductionScenarioAgent {
       return null;
     } catch (error) {
       console.error('Cache retrieval error:', error);
+      Sentry.captureException(error);
       return null;
     }
   }
@@ -136,6 +139,7 @@ class ProductionScenarioAgent {
       console.log(`Successfully cached scenarios for chain ${supplyChainId}`);
     } catch (error) {
       console.error('Cache storage error:', error);
+      Sentry.captureException(error);
     }
   }  private async fetchIntelligenceContext(supplyChainId: string): Promise<any> {
     try {
@@ -213,6 +217,7 @@ class ProductionScenarioAgent {
       return { source: 'none', data: [], count: 0 };
     } catch (error) {
       console.warn('Intelligence context fetch timeout/error:', error);
+      Sentry.captureException(error);
       return { source: 'none', data: [], count: 0 };
     }
   }  private async fetchSupplyChainStructure(supplyChainId: string): Promise<any> {
@@ -316,6 +321,7 @@ class ProductionScenarioAgent {
       };
     } catch (error) {
       console.error('❌ Supply chain structure fetch error:', error);
+      Sentry.captureException(error);
       throw error;
     }
   }  private selectTargetNodes(
@@ -633,7 +639,9 @@ ENSURE DIVERSITY: Make each scenario unique in type, impact vector, mitigation a
           detailedNodes: chain.detailedNodes?.slice(0, 3) || [],
           nodes: chain.nodes?.slice(0, 3) || []
         });
-        throw new Error(`No suitable nodes found for scenario generation. Supply chain ${supplyChainId} appears to have no processable node data.`);
+        const criticalError = new Error(`No suitable nodes found for scenario generation. Supply chain ${supplyChainId} appears to have no processable node data.`);
+        Sentry.captureException(criticalError);
+        throw criticalError;
       }
       timer.checkpoint('Node selection');
 
@@ -705,6 +713,7 @@ ENSURE DIVERSITY: Make each scenario unique in type, impact vector, mitigation a
     } catch (error) {
       console.error('Scenario generation error:', error);
       console.log(`❌ Failed after ${timer.total()}ms`);
+      Sentry.captureException(error);
       throw error;
     }
   }
@@ -754,6 +763,7 @@ ENSURE DIVERSITY: Make each scenario unique in type, impact vector, mitigation a
 
       if (error) {
         console.error('Background Supabase storage error:', error);
+        Sentry.captureException(error);
       } else {
         console.log(`Background stored ${scenarios.length} scenarios`);
       }
@@ -820,6 +830,7 @@ ENSURE DIVERSITY: Make each scenario unique in type, impact vector, mitigation a
 
     } catch (error) {
       console.error('Background scenario storage error:', error);
+      Sentry.captureException(error);
     }
   }
 }
@@ -828,7 +839,7 @@ ENSURE DIVERSITY: Make each scenario unique in type, impact vector, mitigation a
 // 🌐 API Route Handlers
 // ─────────────────────────────────────────────────────────
 
-export async function POST(request: NextRequest) {
+const postHandler = async (request: NextRequest) => {
   const timer = createPerformanceTimer();
 
   try {
@@ -862,6 +873,15 @@ export async function POST(request: NextRequest) {
     console.log(`❌ API failed after ${timer.total()}ms`);
     
     if (error instanceof z.ZodError) {
+      const validationError = new Error('Validation error: Invalid request parameters');
+      Sentry.captureException(validationError, {
+        contexts: {
+          validation: {
+            errors: error.errors,
+            processingTime: timer.total()
+          }
+        }
+      });
       return NextResponse.json({
         error: 'Invalid request parameters',
         details: error.errors,
@@ -869,21 +889,24 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    Sentry.captureException(error);
     return NextResponse.json({
       error: 'Scenario generation failed',
       details: error instanceof Error ? error.message : 'Unknown error',
       processingTime: timer.total()
     }, { status: 500 });
   }
-}
+};
 
-export async function GET(request: NextRequest) {
+const getHandler = async (request: NextRequest) => {
   try {
     const url = new URL(request.url);
     const supplyChainId = url.searchParams.get('supply_chain_id');
     const fromCache = url.searchParams.get('from_cache') !== 'false';
 
     if (!supplyChainId) {
+      const error = new Error('Validation error: supply_chain_id parameter is required');
+      Sentry.captureException(error);
       return NextResponse.json({
         error: 'supply_chain_id parameter is required'
       }, { status: 400 });
@@ -911,9 +934,13 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Scenario GET error:', error);
+    Sentry.captureException(error);
     return NextResponse.json({
       error: 'Failed to retrieve scenarios',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
-}
+};
+
+export const POST = withSentry(postHandler);
+export const GET = withSentry(getHandler);

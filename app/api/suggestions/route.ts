@@ -2,6 +2,8 @@ import { google } from "@ai-sdk/google"
 import { generateObject } from "ai"
 import { NextResponse } from "next/server"
 import { z } from "zod"
+import { withSentry } from '@/lib/utils/sentry-utils';
+import * as Sentry from '@sentry/nextjs';
 
 // Allow processing up to 30 seconds
 export const maxDuration = 30
@@ -89,7 +91,7 @@ CRITICAL REQUIREMENTS:
 - Always include 3-5 suggestions in the array
 `;
 
-export async function POST(req: Request) {
+export const POST = withSentry(async (req: Request) => {
   console.group('🌐 Chat API Request Started')
   console.log('Request URL:', req.url)
   console.log('Request method:', req.method)
@@ -98,6 +100,8 @@ export async function POST(req: Request) {
   try {
     // Validate request
     if (!req.body) {
+      const validationError = new Error("Request body is required");
+      Sentry.captureException(validationError);
       console.error("Chat API: Empty request body received")
       console.groupEnd()
       return NextResponse.json(
@@ -116,6 +120,7 @@ export async function POST(req: Request) {
       messages = body.messages
     } catch (parseError) {
       console.error("Chat API: JSON parsing failed:", parseError)
+      Sentry.captureException(parseError);
       console.groupEnd()
       return NextResponse.json(
         { 
@@ -128,6 +133,8 @@ export async function POST(req: Request) {
 
     // Validate messages array
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      const validationError = new Error("Validation error: Messages array is required and must not be empty");
+      Sentry.captureException(validationError);
       console.error("Chat API: Invalid messages array:", messages)
       console.groupEnd()
       return NextResponse.json(
@@ -149,6 +156,8 @@ export async function POST(req: Request) {
     )
     
     if (invalidMessage) {
+      const validationError = new Error("Validation error: Each message must have valid role and content");
+      Sentry.captureException(validationError);
       console.error("Chat API: Invalid message format:", invalidMessage)
       console.groupEnd()
       return NextResponse.json(
@@ -162,6 +171,8 @@ export async function POST(req: Request) {
 
     // Check for API key availability
     if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+      const configError = new Error("Configuration error: Google AI API key not configured");
+      Sentry.captureException(configError);
       console.error("Chat API: Google AI API key not configured")
       console.groupEnd()
       return NextResponse.json(
@@ -206,6 +217,7 @@ export async function POST(req: Request) {
       console.log("AI Error message:", aiError.message)
       console.log("AI Error stack:", aiError.stack)
       console.log("AI Error cause:", aiError.cause)
+      Sentry.captureException(aiError);
       
       // If it's a schema validation error, try a fallback approach
       if (aiError.name === 'AI_NoObjectGeneratedError' || aiError.message?.includes('schema')) {
@@ -250,6 +262,7 @@ export async function POST(req: Request) {
           
         } catch (fallbackError) {
           console.error('Fallback also failed:', fallbackError)
+          Sentry.captureException(fallbackError);
         }
       }
       
@@ -371,6 +384,7 @@ export async function POST(req: Request) {
       cause: error?.cause
     })
     
+    Sentry.captureException(error);
     console.groupEnd()
     // Return a generic error response
     return NextResponse.json(
@@ -381,4 +395,4 @@ export async function POST(req: Request) {
       { status: 500 }
     )
   }
-}
+});

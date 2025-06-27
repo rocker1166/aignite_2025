@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { generateText } from "ai";
 import { google } from "@ai-sdk/google";
 import { supabaseServer } from "@/lib/supabase/server";
+import { withSentry } from '@/lib/utils/sentry-utils';
+import * as Sentry from '@sentry/nextjs';
 
-
-
-export async function GET(request: Request) {
+export const GET = withSentry(async (request: Request) => {
     try {
         const supabase = supabaseServer;
 
@@ -75,8 +75,9 @@ export async function GET(request: Request) {
         return NextResponse.json(processedItems);
     } catch (error) {
         console.error('Error processing notifications:', error);
+        Sentry.captureException(error);
         return NextResponse.json({ error: 'Failed to process notifications' }, { status: 500 });
     }
-}
+});
 
 

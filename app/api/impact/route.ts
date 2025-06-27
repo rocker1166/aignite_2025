@@ -5,6 +5,8 @@ import { generateObject } from 'ai';
 import { google } from '@ai-sdk/google';
 import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase/server';
+import { withSentry } from '@/lib/utils/sentry-utils';
+import * as Sentry from '@sentry/nextjs';
 // ───────────────────────────────────────────────────────────────────────────────
 // 1️⃣ Define Zod schemas matching your SupplyChainImpactData shape
 // ───────────────────────────────────────────────────────────────────────────────
@@ -80,10 +82,16 @@ const SupplyChainImpactDataSchema = z.object({
 // 2️⃣ API handler: accepts POST with { simulationConfig, company_sitemap }
 // ───────────────────────────────────────────────────────────────────────────────
 
-export async function POST(req: Request) {
+export const POST = withSentry(async (req: Request) => {
   try {
     let supplyChains;
     const { simulationConfig, user_id } = await req.json();
+
+    if (!simulationConfig || !user_id) {
+      const validationError = new Error('simulationConfig and user_id are required');
+      Sentry.captureException(validationError);
+      return NextResponse.json({ error: 'simulationConfig and user_id are required' }, { status: 400 });
+    }
 
     try {
         // Use the existing supabaseServer client
@@ -176,7 +184,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ result });
     } catch (llmError) {
       console.error('❌ LLM Error:', llmError);
-      
+      Sentry.captureException(llmError);
       // Attempt to provide a fallback for development purposes
       return NextResponse.json({
         error: 'Failed to generate complete impact assessment. The response may be too large.',
@@ -186,9 +194,10 @@ export async function POST(req: Request) {
     }
   } catch (error) {
     console.error('❌ Scenario Impact Agent Error:', error);
+    Sentry.captureException(error);
     return NextResponse.json(
       { error: 'Failed to simulate supply chain impact.' },
       { status: 500 }
     );
   }
-}
+});
