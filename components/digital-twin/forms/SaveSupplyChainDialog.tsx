@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Save, X } from 'lucide-react';
 import { Node, Edge } from 'reactflow';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface SaveSupplyChainDialogProps {
   isOpen: boolean;
@@ -139,46 +140,17 @@ const SaveSupplyChainDialog: FC<SaveSupplyChainDialogProps> = ({
 
   // Handle save action
   const handleSave = async () => {
-    console.log('🔍 [SaveDialog] handleSave called');
-    console.log('🔍 [SaveDialog] Current state:', {
-      name: name.trim(),
-      description: description.trim(),
-      nameLength: name.trim().length,
-      descLength: description.trim().length
-    });
-    
     if (!validateForm()) {
-      console.log('❌ [SaveDialog] Form validation failed');
-      console.log('🔍 [SaveDialog] Current errors:', errors);
       return;
     }
-    
-    console.log('✅ [SaveDialog] Form validation passed');
-    console.log('🔍 [SaveDialog] About to call onSave with:', {
-      name: name.trim(),
-      description: description.trim(),
-      nodesCount: nodes?.length || 0,
-      edgesCount: edges?.length || 0
-    });
-    
-    console.log('🔍 [SaveDialog] Nodes data sample:', nodes?.slice(0, 2));
-    console.log('🔍 [SaveDialog] Edges data sample:', edges?.slice(0, 2));
 
     setIsLoading(true);
     try {
-      console.log('🚀 [SaveDialog] Calling onSave...');
       await onSave(name.trim(), description.trim());
-      console.log('✅ [SaveDialog] onSave completed successfully');
       handleClose();
     } catch (error) {
-      console.error('❌ [SaveDialog] Error saving supply chain:', error);
-      console.error('❌ [SaveDialog] Error details:', {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        name: error instanceof Error ? error.name : typeof error
-      });
+      toast.error('Failed to save supply chain. Please try again.');
     } finally {
-      console.log('🔍 [SaveDialog] Save process finished, setting loading to false');
       setIsLoading(false);
     }
   };
