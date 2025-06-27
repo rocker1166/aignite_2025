@@ -69,6 +69,17 @@ export function useSaveAndValidate({
       };
       const savedData = await saveSupplyChainToDatabase(supplyChainData);
       toast.success('Supply chain saved successfully!');
+
+      // Notify interested components (e.g., SimulationToolbar) that the supply chain
+      // has been saved and provide the new supply_chain_id so that follow-up dialogs
+      // like IntelligenceAnalysisDialog can be opened consistently.
+      if (typeof window !== 'undefined' && savedData?.supply_chain_id) {
+        window.dispatchEvent(
+          new CustomEvent('supply_chain_saved', {
+            detail: { supplyChainId: savedData.supply_chain_id },
+          })
+        );
+      }
       setShowValidationDialog(false);
       if (saveNameFromUrl || saveDescriptionFromUrl) {
         const newUrl = new URL(window.location.href);

@@ -196,7 +196,7 @@ export function useDigitalTwinManager({
       onUpdate,
       onDelete: nodeEdgeActions.handleDeleteNode,
       onUngroup: finalTemplateManager.handleUngroupTemplate,
-      onSave: handleSave,
+      onSave: async () => { await handleSave(); },
     },
     // Add AI fix handler for ValidationDialog
     handleAIFixRequest,

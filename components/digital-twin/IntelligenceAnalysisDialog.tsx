@@ -1,18 +1,16 @@
 "use client";
 
 import { FC, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { CheckCircle2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
 import { useChat } from "@ai-sdk/react";
 import { MemoizedMarkdown } from "@/components/copilot/memoized-markdown";
+import AILoadingState from "@/components/ui/ai-loading-state";
 
 interface IntelligenceAnalysisDialogProps {
   isOpen: boolean;
@@ -21,6 +19,56 @@ interface IntelligenceAnalysisDialogProps {
 }
 
 type Status = "idle" | "streaming" | "completed" | "error";
+
+function SuccessRedirect({ onGoToDashboard }: { onGoToDashboard: () => void }) {
+  const [countdown, setCountdown] = useState(3);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (countdown === 0) {
+      router.push('/dashboard');
+      return;
+    }
+
+    const timerId = setInterval(() => {
+      setCountdown(prev => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timerId);
+  }, [countdown, router]);
+
+  const handleGoToDashboard = () => {
+    onGoToDashboard();
+    router.push('/dashboard');
+  };
+
+  return (
+    <div className="flex flex-col justify-between h-full w-full min-h-[400px]">
+      <div className="text-center flex-grow flex flex-col justify-center items-center">
+        <CheckCircle2 className="w-16 h-16 text-green-500 mb-4" />
+        <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
+          Analysis Complete
+        </h3>
+        <p className="mt-2 text-gray-500 dark:text-gray-400 max-w-sm">
+          We have successfully analyzed your supply chain. You can wait to be
+          redirected, or go back to the dashboard now.
+        </p>
+        <p className="mt-6 text-sm text-gray-400 dark:text-gray-500">
+          Redirecting to Dashboard in {countdown}...
+        </p>
+      </div>
+      <div className="pt-4 mt-4 w-full">
+        <Button
+          onClick={handleGoToDashboard}
+          className="w-full shadow-md"
+          variant="secondary"
+        >
+          Go to Dashboard
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 const IntelligenceAnalysisDialog: FC<IntelligenceAnalysisDialogProps> = ({
   isOpen,
@@ -94,55 +142,40 @@ const IntelligenceAnalysisDialog: FC<IntelligenceAnalysisDialogProps> = ({
     }
   };
 
+  const handleGoToDashboard = () => {
+    onClose();
+  };
+
+  const assistantMessages = messages.filter((m) => m.role === "assistant");
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-2xl w-full mx-4 p-8 rounded-xl shadow-2xl">
-        <DialogHeader className="space-y-2">
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-50">
-            Supply Chain Intelligence Analysis
-          </DialogTitle>
-          <DialogDescription className="text-base text-gray-500 dark:text-gray-400">
-            {status === "streaming" &&
-              "The AI agent is analyzing your supply chain in real-time..."}
-            {status === "completed" && "Analysis complete. Review the report below."}
-            {status === "error" && "An error occurred during the analysis."}
-            {status === "idle" && "Preparing for analysis..."}
-          </DialogDescription>
-        </DialogHeader>
 
-        <div
-          ref={contentRef}
-          className="prose dark:prose-invert prose-sm max-w-none h-96 overflow-y-auto bg-gray-50 dark:bg-gray-800 rounded-md p-4 border border-gray-200 dark:border-gray-700 my-4"
-        >
-          {/* Render all assistant messages using memoized markdown */}
-          {messages
-            .filter((m) => m.role === "assistant")
-            .map((m) => (
+        {/* Main content area */}
+        {status === "streaming" ? (
+          <AILoadingState
+            content={assistantMessages.map((m) => m.content).join("\n")}
+          />
+        ) : status === "completed" ? (
+          <SuccessRedirect onGoToDashboard={handleGoToDashboard} />
+        ) : (
+          <div
+            ref={contentRef}
+            className="prose dark:prose-invert prose-sm max-w-none h-96 overflow-y-auto bg-gray-50 dark:bg-gray-800 rounded-md p-4 border border-gray-200 dark:border-gray-700 my-4"
+          >
+            {assistantMessages.map((m) => (
               <MemoizedMarkdown key={m.id} content={m.content} id={m.id} />
             ))}
 
-          {status === "streaming" && (
-            <Loader2 className="w-6 h-6 animate-spin mt-4" />
-          )}
+            {status === "error" && (
+              <div className="text-red-600 text-sm mt-4">
+                {error?.message || "Unknown error"}
+              </div>
+            )}
+          </div>
+        )}
 
-          {status === "error" && (
-            <div className="text-red-600 text-sm mt-4">
-              {error?.message || "Unknown error"}
-            </div>
-          )}
-        </div>
-
-        <DialogFooter className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200 dark:border-gray-800">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleClose}
-            disabled={status === "streaming"}
-            className="w-full sm:w-auto text-base py-3 px-5 rounded-lg"
-          >
-            Close
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

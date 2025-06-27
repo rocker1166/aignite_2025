@@ -65,6 +65,30 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
     }
   }, [selectedSupplyChain, setSupplyChainName, setDescription, nameParam, descriptionParam, supplyChainName, description]);
 
+  // Listen for global "supply_chain_saved" events (dispatched by performSave)
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const customEvent = event as CustomEvent<{ supplyChainId?: string }>;
+      const id = customEvent.detail?.supplyChainId;
+      if (id) {
+        setAnalysisSupplyChainId(id);
+        setIsDialogOpen(false); // ensure save dialog closes if still open
+      }
+    };
+
+    window.addEventListener('supply_chain_saved', handler as EventListener);
+    return () => {
+      window.removeEventListener('supply_chain_saved', handler as EventListener);
+    };
+  }, []);
+
+  // NEW: Open the analysis dialog automatically when a valid supply chain id is available
+  useEffect(() => {
+    if (analysisSupplyChainId) {
+      setIsAnalysisDialogOpen(true);
+    }
+  }, [analysisSupplyChainId]);
+
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -94,13 +118,14 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
       if (setDescription) setDescription(desc);
       setInputValue(name);
       
-      // Call the original save function
+      // Call the original save function and retrieve the generated supply chain ID
       const supplyChainId = await onSave();
 
+      // If the backend returned a valid ID, store it so the effect can trigger
+      // and close the save dialog.
       if (supplyChainId) {
         setAnalysisSupplyChainId(supplyChainId);
-        setIsDialogOpen(false); // Close save dialog
-        setIsAnalysisDialogOpen(true); // Open analysis dialog
+        setIsDialogOpen(false);
       }
     } catch (error) {
       console.error('Error saving supply chain:', error);
