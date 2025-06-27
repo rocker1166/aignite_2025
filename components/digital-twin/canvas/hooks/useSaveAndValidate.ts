@@ -63,9 +63,7 @@ export function useSaveAndValidate({
       
       if (compressedForm) {
         try {
-          console.log('🗜️ Extracting form data from compressed URL parameter...');
           formDataFromUrl = decompressArchData(compressedForm);
-          console.log('✅ Successfully decompressed form data:', formDataFromUrl);
         } catch (error) {
           console.error('❌ Failed to decompress form data from URL:', error);
           // Fall through to individual param extraction
@@ -74,7 +72,6 @@ export function useSaveAndValidate({
       
       // Fallback: extract from individual URL parameters (legacy support)
       if (!formDataFromUrl) {
-        console.log('📋 Extracting form data from individual URL parameters...');
         formDataFromUrl = {
           industry: urlParams.get('industry'), 
           customIndustry: urlParams.get('customIndustry'),
@@ -134,45 +131,24 @@ export function useSaveAndValidate({
   }, [nodes, edges, selectedSupplyChain, supplyChainName, description, userData, router]);
 
   const handleSave = useCallback(async (): Promise<string | null> => {
-    console.log('🔍 [useSaveAndValidate] handleSave called');
-    console.log('🔍 [useSaveAndValidate] Input data:', {
-      nodesCount: nodes?.length || 0,
-      edgesCount: edges?.length || 0,
-      nodesType: Array.isArray(nodes),
-      edgesType: Array.isArray(edges),
-      nodesValid: nodes !== null && nodes !== undefined,
-      edgesValid: edges !== null && edges !== undefined
-    });
-    
-    console.log('🔍 [useSaveAndValidate] Sample nodes:', nodes?.slice(0, 2));
-    console.log('🔍 [useSaveAndValidate] Sample edges:', edges?.slice(0, 2));
-    
     try {
-      console.log('🚀 [useSaveAndValidate] Starting validation...');
       const issues = validateSupplyChain(nodes, edges);
-      console.log('✅ [useSaveAndValidate] Validation completed, issues found:', issues?.length || 0);
-      console.log('🔍 [useSaveAndValidate] Validation issues:', issues);
       
       setValidationIssues(issues);
       const errors = issues.filter(issue => issue.severity === 'error');
-      console.log('🔍 [useSaveAndValidate] Errors found:', errors?.length || 0);
       
       if (errors.length > 0) {
-        console.log('❌ [useSaveAndValidate] Errors detected, showing validation dialog');
         setShowValidationDialog(true);
         return null;
       }
       
       const warnings = issues.filter(issue => issue.severity === 'warning');
-      console.log('🔍 [useSaveAndValidate] Warnings found:', warnings?.length || 0);
       
       if (warnings.length > 0) {
-        console.log('⚠️ [useSaveAndValidate] Warnings detected, showing validation dialog');
         setShowValidationDialog(true);
         return null;
       }
       
-      console.log('✅ [useSaveAndValidate] No errors or warnings, proceeding to save');
       return await performSave();
     } catch (error) {
       console.error('❌ [useSaveAndValidate] Error during handleSave:', error);

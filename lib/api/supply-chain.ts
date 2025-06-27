@@ -291,19 +291,26 @@ export async function getSupplyChainById(
     const rawNodes: any[] = data.data?.nodes || data.nodes || []
     const rawEdges: any[] = data.data?.edges || data.edges || []
 
+    // Scale factors for converting geographic coordinates to canvas positions
+    const LONGITUDE_SCALE = 100 // Adjust based on canvas width
+    const LATITUDE_SCALE = -100 // Negative to flip Y-axis for typical canvas coordinates
+
     const transformedNodes = rawNodes.map((node: any) => {
-      const id = node.id || node.node_id || String(Math.random())
+      const id = node.id || node.node_id || `node-${rawNodes.indexOf(node)}`
 
       // Prefer explicit position; fallback to data.position; fallback to lat/lng (scaled)
       let position = node.position
       if (!position && node.data?.position) {
         position = node.data.position
       }
-      if (!position && typeof node.location_lat === 'number' && typeof node.location_lng === 'number') {
-        // Use lat/lng as pseudo coordinates (simple projection); scale down
+      if (
+        !position &&
+        typeof node.location_lat === "number" &&
+        typeof node.location_lng === "number"
+      ) {
         position = {
-          x: node.location_lng * 100, // crude mapping; adjust as needed
-          y: node.location_lat * -100 // negate to match typical coordinate system
+          x: node.location_lng * LONGITUDE_SCALE,
+          y: node.location_lat * LATITUDE_SCALE,
         }
       }
       if (!position) {
