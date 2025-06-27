@@ -18,6 +18,8 @@ import {
   Activity
 } from "lucide-react"
 import NodeImpactGridWithVisualize from "@/components/simulation/node-impact-grid-with-visualize"
+import { DEFAULT_SIMULATION_NODES } from "@/lib/data/simulation-nodes"
+import { GlassmorphicCard } from "@/components/ui/glassmorphic-card"
 
 // Types for better type safety
 interface SimulationMetrics {
@@ -81,33 +83,6 @@ const HARDCODED_RESULTS: SimulationResults = {
     "Supplier contracts lack sufficient force majeure provisions",
     "Inventory management strategy needs buffer optimization"
   ]
-}
-
-// Glassmorphic Card Component with improved performance
-const GlassmorphicCard = ({ 
-  children, 
-  className = "", 
-  variant = "default" as const, 
-  ...props 
-}: { 
-  children: React.ReactNode; 
-  className?: string; 
-  variant?: "default" | "accent" | "subtle";
-} & React.ComponentProps<typeof Card>) => {
-  const variantStyles = {
-    default: "border border-white/30 dark:border-slate-700/20 bg-white/80 dark:bg-slate-900/20 backdrop-blur-xl shadow-xl shadow-black/5 dark:shadow-black/30",
-    accent: "border border-blue-200/50 dark:border-blue-800/30 bg-gradient-to-br from-white/90 to-blue-50/80 dark:from-slate-900/30 dark:to-blue-950/20 backdrop-blur-xl shadow-xl shadow-blue-500/10 dark:shadow-blue-500/20",
-    subtle: "border border-white/20 dark:border-slate-700/10 bg-white/60 dark:bg-slate-900/10 backdrop-blur-lg shadow-lg shadow-black/5 dark:shadow-black/20"
-  } as const
-  
-  return (
-    <Card 
-      className={`${variantStyles[variant]} rounded-2xl transition-all duration-300 hover:shadow-2xl hover:shadow-black/10 dark:hover:shadow-black/40 ${className}`} 
-      {...props}
-    >
-      {children}
-    </Card>
-  )
 }
 
 // Metric card data configuration
@@ -403,7 +378,11 @@ export default function SimulationResultPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <NodeImpactGridWithVisualize />
+                <NodeImpactGridWithVisualize 
+                  nodes={DEFAULT_SIMULATION_NODES}
+                  title="Supply Chain Node Analysis"
+                  description="Detailed impact assessment across all network nodes"
+                />
               </CardContent>
             </GlassmorphicCard>
           </section>

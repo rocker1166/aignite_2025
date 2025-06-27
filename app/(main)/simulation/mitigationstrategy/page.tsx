@@ -9,9 +9,10 @@ import { ArrowLeft, Shield, Target, Clock, TrendingUp, CheckCircle, AlertCircle 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useState } from "react"
 import { ImplementationRoadmapPanel } from "@/components/simulation/ImplementationRoadmapPanel"
+import { GlassmorphicCard } from "@/components/ui/glassmorphic-card"
 
-// Hardcoded mitigation strategy data
-const MITIGATION_STRATEGIES = {
+// Default mitigation strategy data
+const DEFAULT_MITIGATION_STRATEGIES = {
   immediate: [
     {
       id: 1,
@@ -110,7 +111,7 @@ const MITIGATION_STRATEGIES = {
   ]
 }
 
-const RISK_MITIGATION_METRICS = {
+const DEFAULT_RISK_MITIGATION_METRICS = {
   currentRisk: 85,
   targetRisk: 35,
   costToImplement: "$8.1M",
@@ -119,30 +120,39 @@ const RISK_MITIGATION_METRICS = {
   riskReduction: "50%"
 }
 
-// Glassmorphic Card Component
-function GlassmorphicCard({ children, className = "", variant = "default", ...props }: { 
-  children: React.ReactNode; 
-  className?: string; 
-  variant?: "default" | "accent" | "subtle";
-  [key: string]: any 
-}) {
-  const variantStyles = {
-    default: "border border-white/30 dark:border-slate-700/20 bg-white/80 dark:bg-slate-900/20 backdrop-blur-xl shadow-xl shadow-black/5 dark:shadow-black/30",
-    accent: "border border-blue-200/50 dark:border-blue-800/30 bg-gradient-to-br from-white/90 to-blue-50/80 dark:from-slate-900/30 dark:to-blue-950/20 backdrop-blur-xl shadow-xl shadow-blue-500/10 dark:shadow-blue-500/20",
-    subtle: "border border-white/20 dark:border-slate-700/10 bg-white/60 dark:bg-slate-900/10 backdrop-blur-lg shadow-lg shadow-black/5 dark:shadow-black/20"
-  }
-  
-  return (
-    <Card 
-      className={`${variantStyles[variant]} rounded-2xl transition-all duration-300 hover:shadow-2xl hover:shadow-black/10 dark:hover:shadow-black/40 ${className}`} 
-      {...props}
-    >
-      {children}
-    </Card>
-  )
+// Types for the props
+interface MitigationStrategy {
+  id: number
+  title: string
+  description: string
+  priority: string
+  timeframe: string
+  costEstimate: string
+  impactReduction: string
+  status: string
 }
 
-function StrategyCard({ strategy, index }: { strategy: any, index: number }) {
+interface MitigationStrategies {
+  immediate: MitigationStrategy[]
+  shortTerm: MitigationStrategy[]
+  longTerm: MitigationStrategy[]
+}
+
+interface RiskMitigationMetrics {
+  currentRisk: number
+  targetRisk: number
+  costToImplement: string
+  expectedROI: string
+  paybackPeriod: string
+  riskReduction: string
+}
+
+interface MitigationStrategyPageProps {
+  mitigationStrategies?: MitigationStrategies
+  riskMitigationMetrics?: RiskMitigationMetrics
+}
+
+function StrategyCard({ strategy, index }: { strategy: MitigationStrategy, index: number }) {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "Critical":
@@ -235,19 +245,31 @@ const ROADMAP_STEPS = [
   },
 ]
 
-export default function MitigationStrategyPage() {
+export default function MitigationStrategyPage({ 
+  mitigationStrategies = DEFAULT_MITIGATION_STRATEGIES, 
+  riskMitigationMetrics = DEFAULT_RISK_MITIGATION_METRICS 
+}: MitigationStrategyPageProps) {
   const router = useRouter()
   const [roadmapOpen, setRoadmapOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
   React.useEffect(() => {
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024)
     }
-    
+    const debouncedCheckMobile = () => {
+      if (resizeTimer) clearTimeout(resizeTimer)
+      resizeTimer = setTimeout(() => {
+        checkMobile()
+      }, 150)
+    }
     checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    window.addEventListener('resize', debouncedCheckMobile)
+    return () => {
+      window.removeEventListener('resize', debouncedCheckMobile)
+      if (resizeTimer) clearTimeout(resizeTimer)
+    }
   }, [])
 
   const handleBackToResults = () => {
@@ -389,7 +411,7 @@ export default function MitigationStrategyPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Current Risk Level</p>
-                <p className="text-3xl font-bold text-red-600 dark:text-red-400">{RISK_MITIGATION_METRICS.currentRisk}%</p>
+                <p className="text-3xl font-bold text-red-600 dark:text-red-400">{riskMitigationMetrics.currentRisk}%</p>
               </div>
               <AlertCircle className="h-8 w-8 text-red-500" />
             </div>
@@ -399,7 +421,7 @@ export default function MitigationStrategyPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Target Risk Level</p>
-                <p className="text-3xl font-bold text-green-600 dark:text-green-400">{RISK_MITIGATION_METRICS.targetRisk}%</p>
+                <p className="text-3xl font-bold text-green-600 dark:text-green-400">{riskMitigationMetrics.targetRisk}%</p>
               </div>
               <Target className="h-8 w-8 text-green-500" />
             </div>
@@ -409,7 +431,7 @@ export default function MitigationStrategyPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Implementation Cost</p>
-                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{RISK_MITIGATION_METRICS.costToImplement}</p>
+                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{riskMitigationMetrics.costToImplement}</p>
               </div>
               <TrendingUp className="h-8 w-8 text-blue-500" />
             </div>
@@ -419,7 +441,7 @@ export default function MitigationStrategyPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Expected ROI</p>
-                <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{RISK_MITIGATION_METRICS.expectedROI}</p>
+                <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{riskMitigationMetrics.expectedROI}</p>
               </div>
               <TrendingUp className="h-8 w-8 text-emerald-500" />
             </div>
@@ -444,7 +466,7 @@ export default function MitigationStrategyPage() {
                 </Badge>
               </div>
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-                {MITIGATION_STRATEGIES.immediate.map((strategy, index) => (
+                {mitigationStrategies.immediate.map((strategy: MitigationStrategy, index: number) => (
                   <StrategyCard key={strategy.id} strategy={strategy} index={index} />
                 ))}
               </div>
@@ -461,7 +483,7 @@ export default function MitigationStrategyPage() {
                 </Badge>
               </div>
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-                {MITIGATION_STRATEGIES.shortTerm.map((strategy, index) => (
+                {mitigationStrategies.shortTerm.map((strategy: MitigationStrategy, index: number) => (
                   <StrategyCard key={strategy.id} strategy={strategy} index={index} />
                 ))}
               </div>
@@ -478,7 +500,7 @@ export default function MitigationStrategyPage() {
                 </Badge>
               </div>
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-                {MITIGATION_STRATEGIES.longTerm.map((strategy, index) => (
+                {mitigationStrategies.longTerm.map((strategy: MitigationStrategy, index: number) => (
                   <StrategyCard key={strategy.id} strategy={strategy} index={index} />
                 ))}
               </div>
