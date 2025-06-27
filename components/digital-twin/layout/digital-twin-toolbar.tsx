@@ -97,20 +97,7 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
     }
   }, [analysisSupplyChainId]);
 
-  // Handle input change
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-    if (setSupplyChainName) {
-      setSupplyChainName(e.target.value);
-    }
-  };
-
-  // Handle description change
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (setDescription) {
-      setDescription(e.target.value);
-    }
-  };
+  
 
   // Handle save button click - opens dialog
   const handleSaveClick = () => {
@@ -119,26 +106,62 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
 
   // Handle actual save from dialog
   const handleSaveSupplyChain = async (name: string, desc: string) => {
+    console.log('🔍 [Toolbar] handleSaveSupplyChain called with:', {
+      name,
+      desc,
+      nameLength: name?.length,
+      descLength: desc?.length
+    });
+    
+    console.log('🔍 [Toolbar] Current nodes/edges state:', {
+      nodesCount: nodes?.length || 0,
+      edgesCount: edges?.length || 0,
+      nodesType: Array.isArray(nodes),
+      edgesType: Array.isArray(edges)
+    });
+    
+    console.log('🔍 [Toolbar] Sample nodes data:', nodes?.slice(0, 2));
+    console.log('🔍 [Toolbar] Sample edges data:', edges?.slice(0, 2));
+    
     setIsSaving(true);
     try {
+      console.log('🔍 [Toolbar] Updating local state...');
       // Update local state
-      if (setSupplyChainName) setSupplyChainName(name);
-      if (setDescription) setDescription(desc);
+      if (setSupplyChainName) {
+        console.log('🔍 [Toolbar] Setting supply chain name:', name);
+        setSupplyChainName(name);
+      }
+      if (setDescription) {
+        console.log('🔍 [Toolbar] Setting description:', desc);
+        setDescription(desc);
+      }
+      console.log('🔍 [Toolbar] Setting input value:', name);
       setInputValue(name);
       
+      console.log('🚀 [Toolbar] About to call onSave function...');
       // Call the original save function and retrieve the generated supply chain ID
       const supplyChainId = await onSave();
+      console.log('✅ [Toolbar] onSave completed, returned ID:', supplyChainId);
 
       // If the backend returned a valid ID, store it so the effect can trigger
       // and close the save dialog.
       if (supplyChainId) {
+        console.log('🔍 [Toolbar] Setting analysis supply chain ID:', supplyChainId);
         setAnalysisSupplyChainId(supplyChainId);
         setIsDialogOpen(false);
+      } else {
+        console.warn('⚠️ [Toolbar] onSave returned falsy ID:', supplyChainId);
       }
     } catch (error) {
-      console.error('Error saving supply chain:', error);
+      console.error('❌ [Toolbar] Error saving supply chain:', error);
+      console.error('❌ [Toolbar] Error details:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : typeof error
+      });
       throw error; // Re-throw to let dialog handle the error
     } finally {
+      console.log('🔍 [Toolbar] Save process finished, setting saving to false');
       setIsSaving(false);
     }
   };

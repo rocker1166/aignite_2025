@@ -3,9 +3,9 @@ import { Edge } from 'reactflow';
 // Tier 3+ Complex Template Edges
 export const TIER3_COMPLEX_TEMPLATE_EDGES: Edge[] = [
   {
-    id: 'e-raw-intermediate',
-    source: 'raw-material-supplier-1',
-    target: 'intermediate-processor-1',
+    id: 'e-tier3-tier2',
+    source: 'tier3-raw-material-1',
+    target: 'tier2-component-1',
     data: {
       mode: 'sea',
       cost: 1500,
@@ -14,9 +14,9 @@ export const TIER3_COMPLEX_TEMPLATE_EDGES: Edge[] = [
     }
   },
   {
-    id: 'e-intermediate-subassembly',
-    source: 'intermediate-processor-1',
-    target: 'sub-assembly-supplier-1',
+    id: 'e-tier2-tier1',
+    source: 'tier2-component-1',
+    target: 'tier1-subassembly-1',
     data: {
       mode: 'air',
       cost: 1200,
@@ -25,9 +25,9 @@ export const TIER3_COMPLEX_TEMPLATE_EDGES: Edge[] = [
     }
   },
   {
-    id: 'e-subassembly-final',
-    source: 'sub-assembly-supplier-1',
-    target: 'final-assembly-2',
+    id: 'e-tier1-oem',
+    source: 'tier1-subassembly-1',
+    target: 'oem-assembly-1',
     data: {
       mode: 'sea',
       cost: 800,
@@ -36,9 +36,9 @@ export const TIER3_COMPLEX_TEMPLATE_EDGES: Edge[] = [
     }
   },
   {
-    id: 'e-final-qc',
-    source: 'final-assembly-2',
-    target: 'quality-control-hub',
+    id: 'e-oem-global-hub',
+    source: 'oem-assembly-1',
+    target: 'global-distribution-hub-1',
     data: {
       mode: 'air',
       cost: 600,
@@ -47,14 +47,25 @@ export const TIER3_COMPLEX_TEMPLATE_EDGES: Edge[] = [
     }
   },
   {
-    id: 'e-qc-global',
-    source: 'quality-control-hub',
-    target: 'global-distribution-2',
+    id: 'e-global-regional',
+    source: 'global-distribution-hub-1',
+    target: 'regional-distribution-1',
     data: {
       mode: 'air',
       cost: 1000,
       transitTime: 3,
       riskMultiplier: 1.2
+    }
+  },
+  {
+    id: 'e-regional-retail',
+    source: 'regional-distribution-1',
+    target: 'multi-channel-retail-1',
+    data: {
+      mode: 'road',
+      cost: 400,
+      transitTime: 2,
+      riskMultiplier: 1.1
     }
   }
 ]; 

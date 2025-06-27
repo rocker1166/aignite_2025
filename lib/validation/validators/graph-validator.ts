@@ -194,18 +194,63 @@ function findOrphanedNodes(nodes: Node[], edges: Edge[]): ValidationIssue[] {
 function findDisconnectedComponents(nodes: Node[], edges: Edge[]): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
 
-    if (nodes.length === 0) return issues;
+    console.log('🔍 [GraphValidator] findDisconnectedComponents called');
+    console.log('🔍 [GraphValidator] Input data:', {
+        nodesCount: nodes?.length || 0,
+        edgesCount: edges?.length || 0,
+        nodesValid: nodes !== null && nodes !== undefined,
+        edgesValid: edges !== null && edges !== undefined,
+        nodesIsArray: Array.isArray(nodes),
+        edgesIsArray: Array.isArray(edges)
+    });
+
+    if (nodes.length === 0) {
+        console.log('🔍 [GraphValidator] No nodes found, returning empty issues');
+        return issues;
+    }
 
     // Build adjacency list (treating edges as undirected for connectivity check)
     const adjacencyList: Record<string, string[]> = {};
+    console.log('🔍 [GraphValidator] Building adjacency list...');
+    
     for (const node of nodes) {
+        console.log(`🔍 [GraphValidator] Adding node to adjacency list: ${node.id}`);
         adjacencyList[node.id] = [];
     }
+    
+    console.log('🔍 [GraphValidator] Adjacency list initialized:', Object.keys(adjacencyList));
 
+    console.log('🔍 [GraphValidator] Processing edges...');
     for (const edge of edges) {
+        console.log(`🔍 [GraphValidator] Processing edge:`, {
+            id: edge.id,
+            source: edge.source,
+            target: edge.target,
+            sourceExists: edge.source in adjacencyList,
+            targetExists: edge.target in adjacencyList
+        });
+        
+        if (!adjacencyList[edge.source]) {
+            console.error(`❌ [GraphValidator] Edge source '${edge.source}' not found in adjacency list!`);
+            console.error(`❌ [GraphValidator] Available node IDs:`, Object.keys(adjacencyList));
+            console.error(`❌ [GraphValidator] Problematic edge:`, edge);
+            // Create the array if it doesn't exist to prevent the error
+            adjacencyList[edge.source] = [];
+        }
+        
+        if (!adjacencyList[edge.target]) {
+            console.error(`❌ [GraphValidator] Edge target '${edge.target}' not found in adjacency list!`);
+            console.error(`❌ [GraphValidator] Available node IDs:`, Object.keys(adjacencyList));
+            console.error(`❌ [GraphValidator] Problematic edge:`, edge);
+            // Create the array if it doesn't exist to prevent the error
+            adjacencyList[edge.target] = [];
+        }
+        
         adjacencyList[edge.source].push(edge.target);
         adjacencyList[edge.target].push(edge.source);
     }
+
+    console.log('🔍 [GraphValidator] Adjacency list built successfully');
 
     // Find connected components using DFS
     const visited = new Set<string>();
@@ -219,8 +264,11 @@ function findDisconnectedComponents(nodes: Node[], edges: Edge[]): ValidationIss
         }
     }
 
+    console.log(`🔍 [GraphValidator] Found ${components.length} components`);
+
     // If more than one component, report as error
     if (components.length > 1) {
+        console.log('❌ [GraphValidator] Multiple disconnected components detected');
         issues.push({
             id: 'disconnected-components',
             elementId: 'graph',
@@ -289,6 +337,46 @@ function findCircularDependencies(nodes: Node[], edges: Edge[]): ValidationIssue
     }
 
     for (const edge of edges) {
+        // Defensive check: ensure the source node exists in adjacency list
+        if (!adjacencyList[edge.source]) {
+            console.error(`❌ [GraphValidator] Edge source '${edge.source}' not found in adjacency list!`);
+            console.error(`❌ [GraphValidator] Available node IDs:`, Object.keys(adjacencyList));
+            console.error(`❌ [GraphValidator] Problematic edge:`, edge);
+            
+            // Add validation issue for missing source node
+            issues.push({
+                id: `missing-source-node-${edge.id}`,
+                elementId: edge.id,
+                elementType: 'edge',
+                severity: 'error',
+                message: `Connection references a non-existent source node '${edge.source}'.`,
+                suggestion: 'Remove this connection or ensure the source node exists in the supply chain.'
+            });
+            
+            // Create the array if it doesn't exist to prevent the error
+            adjacencyList[edge.source] = [];
+        }
+        
+        // Defensive check: ensure the target node exists in adjacency list
+        if (!adjacencyList[edge.target]) {
+            console.error(`❌ [GraphValidator] Edge target '${edge.target}' not found in adjacency list!`);
+            console.error(`❌ [GraphValidator] Available node IDs:`, Object.keys(adjacencyList));
+            console.error(`❌ [GraphValidator] Problematic edge:`, edge);
+            
+            // Add validation issue for missing target node
+            issues.push({
+                id: `missing-target-node-${edge.id}`,
+                elementId: edge.id,
+                elementType: 'edge',
+                severity: 'error',
+                message: `Connection references a non-existent target node '${edge.target}'.`,
+                suggestion: 'Remove this connection or ensure the target node exists in the supply chain.'
+            });
+            
+            // Create the array if it doesn't exist to prevent the error
+            adjacencyList[edge.target] = [];
+        }
+        
         adjacencyList[edge.source].push(edge.target);
     }
 
