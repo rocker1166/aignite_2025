@@ -81,7 +81,7 @@ export const useChatPersistence = (): ChatPersistenceHook => {
       // Calculate total localStorage usage
       let totalSize = 0;
       for (let key in localStorage) {
-        if (localStorage.hasOwnProperty(key)) {
+        if (Object.hasOwn(localStorage, key)) {
           totalSize += localStorage[key].length + key.length;
         }
       }
@@ -119,7 +119,7 @@ export const useChatPersistence = (): ChatPersistenceHook => {
     try {
       const chatKeys = [];
       for (let key in localStorage) {
-        if (key.startsWith('ai-chat-') && localStorage.hasOwnProperty(key)) {
+        if (key.startsWith('ai-chat-') && Object.hasOwn(localStorage, key)) {
           chatKeys.push(key);
         }
       }
