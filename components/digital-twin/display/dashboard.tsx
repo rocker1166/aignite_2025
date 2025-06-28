@@ -43,7 +43,7 @@ interface ApiResponse {
 function GlassmorphicCard({ children, className = "", ...props }: { children: React.ReactNode; className?: string; [key: string]: any }) {
   return (
     <Card 
-      className={`border border-white/30 dark:border-slate-700/10 bg-white/70 dark:bg-slate-900/5 backdrop-blur-xl shadow-xl shadow-black/5 dark:shadow-black/20 rounded-xl ${className}`} 
+      className={`border border-white/30 dark:border-slate-600/30 bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl shadow-xl shadow-black/5 dark:shadow-black/40 rounded-xl ${className}`} 
       {...props}
     >
       {children}
@@ -193,7 +193,7 @@ export default function DigitalTwinDashboard() {
                 variant="outline" 
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className="shadow-md border-white/30 dark:border-slate-700/10 bg-white/70 dark:bg-slate-900/5 backdrop-blur-xl hover:bg-white/80 dark:hover:bg-slate-900/10"
+                className="shadow-md border-white/30 dark:border-slate-600/50 bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl hover:bg-white/80 dark:hover:bg-slate-800/90"
               >
                 <RefreshCWIcon className={`mr-2 ${refreshing ? 'animate-spin' : ''}`} size={16} />
                 Retry
@@ -205,7 +205,7 @@ export default function DigitalTwinDashboard() {
             </div>
           </header>
           <GlassmorphicCard className="p-6">
-            <Alert variant="destructive" className="border-red-200/30 bg-red-50/70 dark:bg-red-900/5 backdrop-blur-xl">
+            <Alert variant="destructive" className="border-red-200/30 bg-red-50/70 dark:bg-red-900/10 backdrop-blur-xl">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
@@ -238,7 +238,7 @@ export default function DigitalTwinDashboard() {
               variant="outline" 
               onClick={handleRefresh}
               disabled={refreshing}
-              className="shadow-md border-white/30 dark:border-slate-700/10 bg-white/70 dark:bg-slate-900/5 backdrop-blur-xl hover:bg-white/80 dark:hover:bg-slate-900/10"
+              className="shadow-md border-white/30 dark:border-slate-600/50 bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl hover:bg-white/80 dark:hover:bg-slate-800/90"
             >
               <RefreshCWIcon className={`mr-2 ${refreshing ? 'animate-spin' : ''}`} size={16} />
               Refresh
@@ -279,7 +279,7 @@ export default function DigitalTwinDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {supplyChains.map((chain) => (
                   <div key={chain.supply_chain_id} className="group">
-                    <GlassmorphicCard className="h-full overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:bg-white/80 dark:hover:bg-slate-900/10">
+                    <GlassmorphicCard className="h-full overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:bg-white/80 dark:hover:bg-slate-800/90">
                       <DigitalTwinCard 
                         twin={formatSupplyChainForCard(chain)} 
                       />
