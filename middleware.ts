@@ -1,76 +1,136 @@
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { type NextRequest, NextResponse } from 'next/server';
 
-export async function middleware(req: NextRequest) {
-  let res = NextResponse.next({
+const createClient = (request: NextRequest) => {
+  // Create an unmodified response
+  let response = NextResponse.next({
     request: {
-      headers: req.headers,
-    },
-  })
+      headers: request.headers
+    }
+  });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return req.cookies.getAll()
+        get(name: string) {
+          return request.cookies.get(name)?.value;
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value))
-          res = NextResponse.next({
+        set(name: string, value: string, options: CookieOptions) {
+          // If the cookie is updated, update the cookies for the request and response
+          request.cookies.set({
+            name,
+            value,
+            ...options
+          });
+          response = NextResponse.next({
             request: {
-              headers: req.headers,
-            },
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            res.cookies.set(name, value, options)
-          )
+              headers: request.headers
+            }
+          });
+          response.cookies.set({
+            name,
+            value,
+            ...options
+          });
         },
-      },
+        remove(name: string, options: CookieOptions) {
+          // If the cookie is removed, update the cookies for the request and response
+          request.cookies.set({
+            name,
+            value: '',
+            ...options
+          });
+          response = NextResponse.next({
+            request: {
+              headers: request.headers
+            }
+          });
+          response.cookies.set({
+            name,
+            value: '',
+            ...options
+          });
+        }
+      }
     }
-  )
+  );
 
-  // Get the session
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  return { supabase, response };
+};
 
-  // If user is not logged in, allow the request to continue
-  if (!session) {
-    return res
-  }
-
-  // If user is logged in, check if they have a complete profile
+const updateSession = async (request: NextRequest) => {
   try {
-    const { data: userData, error } = await supabase
-      .from('users')
-      .select('organisation_name, location, employee_count, industry, sub_industry')
-      .eq('id', session.user.id)
-      .single()
+    // This `try/catch` block is only here for the interactive tutorial.
+    // Feel free to remove once you have Supabase connected.
+    const { supabase, response } = createClient(request);
 
-    // Check if profile is incomplete
-    const isProfileIncomplete = !userData || 
-      !userData.organisation_name || 
-      !userData.location || 
-      !userData.employee_count || 
-      !userData.industry || 
-      !userData.sub_industry
+    // This will refresh session if expired - required for Server Components
+    // https://supabase.com/docs/guides/auth/server-side/nextjs
+    const { data: { user } } = await supabase.auth.getUser();
 
-    // If profile is incomplete and not already on profile page, redirect to profile with popup
-    if (isProfileIncomplete && !req.nextUrl.pathname.includes('/profile')) {
-      const url = req.nextUrl.clone()
-      url.pathname = '/profile'
-      url.searchParams.set('show_popup', 'true')
-      return NextResponse.redirect(url)
+    console.log('Middleware - User found:', !!user, user?.id);
+
+    // If user is authenticated, check if organization_name is empty
+    if (user) {
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('organization_name')
+        .eq('id', user.id)
+        .single();
+
+      console.log('Middleware - User data query result:', {
+        userData,
+        error: error?.message,
+        organizationName: userData?.organization_name
+      });
+
+      if (error) {
+        console.log('Middleware - Error fetching user data:', error);
+      }
+
+      if (!userData) {
+        console.log('Middleware - No user row found in users table for user ID:', user.id);
+      }
+
+      // If organization_name is empty or null, redirect to profile with popup
+      if (userData && (!userData.organization_name || userData.organization_name.trim() === '')) {
+        console.log('Middleware - Organization name is empty, redirecting to profile');
+        const url = request.nextUrl.clone();
+        
+        // Don't redirect if already on profile page to avoid infinite loop
+        if (!url.pathname.includes('/profile')) {
+          console.log('Middleware - Redirecting to profile with popup');
+          url.pathname = '/profile';
+          url.searchParams.set('show_popup', 'true');
+          return NextResponse.redirect(url);
+        } else {
+          console.log('Middleware - Already on profile page, skipping redirect');
+        }
+      } else if (userData?.organization_name) {
+        console.log('Middleware - Organization name exists:', userData.organization_name);
+      }
+    } else {
+      console.log('Middleware - No authenticated user found');
     }
 
-  } catch (error) {
-    console.error('Error checking user profile:', error)
+    return response;
+  } catch (e) {
+    // If you are here, a Supabase client could not be created!
+    // This is likely because you have not set up environment variables.
+    // Check out http://localhost:3000 for Next Steps.
+    return NextResponse.next({
+      request: {
+        headers: request.headers
+      }
+    });
   }
+};
 
-  return res
+// Main middleware function for Next.js
+export default async function middleware(request: NextRequest) {
+  return await updateSession(request);
 }
 
 export const config = {
