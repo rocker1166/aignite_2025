@@ -15,18 +15,14 @@ import {
   ShoppingCart, 
   Plus, 
   ChevronRight,
-  Filter,
   Search,
-  Layers,
   Shield,
   BarChart3
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { ScenarioData } from "@/lib/context/scenario-context"
 import { ForecastScenarios } from "./forecast-scenarios"
@@ -364,7 +360,7 @@ export function ProfessionalTemplateSelection({
   return (
     <div className="space-y-8">
       {/* Header Section */}
-      <div className="text-center space-y-4">
+      {/* <div className="text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 text-sm font-medium">
           <Layers className="w-4 h-4" />
           Choose Your Starting Point
@@ -375,7 +371,7 @@ export function ProfessionalTemplateSelection({
         <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
           Select from pre-built scenarios tailored for common supply chain risks, or start fresh with your own custom configuration.
         </p>
-      </div>
+      </div> */}
 
       {/* Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -447,7 +443,7 @@ export function ProfessionalTemplateSelection({
 
       {/* Recommended Templates */}
       {groupedTemplates.recommended.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-4 pb-8">
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-amber-600" />
             <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
