@@ -7,6 +7,7 @@ import { tavily } from '@tavily/core';
 import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase/server';
 import { Redis } from '@upstash/redis';
+import { NotificationTrigger } from '@/lib/tools/notification-trigger';
 
 // Initialize Redis for caching
 const redis = new Redis({
@@ -820,7 +821,10 @@ Generated at: ${new Date().toISOString()}`
           
           // Don't fail the entire operation if memory storage fails
         }
-      }      return {
+      }
+
+      // Prepare final intelligence result
+      const finalIntelligence = {
         ...result.object,
         nodeId: node.node_id, // Ensure we always use the correct node_id from database
         weatherForecast: collectedData.weatherForecast, // Include weather data for separate storage
@@ -834,6 +838,24 @@ Generated at: ${new Date().toISOString()}`
           memoryContext: process.env.MEM0_API_KEY ? true : false
         }
       };
+
+      // Trigger notifications for critical events (run asynchronously to not block response)
+      if (supplyChainData?.user_id && finalIntelligence.intelligence) {
+        this.triggerNotificationsAsync(finalIntelligence.intelligence, {
+          user_id: supplyChainData.user_id,
+          supply_chain_id: supplyChainData.supply_chain_id || node.supply_chain_id,
+          node_id: node.node_id,
+          node_name: node.name || 'Unknown Node',
+          node_type: node.type || 'Unknown Type',
+          node_location: node.address || node.location_lat && node.location_lng ? 
+            `${node.location_lat},${node.location_lng}` : undefined
+        }).catch((error: any) => {
+          console.error('Error triggering notifications:', error);
+          // Don't fail the main operation if notifications fail
+        });
+      }
+
+      return finalIntelligence;
 
     } catch (error) {
       console.error('Intelligence gathering error:', error);
@@ -1305,6 +1327,50 @@ Demand Shifts: ${intelligenceData.intelligence.marketIntelligence.demandShifts.j
         status: error.status || 'unknown'
       });
       return false;
+    }
+  }
+
+  /**
+   * Asynchronously trigger notifications for critical events
+   * This method runs in the background to avoid blocking the main intelligence response
+   */
+  private async triggerNotificationsAsync(
+    intelligenceData: any,
+    context: {
+      user_id: string;
+      supply_chain_id: string;
+      node_id: string;
+      node_name: string;
+      node_type: string;
+      node_location?: string;
+    }
+  ): Promise<void> {
+    try {
+      console.log('Triggering notifications for critical events', {
+        component: 'ProductionIntelligenceAgent',
+        user_id: context.user_id,
+        node_id: context.node_id,
+        criticalEventsCount: intelligenceData.criticalEvents?.length || 0
+      });
+
+      const notificationIds = await NotificationTrigger.processIntelligenceForNotifications(
+        intelligenceData,
+        context
+      );
+
+      console.log('Successfully triggered notifications', {
+        component: 'ProductionIntelligenceAgent',
+        notificationIds,
+        count: notificationIds.length
+      });
+
+    } catch (error: any) {
+      console.error('Failed to trigger notifications', {
+        component: 'ProductionIntelligenceAgent',
+        error: error.message,
+        context
+      });
+      // Don't rethrow - this should not break the main intelligence flow
     }
   }
 }
