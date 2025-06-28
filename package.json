@@ -84,6 +84,7 @@
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.454.0",
     "marked": "^15.0.12",
+    "media-chrome": "^4.11.1",
     "mem0ai": "^2.1.31",
     "next": "15.2.4",
     "next-themes": "latest",
@@ -99,6 +100,7 @@
     "react-hook-form": "^7.55.0",
     "react-markdown": "^10.1.0",
     "react-resizable-panels": "^2.1.7",
+    "react-window": "^1.8.11",
     "reactflow": "^11.11.4",
     "recharts": "^2.15.2",
     "rehype-raw": "^7.0.0",
@@ -114,6 +116,8 @@
     "web-worker": "^1.5.0",
     "zod": "^3.24.2",
     "zustand": "^5.0.3"
+    
+    
   },
   "devDependencies": {
     "@tailwindcss/line-clamp": "^0.4.4",
@@ -123,6 +127,7 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-window": "^1.8.8",
     "postcss": "^8",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"

@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, ReactNode } from "react"
+import { createContext, useContext, useState, ReactNode, useCallback, useMemo } from "react"
 import { formatISO } from "date-fns"
 import type { SupplyChain } from "@/lib/types/database"
 import { useUser } from "../stores/user"
@@ -66,19 +66,21 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
   const { userData } = useUser()
   
 
-  const updateScenarioData = (data: Partial<ScenarioData>) => {
+  const updateScenarioData = useCallback((data: Partial<ScenarioData>) => {
     setScenarioData(prev => ({ ...prev, ...data }))
-  }
+  }, [])
+
+  const contextValue = useMemo(() => ({
+    scenarioData,
+    updateScenarioData,
+    supplyChains,
+    setSupplyChains,
+    selectedSupplyChainId,
+    setSelectedSupplyChainId
+  }), [scenarioData, updateScenarioData, supplyChains, selectedSupplyChainId])
 
   return (
-    <ScenarioContext.Provider value={{
-      scenarioData,
-      updateScenarioData,
-      supplyChains,
-      setSupplyChains,
-      selectedSupplyChainId,
-      setSelectedSupplyChainId
-    }}>
+    <ScenarioContext.Provider value={contextValue}>
       {children}
     </ScenarioContext.Provider>
   )

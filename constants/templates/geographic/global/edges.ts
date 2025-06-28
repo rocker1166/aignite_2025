@@ -3,42 +3,31 @@ import { Edge } from 'reactflow';
 // Global Network Template Edges
 export const GLOBAL_NETWORK_TEMPLATE_EDGES: Edge[] = [
   {
-    id: 'e-asia-supplier-port',
+    id: 'e-asia-supplier-assembly',
     source: 'asia-supplier-1',
-    target: 'asia-port-hub',
+    target: 'global-assembly-1',
     data: {
-      mode: 'road',
-      cost: 300,
-      transitTime: 1,
+      mode: 'sea',
+      cost: 600,
+      transitTime: 14,
       riskMultiplier: 1.2
     }
   },
   {
-    id: 'e-europe-supplier-port',
+    id: 'e-europe-supplier-assembly',
     source: 'europe-supplier-1',
-    target: 'europe-port-hub',
+    target: 'global-assembly-1',
     data: {
-      mode: 'road',
-      cost: 200,
-      transitTime: 1,
-      riskMultiplier: 1.0
+      mode: 'air',
+      cost: 1200,
+      transitTime: 3,
+      riskMultiplier: 1.3
     }
   },
   {
-    id: 'e-na-supplier-port',
-    source: 'na-supplier-1',
-    target: 'na-port-hub',
-    data: {
-      mode: 'road',
-      cost: 150,
-      transitTime: 1,
-      riskMultiplier: 1.1
-    }
-  },
-  {
-    id: 'e-asia-port-global',
-    source: 'asia-port-hub',
-    target: 'global-coordination-1',
+    id: 'e-assembly-americas',
+    source: 'global-assembly-1',
+    target: 'americas-warehouse-1',
     data: {
       mode: 'air',
       cost: 2000,
@@ -47,9 +36,9 @@ export const GLOBAL_NETWORK_TEMPLATE_EDGES: Edge[] = [
     }
   },
   {
-    id: 'e-europe-port-global',
-    source: 'europe-port-hub',
-    target: 'global-coordination-1',
+    id: 'e-assembly-europe',
+    source: 'global-assembly-1',
+    target: 'europe-warehouse-1',
     data: {
       mode: 'air',
       cost: 1500,
@@ -58,47 +47,36 @@ export const GLOBAL_NETWORK_TEMPLATE_EDGES: Edge[] = [
     }
   },
   {
-    id: 'e-na-port-global',
-    source: 'na-port-hub',
-    target: 'global-coordination-1',
+    id: 'e-americas-distribution',
+    source: 'americas-warehouse-1',
+    target: 'global-distribution-1',
     data: {
-      mode: 'road',
+      mode: 'air',
       cost: 800,
-      transitTime: 3,
+      transitTime: 6,
       riskMultiplier: 1.1
     }
   },
   {
-    id: 'e-global-apac-dc',
-    source: 'global-coordination-1',
-    target: 'regional-dc-apac',
+    id: 'e-europe-distribution',
+    source: 'europe-warehouse-1',
+    target: 'global-distribution-1',
+    data: {
+      mode: 'road',
+      cost: 400,
+      transitTime: 2,
+      riskMultiplier: 1.0
+    }
+  },
+  {
+    id: 'e-distribution-retail',
+    source: 'global-distribution-1',
+    target: 'multi-market-retail-1',
     data: {
       mode: 'air',
       cost: 1800,
-      transitTime: 14,
+      transitTime: 10,
       riskMultiplier: 1.3
-    }
-  },
-  {
-    id: 'e-global-eu-dc',
-    source: 'global-coordination-1',
-    target: 'regional-dc-eu',
-    data: {
-      mode: 'air',
-      cost: 1200,
-      transitTime: 7,
-      riskMultiplier: 1.2
-    }
-  },
-  {
-    id: 'e-global-na-dc',
-    source: 'global-coordination-1',
-    target: 'regional-dc-na',
-    data: {
-      mode: 'road',
-      cost: 600,
-      transitTime: 2,
-      riskMultiplier: 1.1
     }
   }
 ]; 

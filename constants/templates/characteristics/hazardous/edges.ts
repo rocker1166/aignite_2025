@@ -3,9 +3,9 @@ import { Edge } from 'reactflow';
 // Hazardous Materials Template Edges
 export const HAZARDOUS_MATERIALS_TEMPLATE_EDGES: Edge[] = [
   {
-    id: 'e-chemical-hazmat',
+    id: 'e-chemical-processing',
     source: 'chemical-supplier-1',
-    target: 'hazmat-facility-1',
+    target: 'hazmat-processing-1',
     data: {
       mode: 'road',
       cost: 800,
@@ -14,9 +14,9 @@ export const HAZARDOUS_MATERIALS_TEMPLATE_EDGES: Edge[] = [
     }
   },
   {
-    id: 'e-hazmat-storage',
-    source: 'hazmat-facility-1',
-    target: 'certified-warehouse-1',
+    id: 'e-processing-storage',
+    source: 'hazmat-processing-1',
+    target: 'secure-hazmat-storage-1',
     data: {
       mode: 'road',
       cost: 400,
@@ -25,14 +25,25 @@ export const HAZARDOUS_MATERIALS_TEMPLATE_EDGES: Edge[] = [
     }
   },
   {
-    id: 'e-storage-transport',
-    source: 'certified-warehouse-1',
-    target: 'specialized-transport-1',
+    id: 'e-storage-distribution',
+    source: 'secure-hazmat-storage-1',
+    target: 'hazmat-distribution-1',
     data: {
       mode: 'road',
       cost: 600,
       transitTime: 3,
       riskMultiplier: 1.7
+    }
+  },
+  {
+    id: 'e-distribution-customer',
+    source: 'hazmat-distribution-1',
+    target: 'industrial-customer-1',
+    data: {
+      mode: 'road',
+      cost: 350,
+      transitTime: 1,
+      riskMultiplier: 1.5
     }
   }
 ]; 

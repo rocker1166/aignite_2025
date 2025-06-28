@@ -13,12 +13,32 @@ export function useNodeEdgeActions({
   setNodes,
   setEdges,
   setSelectedElement,
+  viewOnly = false,
 }: {
   nodes: Node[];
   setNodes: SetNodes;
   setEdges: SetEdges;
   setSelectedElement: SetSelectedElement;
+  /** When true all mutating handlers become no-ops (read-only mode) */
+  viewOnly?: boolean;
 }) {
+
+  /**
+   * Helper to guard mutating callbacks in view-only mode. If `viewOnly` is
+   * enabled the callback becomes a no-op.
+   */
+  const guard = useCallback(<T extends (...args: any[]) => any>(fn: T): T => {
+    // eslint-disable-next-line @typescript-eslint/return-await
+    // @ts-ignore – we'll always return a function of the same signature
+    return ((...args: Parameters<T>): ReturnType<T> | void => {
+      if (viewOnly) {
+        // In view-only mode silently ignore the mutation.
+        return;
+      }
+      // @ts-ignore – TypeScript cannot infer spread generics easily
+      return fn(...args);
+    }) as T;
+  }, [viewOnly]);
 
   const onConnect = useCallback((connection: Connection) => {
     const newEdge = {
@@ -32,6 +52,8 @@ export function useNodeEdgeActions({
     };
     setEdges((eds) => addEdge(newEdge, eds));
   }, [setEdges]);
+
+  const onConnectGuarded = guard(onConnect);
 
   const handleAddNode = useCallback((nodeType: string, label?: string, enhancedData?: any) => {
     const nodeData = enhancedData || {
@@ -48,6 +70,8 @@ export function useNodeEdgeActions({
     setNodes(nds => [...nds, newNode]);
     setSelectedElement(newNode);
   }, [nodes, setNodes, setSelectedElement]);
+
+  const handleAddNodeGuarded = guard(handleAddNode);
 
   const handleUpdateNode = useCallback((nodeId: string, properties: object) => {
     let updatedNode: Node | null = null;
@@ -68,6 +92,8 @@ export function useNodeEdgeActions({
     // toast.success(`Node ${updatedNode?.data?.label || nodeId} updated.`);
   }, [setNodes, setSelectedElement]);
 
+  const handleUpdateNodeGuarded = guard(handleUpdateNode);
+
   const handleDeleteNode = useCallback((nodeId: string) => {
     setNodes(currentNodes => {
       const nodeToDelete = currentNodes.find(node => node.id === nodeId);
@@ -84,6 +110,8 @@ export function useNodeEdgeActions({
     });
     setSelectedElement(null);
   }, [setNodes, setEdges, setSelectedElement]);
+
+  const handleDeleteNodeGuarded = guard(handleDeleteNode);
   
   const handleAddMultipleNodes = useCallback((newNodes: Partial<Node>[]) => {
     const fullyFormedNodes = newNodes.map((n, i) => ({
@@ -97,6 +125,8 @@ export function useNodeEdgeActions({
     // toast.success(`${newNodes.length} nodes added.`);
   }, [setNodes]);
 
+  const handleAddMultipleNodesGuarded = guard(handleAddMultipleNodes);
+
   const handleUpdateEdge = useCallback((edgeId: string, properties: object) => {
     setEdges((currentEdges) =>
       currentEdges.map((edge) => {
@@ -109,6 +139,8 @@ export function useNodeEdgeActions({
     // toast.success(`Edge ${edgeId} updated.`);
   }, [setEdges]);
 
+  const handleUpdateEdgeGuarded = guard(handleUpdateEdge);
+
   const handleAddMultipleEdges = useCallback((newEdges: Partial<Edge>[]) => {
     const fullyFormedEdges = newEdges.map((e, i) => ({
       id: `e-${Date.now()}-${i}`,
@@ -120,10 +152,14 @@ export function useNodeEdgeActions({
     // toast.success(`${newEdges.length} edges added.`);
   }, [setEdges]);
 
+  const handleAddMultipleEdgesGuarded = guard(handleAddMultipleEdges);
+
   const handleAddEdges = useCallback((newEdges: Edge[]) => {
     setEdges((eds) => eds.concat(newEdges));
     //  toast.success(`${newEdges.length} edges added.`);
   }, [setEdges]);
+
+  const handleAddEdgesGuarded = guard(handleAddEdges);
 
   const handleUpdateMultipleNodes = useCallback((nodeIds: string[], properties: object) => {
     console.log("handleUpdateMultipleNodes", nodeIds, properties);
@@ -134,6 +170,8 @@ export function useNodeEdgeActions({
     );
     // toast.success(`Updated ${nodeIds.length} nodes.`);
   }, [setNodes]);
+
+  const handleUpdateMultipleNodesGuarded = guard(handleUpdateMultipleNodes);
 
   // Add new function to update node positions and data
   const handleUpdateNodePositions = useCallback((updatedNodes: Node[]) => {
@@ -147,11 +185,15 @@ export function useNodeEdgeActions({
     });
   }, [setNodes]);
 
+  const handleUpdateNodePositionsGuarded = guard(handleUpdateNodePositions);
+
   const handleClearAllNodes = useCallback(() => {
     setNodes([]);
     setEdges([]);
     setSelectedElement(null);
   }, [setNodes, setEdges, setSelectedElement]);
+
+  const handleClearAllNodesGuarded = guard(handleClearAllNodes);
 
   const handleAddNodeAtPosition = useCallback((nodeType: string, position: { x: number; y: number }, label?: string, enhancedData?: any) => {
     const nodeData = enhancedData || {
@@ -174,20 +216,22 @@ export function useNodeEdgeActions({
     setSelectedElement(newNode);
   }, [nodes, setNodes, setSelectedElement]);
 
+  const handleAddNodeAtPositionGuarded = guard(handleAddNodeAtPosition);
+
   return {
-    onConnect,
-    handleAddNode,
-    handleAddNodeAtPosition,
-    handleUpdateNode,
-    handleDeleteNode,
-    handleAddMultipleNodes,
-    handleUpdateEdge,
-    handleAddEdges,
-    handleAddMultipleEdges,
-    handleUpdateMultipleNodes,
-    handleUpdateNodePositions,
-    handleClearAllNodes,
-    // Expose setNodes for direct layout algorithm usage
+    onConnect: onConnectGuarded,
+    handleAddNode: handleAddNodeGuarded,
+    handleAddNodeAtPosition: handleAddNodeAtPositionGuarded,
+    handleUpdateNode: handleUpdateNodeGuarded,
+    handleDeleteNode: handleDeleteNodeGuarded,
+    handleAddMultipleNodes: handleAddMultipleNodesGuarded,
+    handleUpdateEdge: handleUpdateEdgeGuarded,
+    handleAddEdges: handleAddEdgesGuarded,
+    handleAddMultipleEdges: handleAddMultipleEdgesGuarded,
+    handleUpdateMultipleNodes: handleUpdateMultipleNodesGuarded,
+    handleUpdateNodePositions: handleUpdateNodePositionsGuarded,
+    handleClearAllNodes: handleClearAllNodesGuarded,
+    // Expose setNodes for direct layout algorithm usage (readonly safe)
     setNodes,
   };
 } 

@@ -1,157 +1,147 @@
 import { Node } from 'reactflow';
 
-// Use when: operationsLocation includes multiple regions (na, eu, apac)
-// Characteristics: Complex global network, Multiple shipping methods
-// Typical risks: Political/regulatory, Currency/commodity, Carrier capacity
+// Use when: operationsLocation includes multiple global regions (length > 2)
+// Characteristics: Global operations, Multi-regional, Sea/air shipping, Complex logistics
+// Typical risks: Political/regulatory, Currency fluctuations, Geopolitical tensions
 export const GLOBAL_NETWORK_TEMPLATE: Node[] = [
   {
     id: 'asia-supplier-1',
     type: 'supplierNode',
     data: {
-      label: 'Asian Supplier',
-      description: 'Primary APAC supplier hub',
+      label: 'Asia Supplier',
+      description: 'Primary Asian manufacturing supplier',
       type: 'Supplier',
-      capacity: 100000,
+      capacity: 80000,
       leadTime: 21,
       riskScore: 0.4,
-      location: { lat: 31.230, lng: 121.473 },
-      address: 'Shanghai Manufacturing Hub, China'
+      location: { lat: 22.543, lng: 114.057, country: 'CHN' },
+      address: 'Shenzhen Manufacturing Hub, China',
+      country: 'CHN',
+      // Supplier-specific required fields
+      supplierTier: 'tier1',
+      supplyCapacity: 80000,
+      materialType: 'Manufactured Components',
+      reliabilityPct: 87
     },
-    position: { x: 100, y: 80 },
+    position: { x: 100, y: 100 },
   },
   {
     id: 'europe-supplier-1',
     type: 'supplierNode',
     data: {
-      label: 'European Supplier',
-      description: 'EU regional supplier',
-      type: 'Supplier',
-      capacity: 50000,
-      leadTime: 14,
-      riskScore: 0.2,
-      location: { lat: 52.520, lng: 13.404 },
-      address: 'Berlin Industrial Zone, Germany'
-    },
-    position: { x: 100, y: 200 },
-  },
-  {
-    id: 'na-supplier-1',
-    type: 'supplierNode',
-    data: {
-      label: 'North American Supplier',
-      description: 'NAFTA region supplier',
+      label: 'Europe Supplier',
+      description: 'European precision components supplier',
       type: 'Supplier',
       capacity: 40000,
-      leadTime: 10,
-      riskScore: 0.1,
-      location: { lat: 19.432, lng: -99.133 },
-      address: 'Mexico City Manufacturing, Mexico'
-    },
-    position: { x: 100, y: 320 },
-  },
-  {
-    id: 'asia-port-hub',
-    type: 'portNode',
-    data: {
-      label: 'Singapore Hub',
-      description: 'APAC shipping and logistics hub',
-      type: 'Port',
-      capacity: 200000,
-      leadTime: 2,
-      riskScore: 0.3,
-      location: { lat: 1.290, lng: 103.851 },
-      address: 'Singapore Port Authority, Singapore'
-    },
-    position: { x: 400, y: 100 },
-  },
-  {
-    id: 'europe-port-hub',
-    type: 'portNode',
-    data: {
-      label: 'Rotterdam Hub',
-      description: 'European logistics gateway',
-      type: 'Port',
-      capacity: 150000,
-      leadTime: 1,
+      leadTime: 14,
       riskScore: 0.2,
-      location: { lat: 51.924, lng: 4.477 },
-      address: 'Port of Rotterdam, Netherlands'
+      location: { lat: 52.520, lng: 13.405, country: 'DEU' },
+      address: 'Berlin Industrial District, Germany',
+      country: 'DEU',
+      // Supplier-specific required fields
+      supplierTier: 'tier1',
+      supplyCapacity: 40000,
+      materialType: 'Precision Components',
+      reliabilityPct: 96
     },
-    position: { x: 400, y: 200 },
+    position: { x: 100, y: 250 },
   },
   {
-    id: 'na-port-hub',
-    type: 'portNode',
+    id: 'global-assembly-1',
+    type: 'factoryNode',
     data: {
-      label: 'Los Angeles Hub',
-      description: 'North American Pacific gateway',
-      type: 'Port',
-      capacity: 180000,
-      leadTime: 1,
+      label: 'Global Assembly Hub',
+      description: 'Multi-regional assembly facility',
+      type: 'Factory',
+      capacity: 60000,
+      leadTime: 10,
       riskScore: 0.3,
-      location: { lat: 33.739, lng: -118.262 },
-      address: 'Port of Los Angeles, CA'
+      location: { lat: 1.290, lng: 103.851, country: 'SGP' },
+      address: 'Singapore Manufacturing Hub',
+      country: 'SGP',
+      // Factory-specific required fields
+      cycleTime: 4, // days per unit
+      utilizationPct: 84
     },
-    position: { x: 400, y: 320 },
+    position: { x: 450, y: 175 },
   },
   {
-    id: 'global-coordination-1',
+    id: 'americas-warehouse-1',
     type: 'warehouseNode',
     data: {
-      label: 'Global Coordination Center',
-      description: 'Central planning and coordination hub',
+      label: 'Americas Hub',
+      description: 'North American distribution center',
       type: 'Warehouse',
-      capacity: 75000,
+      capacity: 50000,
+      leadTime: 3,
+      riskScore: 0.2,
+      location: { lat: 41.878, lng: -87.629, country: 'USA' },
+      address: 'Chicago Global Hub, IL',
+      country: 'USA',
+      // Warehouse-specific required fields
+      storageCapacity: 50000,
+      temperatureControl: true,
+      storageCostPerUnit: 4.0,
+      handlingCostPerUnit: 2.0
+    },
+    position: { x: 750, y: 120 },
+  },
+  {
+    id: 'europe-warehouse-1',
+    type: 'warehouseNode',
+    data: {
+      label: 'Europe Hub',
+      description: 'European distribution center',
+      type: 'Warehouse',
+      capacity: 35000,
+      leadTime: 2,
+      riskScore: 0.1,
+      location: { lat: 52.373, lng: 4.890, country: 'NLD' },
+      address: 'Amsterdam Distribution Hub, Netherlands',
+      country: 'NLD',
+      // Warehouse-specific required fields
+      storageCapacity: 35000,
+      temperatureControl: true,
+      storageCostPerUnit: 5.0,
+      handlingCostPerUnit: 2.5
+    },
+    position: { x: 750, y: 300 },
+  },
+  {
+    id: 'global-distribution-1',
+    type: 'distributionNode',
+    data: {
+      label: 'Global Distribution',
+      description: 'Worldwide distribution network',
+      type: 'Distribution',
+      capacity: 40000,
+      leadTime: 5,
+      riskScore: 0.3,
+      location: { lat: 51.507, lng: -0.128, country: 'GBR' },
+      address: 'London Global Logistics, UK',
+      country: 'GBR',
+      // Distribution-specific required fields
+      fleetSize: 100,
+      deliveryRangeKm: 2000
+    },
+    position: { x: 1050, y: 200 },
+  },
+  {
+    id: 'multi-market-retail-1',
+    type: 'retailerNode',
+    data: {
+      label: 'Multi-Market Retail',
+      description: 'Global retail presence',
+      type: 'Retailer',
+      capacity: 25000,
       leadTime: 7,
       riskScore: 0.2,
-      location: { lat: 40.748, lng: -73.985 },
-      address: 'New York Global HQ, NY'
+      location: { lat: 35.676, lng: 139.650, country: 'JPN' },
+      address: 'Tokyo Retail Network, Japan',
+      country: 'JPN',
+      // Retailer-specific required fields
+      demandRate: 1200 // units per day
     },
-    position: { x: 700, y: 200 },
-  },
-  {
-    id: 'regional-dc-apac',
-    type: 'distributionNode',
-    data: {
-      label: 'APAC Distribution',
-      description: 'Asia-Pacific regional distribution',
-      type: 'Distribution',
-      capacity: 30000,
-      leadTime: 5,
-      riskScore: 0.4,
-      location: { lat: 35.689, lng: 139.691 },
-      address: 'Tokyo Distribution Center, Japan'
-    },
-    position: { x: 1000, y: 80 },
-  },
-  {
-    id: 'regional-dc-eu',
-    type: 'distributionNode',
-    data: {
-      label: 'EU Distribution',
-      description: 'European Union distribution network',
-      type: 'Distribution',
-      capacity: 25000,
-      leadTime: 4,
-      riskScore: 0.2,
-      location: { lat: 48.856, lng: 2.352 },
-      address: 'Paris Distribution Hub, France'
-    },
-    position: { x: 1000, y: 200 },
-  },
-  {
-    id: 'regional-dc-na',
-    type: 'distributionNode',
-    data: {
-      label: 'NA Distribution',
-      description: 'North American distribution network',
-      type: 'Distribution',
-      capacity: 35000,
-      leadTime: 3,
-      riskScore: 0.1,
-      location: { lat: 41.878, lng: -87.629 },
-      address: 'Chicago Distribution Center, IL'
-    },
-    position: { x: 1000, y: 320 },
+    position: { x: 1350, y: 250 },
   }
 ]; 

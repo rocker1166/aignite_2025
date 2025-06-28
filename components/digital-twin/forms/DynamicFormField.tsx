@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Info } from 'lucide-react';
 import { PropertySpec } from '@/lib/types/digital-twin';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -71,14 +72,20 @@ const DynamicFormField: FC<DynamicFormFieldProps> = ({ spec, value, onChange, fo
               <Label className="text-sm font-medium text-foreground">
                 {spec.label}
                 {spec.showInfoIcon && (
-                  <HoverCard>
-                    <HoverCardTrigger asChild>
-                      <Info className="inline-block w-4 h-4 ml-2 text-muted-foreground cursor-help" />
-                    </HoverCardTrigger>
-                    <HoverCardContent className="w-80">
-                      <p className="text-sm font-normal text-muted-foreground">{spec.infoText}</p>
-                    </HoverCardContent>
-                  </HoverCard>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Info className="inline-block w-4 h-4 ml-2 text-muted-foreground cursor-help hover:text-primary transition-colors" />
+                    </PopoverTrigger>
+                    <PopoverContent 
+                      className="w-80 z-[9999] shadow-lg border bg-popover text-popover-foreground"
+                      side="right"
+                      sideOffset={8}
+                      collisionPadding={16}
+                      avoidCollisions={true}
+                    >
+                      <p className="text-sm font-normal text-muted-foreground whitespace-pre-line">{spec.infoText}</p>
+                    </PopoverContent>
+                  </Popover>
                 )}
               </Label>
             </div>
@@ -201,14 +208,20 @@ const DynamicFormField: FC<DynamicFormFieldProps> = ({ spec, value, onChange, fo
           <Label className="text-sm font-medium text-foreground">
             {spec.label}
             {spec.showInfoIcon && (
-              <HoverCard>
-                <HoverCardTrigger asChild>
-                  <Info className="inline-block w-4 h-4 ml-2 text-muted-foreground cursor-help" />
-                </HoverCardTrigger>
-                <HoverCardContent className="w-80">
-                  <p className="text-sm font-normal text-muted-foreground">{spec.infoText}</p>
-                </HoverCardContent>
-              </HoverCard>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Info className="inline-block w-4 h-4 ml-2 text-muted-foreground cursor-help hover:text-primary transition-colors" />
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-80 z-[9999] shadow-lg border bg-popover text-popover-foreground"
+                  side="right"
+                  sideOffset={8}
+                  collisionPadding={16}
+                  avoidCollisions={true}
+                >
+                  <p className="text-sm font-normal text-muted-foreground whitespace-pre-line">{spec.infoText}</p>
+                </PopoverContent>
+              </Popover>
             )}
           </Label>
           {renderField()}

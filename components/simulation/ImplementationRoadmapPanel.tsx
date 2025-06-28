@@ -1,8 +1,9 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
-import { X, TrendingUp, CheckCircle } from "lucide-react";
-import { motion } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
+import { X, TrendingUp, CheckCircle, Clock, Shield, AlertCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface RoadmapStep {
   title: string;
@@ -16,6 +17,7 @@ interface ImplementationRoadmapPanelProps {
   open: boolean;
   onClose: () => void;
   isMobile?: boolean;
+  finalizeOpen?: boolean;
 }
 
 export const ImplementationRoadmapPanel: React.FC<ImplementationRoadmapPanelProps> = ({
@@ -23,30 +25,242 @@ export const ImplementationRoadmapPanel: React.FC<ImplementationRoadmapPanelProp
   open,
   onClose,
   isMobile = false,
+  finalizeOpen = false,
 }) => {
-  const getStepColors = (index: number) => {
-    const colorSchemes = [
-      {
-        bg: "bg-gradient-to-br from-red-500 to-red-600",
-        border: "border-red-200/50 dark:border-red-800/30",
-        shadow: "shadow-red-500/20",
-        glow: "shadow-lg shadow-red-500/25"
-      },
-      {
-        bg: "bg-gradient-to-br from-orange-500 to-orange-600", 
-        border: "border-orange-200/50 dark:border-orange-800/30",
-        shadow: "shadow-orange-500/20",
-        glow: "shadow-lg shadow-orange-500/25"
-      },
-      {
-        bg: "bg-gradient-to-br from-blue-500 to-blue-600",
-        border: "border-blue-200/50 dark:border-blue-800/30", 
-        shadow: "shadow-blue-500/20",
-        glow: "shadow-lg shadow-blue-500/25"
+  const containerAnimation = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1
       }
-    ];
-    return colorSchemes[index] || colorSchemes[0];
+    }
   };
+
+  const stepAnimation = {
+    hidden: { 
+      opacity: 0, 
+      x: -30,
+      scale: 0.9
+    },
+    show: { 
+      opacity: 1, 
+      x: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15
+      }
+    }
+  };
+
+  const TimelineStep = ({ step, index, isLast }: { step: RoadmapStep; index: number; isLast: boolean }) => {
+    const stepNumber = index + 1;
+    const isCompleted = index < 2; // First 2 steps completed for demo
+    const isActive = index === 2; // Third step is active
+    const isPending = index > 2; // Rest are pending
+
+    return (
+      <motion.div
+        variants={stepAnimation}
+        className="relative flex items-start group"
+      >
+        {/* Timeline Line */}
+        {!isLast && (
+          <div className="absolute left-6 top-12 w-0.5 h-20 bg-gradient-to-b from-gray-300 to-gray-200 dark:from-gray-600 dark:to-gray-700" />
+        )}
+
+        {/* Timeline Node */}
+        <div className="relative z-10 flex-shrink-0">
+          <motion.div
+            className={`
+              w-12 h-12 rounded-full border-2 flex items-center justify-center text-sm font-medium
+              transition-all duration-300 shadow-sm
+              ${isCompleted 
+                ? 'bg-green-100 border-green-300 text-green-700 dark:bg-green-900/30 dark:border-green-600 dark:text-green-400' 
+                : isActive 
+                ? 'bg-blue-100 border-blue-300 text-blue-700 dark:bg-blue-900/30 dark:border-blue-600 dark:text-blue-400 animate-pulse' 
+                : 'bg-gray-100 border-gray-300 text-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400'
+              }
+            `}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {isCompleted ? (
+              <CheckCircle className="w-5 h-5" />
+            ) : isActive ? (
+              <Clock className="w-5 h-5" />
+            ) : (
+              <span>{stepNumber}</span>
+            )}
+          </motion.div>
+
+          {/* Status Badge */}
+          <motion.div
+            className="absolute -bottom-1 -right-1"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.3 + index * 0.1 }}
+          >
+            <Badge
+              variant={isCompleted ? "default" : isActive ? "secondary" : "outline"}
+              className={`
+                text-xs px-1.5 py-0.5 font-medium
+                ${isCompleted 
+                  ? 'bg-green-500 text-white' 
+                  : isActive 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+                }
+              `}
+            >
+              {isCompleted ? "Done" : isActive ? "Active" : "Pending"}
+            </Badge>
+          </motion.div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 ml-4 pb-8">
+          <motion.div
+            className={`
+              rounded-lg border p-4 transition-all duration-300 hover:shadow-md
+              ${isCompleted 
+                ? 'bg-green-50/50 border-green-200 dark:bg-green-900/10 dark:border-green-800' 
+                : isActive 
+                ? 'bg-blue-50/50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-800' 
+                : 'bg-gray-50/50 border-gray-200 dark:bg-gray-900/10 dark:border-gray-700'
+              }
+            `}
+            whileHover={{ 
+              y: -2,
+              transition: { type: "spring", stiffness: 300 }
+            }}
+          >
+            <div className="flex items-start justify-between mb-2">
+              <h3 className={`
+                font-semibold text-sm leading-5
+                ${isCompleted 
+                  ? 'text-green-800 dark:text-green-300' 
+                  : isActive 
+                  ? 'text-blue-800 dark:text-blue-300' 
+                  : 'text-gray-700 dark:text-gray-300'
+                }
+              `}>
+                {step.title}
+              </h3>
+              
+              <div className={`
+                p-1.5 rounded-md ml-2 flex-shrink-0
+                ${isCompleted 
+                  ? 'bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400' 
+                  : isActive 
+                  ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400' 
+                  : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                }
+              `}>
+                {step.icon}
+              </div>
+            </div>
+
+            <p className={`
+              text-xs leading-4
+              ${isCompleted 
+                ? 'text-green-700 dark:text-green-400' 
+                : isActive 
+                ? 'text-blue-700 dark:text-blue-400' 
+                : 'text-gray-600 dark:text-gray-400'
+              }
+            `}>
+              {step.description}
+            </p>
+
+            {/* Progress Indicator */}
+            {(isCompleted || isActive) && (
+              <motion.div
+                className="mt-3 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
+                initial={{ width: 0 }}
+                animate={{ width: "100%" }}
+                transition={{ delay: 0.5 + index * 0.1, duration: 0.8 }}
+              >
+                <motion.div
+                  className={`
+                    h-full rounded-full
+                    ${isCompleted 
+                      ? 'bg-green-500' 
+                      : 'bg-blue-500'
+                    }
+                  `}
+                  initial={{ width: 0 }}
+                  animate={{ width: isCompleted ? "100%" : "60%" }}
+                  transition={{ delay: 0.7 + index * 0.1, duration: 1.2 }}
+                />
+              </motion.div>
+            )}
+          </motion.div>
+        </div>
+      </motion.div>
+    );
+  };
+
+  const RoadmapContent = () => (
+    <motion.div
+      variants={containerAnimation}
+      initial="hidden"
+      animate="show"
+      className="space-y-2"
+    >
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Implementation Roadmap
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Strategic execution timeline with progress tracking
+          </p>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Badge variant="outline" className="text-xs">
+            {steps.filter((_, i) => i < 2).length} of {steps.length} Complete
+          </Badge>
+          <TrendingUp className="w-4 h-4 text-green-500" />
+        </div>
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div className="space-y-0">
+          {steps.map((step, index) => (
+            <TimelineStep
+              key={`${step.title}-${index}`}
+              step={step}
+              index={index}
+              isLast={index === steps.length - 1}
+            />
+          ))}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Summary Footer */}
+      <motion.div
+        className="mt-8 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 }}
+      >
+        <div className="flex items-center space-x-2 mb-2">
+          <Shield className="w-4 h-4 text-blue-500" />
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            Risk Mitigation Progress
+          </span>
+        </div>
+        <p className="text-xs text-gray-600 dark:text-gray-400">
+          Implementation is on track with 2 completed milestones. Next phase focuses on system integration and testing.
+        </p>
+      </motion.div>
+    </motion.div>
+  );
 
   // Panel content
   const content = (
@@ -66,80 +280,23 @@ export const ImplementationRoadmapPanel: React.FC<ImplementationRoadmapPanelProp
             <div>
               <CardTitle className="text-lg font-semibold">Implementation Roadmap</CardTitle>
               <CardDescription className="text-xs text-muted-foreground">
-                Strategic execution timeline
+                Strategic execution timeline with progress tracking
               </CardDescription>
             </div>
           </div>
-          {isMobile && (
-            <DrawerClose asChild>
-              <button onClick={onClose} className="p-2 rounded-full hover:bg-muted/50 transition-colors">
-                <X className="h-5 w-5 text-muted-foreground" />
-              </button>
-            </DrawerClose>
+          {!isMobile && (
+            <button 
+              onClick={onClose} 
+              className="p-2 rounded-full hover:bg-muted/50 transition-colors"
+              aria-label="Close roadmap panel"
+            >
+              <X className="h-5 w-5 text-muted-foreground" />
+            </button>
           )}
         </CardHeader>
         
-        <CardContent className="flex-1 p-6 space-y-4 overflow-y-auto">
-          <div className="relative">
-            {/* Connecting line */}
-            <div className="absolute left-6 top-8 bottom-8 w-0.5 bg-gradient-to-b from-red-200 via-orange-200 to-blue-200 dark:from-red-800 dark:via-orange-800 dark:to-blue-800 rounded-full"></div>
-            
-            <div className="space-y-6">
-              {steps.map((step, idx) => {
-                const colors = getStepColors(idx);
-                return (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.1, duration: 0.5 }}
-                    className="relative flex items-start gap-4"
-                  >
-                    {/* Step icon */}
-                    <div className={`relative z-10 w-12 h-12 ${colors.bg} rounded-full flex items-center justify-center ${colors.glow} transition-all duration-300 hover:scale-110 flex-shrink-0`}>
-                      <div className="text-white">
-                        {step.icon}
-                      </div>
-                    </div>
-                    
-                    {/* Step content */}
-                    <div className={`flex-1 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-xl p-4 border ${colors.border} ${colors.shadow} hover:shadow-xl transition-all duration-300 hover:scale-[1.02]`}>
-                      <h3 className="font-semibold text-sm mb-2 text-foreground">
-                        {step.title}
-                      </h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                        {step.description}
-                      </p>
-                      
-                      {/* Progress indicator */}
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full ${colors.bg} rounded-full transition-all duration-1000`}
-                            style={{ width: idx === 0 ? '100%' : idx === 1 ? '60%' : '20%' }}
-                          />
-                        </div>
-                        <span className="text-xs font-medium text-muted-foreground">
-                          {idx === 0 ? 'Ready' : idx === 1 ? 'In Progress' : 'Planned'}
-                        </span>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-            
-            {/* Summary */}
-            <div className="mt-6 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl border border-emerald-200/50 dark:border-emerald-800/30">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Total Impact</span>
-              </div>
-              <p className="text-xs text-emerald-600 dark:text-emerald-400">
-                Complete implementation reduces supply chain risk by <span className="font-semibold">50%</span> with an expected ROI of <span className="font-semibold">2.4x</span>
-              </p>
-            </div>
-          </div>
+        <CardContent className="flex-1 p-6 overflow-y-auto">
+          <RoadmapContent />
         </CardContent>
       </Card>
     </motion.div>
@@ -148,18 +305,41 @@ export const ImplementationRoadmapPanel: React.FC<ImplementationRoadmapPanelProp
   // Desktop: fixed side panel, Mobile: Drawer
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={v => !v && onClose()}>
-        <DrawerContent className="max-w-full w-[95vw] sm:w-[420px] right-0 ml-auto rounded-t-2xl max-h-[90vh]">
-          {content}
+      <Drawer open={open} onOpenChange={onClose}>
+        <DrawerContent className="max-h-[85vh]">
+          <DrawerHeader className="flex items-center justify-between p-6 border-b">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                <TrendingUp className="h-4 w-4 text-white" />
+              </div>
+              <DrawerTitle className="text-lg font-semibold">Implementation Roadmap</DrawerTitle>
+            </div>
+            <DrawerClose asChild>
+              <button 
+                className="p-2 rounded-full hover:bg-muted/50 transition-colors"
+                aria-label="Close roadmap drawer"
+              >
+                <X className="h-5 w-5 text-muted-foreground" />
+              </button>
+            </DrawerClose>
+          </DrawerHeader>
+          <div className="p-6 overflow-y-auto">
+            <RoadmapContent />
+          </div>
         </DrawerContent>
       </Drawer>
     );
   }
-  
+
+  // Desktop side panel
+  if (!open) return null;
+
   return (
-    <aside className="hidden lg:block fixed top-20 right-6 h-[calc(100vh-6rem)] w-[400px] z-30">
+    <div className={`fixed right-0 top-0 h-screen w-[400px] z-50 p-3 transition-transform duration-300 ease-in-out ${
+      finalizeOpen ? 'translate-x-[-400px]' : ''
+    }`}>
       {content}
-    </aside>
+    </div>
   );
 };
 

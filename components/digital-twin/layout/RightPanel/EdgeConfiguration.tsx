@@ -48,14 +48,11 @@ const EdgeConfiguration: FC<EdgeConfigurationProps> = ({
 
   // Check if chokepoint selection should be shown
   const shouldShowChokepointSelection = () => {
-    // Only show if nodes are in different countries
     const sourceCountry = sourceNode?.data?.location?.country || sourceNode?.data?.country;
     const targetCountry = targetNode?.data?.location?.country || targetNode?.data?.country;
-    
-    if (sourceCountry && targetCountry) {
-      return sourceCountry !== targetCountry;
-    }
-    return true; // Show by default if country info is not available
+    const isCrossCountry = sourceCountry && targetCountry && sourceCountry !== targetCountry;
+    // Show chokepoint selection for cross-country sea transport
+    return formValues.mode === 'sea' && isCrossCountry;
   };
 
   return (

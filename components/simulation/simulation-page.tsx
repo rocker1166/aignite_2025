@@ -17,7 +17,7 @@ import { AIScenarioSuggestions } from "@/components/simulation/test/ai-scenario-
 import { ScenarioProvider, useScenario, ScenarioData } from "@/lib/context/scenario-context"
 import type { Simulation } from "@/lib/types/database"
 import { getUserSupplyChains } from "@/lib/api/supply-chain"
-import { createSimulation, updateSimulation, getSimulations } from "@/lib/api/simulation"
+import { createSimulation, updateSimulation, getSimulations, findCachedSimulation, createSimulationWithCache } from "@/lib/api/simulation"
 import { useUser } from "@/lib/stores/user"
 import { useImpact } from "@/lib/context/impact-context"
 
@@ -62,6 +62,9 @@ function SimulationPageContent() {
   const [view, setView] = useState('templates')
   const [simulationRunning, setSimulationRunning] = useState(false)
   const [simulationComplete, setSimulationComplete] = useState(false)
+  
+  // Navigation state to track when to navigate
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null)
 
   // Access scenario context
   const { 
@@ -81,12 +84,32 @@ function SimulationPageContent() {
 
   const user_id = userData?.id
 
-  // Form validation
-  const isFormValid = !!(scenarioData.scenarioName && 
-                       scenarioData.scenarioType && 
-                       scenarioData.affectedNode && 
-                       scenarioData.affectedNode.length > 0 &&
-                       selectedSupplyChainId)
+  // Form validation - more robust checking
+  const isFormValid = !!(
+    scenarioData.scenarioName && 
+    scenarioData.scenarioName.trim().length > 0 &&
+    scenarioData.scenarioType && 
+    scenarioData.scenarioType.trim().length > 0 &&
+    scenarioData.affectedNode && 
+    scenarioData.affectedNode.trim().length > 0 &&
+    selectedSupplyChainId &&
+    selectedSupplyChainId.trim().length > 0 &&
+    scenarioData.disruptionSeverity > 0 &&
+    scenarioData.disruptionDuration > 0
+  )
+
+  // Debug logging for form validation (moved to useEffect to avoid render-time side effects)
+  useEffect(() => {
+    console.log('🔧 Form validation debug:', {
+      scenarioName: scenarioData.scenarioName,
+      scenarioType: scenarioData.scenarioType,
+      affectedNode: scenarioData.affectedNode,
+      selectedSupplyChainId: selectedSupplyChainId,
+      disruptionSeverity: scenarioData.disruptionSeverity,
+      disruptionDuration: scenarioData.disruptionDuration,
+      isFormValid: isFormValid
+    })
+  }, [scenarioData, selectedSupplyChainId, isFormValid])
 
   useEffect(() => {
     const fetchSupplyChains = async () => {
@@ -100,12 +123,12 @@ function SimulationPageContent() {
         if (response.status === 'success' && response.data) {
           const transformedData = response.data.map((chain: SupplyChainData) => ({
             supply_chain_id: chain.supply_chain_id,
-            user_id: chain.user_id,
+            user_id: chain.user_id ?? null,
             name: chain.name,
-            description: chain.description,
-            status: 'active',
-            created_at: chain.timestamp,
-            updated_at: chain.timestamp
+            description: chain.description ?? null,
+            form_data: chain.form_data ?? {},
+            organisation: chain.organisation ?? {},
+            timestamp: chain.timestamp ?? null
           }))
           setSupplyChains(transformedData)
           if (transformedData.length > 0) {
@@ -127,7 +150,7 @@ function SimulationPageContent() {
       setSelectedSupplyChainId(supplyChains[0].supply_chain_id)
       fetchSimulationHistory(supplyChains[0].supply_chain_id)
     }
-  }, [supplyChains, userData, selectedSupplyChainId, setSelectedSupplyChainId, setSupplyChains])
+  }, [supplyChains, userData, selectedSupplyChainId])
 
   const fetchSimulationHistory = async (id: string) => {
     try {
@@ -194,12 +217,43 @@ function SimulationPageContent() {
     }
 
     try {
-      // Change view to simulation
       setView('simulation')
       setSimulationRunning(true)
       setSimulationComplete(false)
       setProgress(0)
+      setPendingNavigation(null) // Reset any pending navigation
 
+      // Check for cached simulation first
+      console.log('🔍 Checking for cached simulation...')
+      const cachedSimulation = await findCachedSimulation(scenarioData, selectedSupplyChainId)
+      
+      if (cachedSimulation) {
+        console.log(`✅ Found cached simulation: ${cachedSimulation.simulation_id}`)
+        toast.success("Found existing simulation with same parameters")
+        setCurrentSimulation(cachedSimulation)
+        
+        // Fast progress for cached simulation
+        const fastInterval = setInterval(() => {
+          setProgress((prev) => {
+            if (prev >= 100) {
+              clearInterval(fastInterval)
+              setSimulationRunning(false)
+              setSimulationComplete(true)
+              
+              console.log(`✅ Setting navigation for cached results: ${cachedSimulation.simulation_id}`)
+              setPendingNavigation(`/simulation/result?id=${cachedSimulation.simulation_id}`)
+              
+              return 100
+            }
+            return prev + 25 // Faster progress for cached results
+          })
+        }, 200)
+        
+        return
+      }
+
+      console.log('📭 No cached simulation found, creating new simulation...')
+      
       const newSim: Partial<Simulation> = {
         supply_chain_id: selectedSupplyChainId,
         name: scenarioData.scenarioName,
@@ -222,7 +276,7 @@ function SimulationPageContent() {
         status: "running"
       }
 
-      const created = await createSimulation(newSim)
+      const created = await createSimulationWithCache(newSim, scenarioData)
       setCurrentSimulation(created)
 
       const simulationConfig = {
@@ -249,23 +303,78 @@ function SimulationPageContent() {
 
       setIsLoading(true)
 
+      // Call the impact assessment agent with the simulation ID
       try {
-        const response = await fetch('/api/impact', {
+        console.log(`🎯 Triggering impact assessment for simulation: ${created?.simulation_id}`)
+        
+        const response = await fetch('/api/agent/impact', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ simulationConfig, user_id })
+          body: JSON.stringify({ 
+            simulationId: created?.simulation_id,
+            forceRefresh: true 
+          })
         })
 
-        if (response.ok) {
-          const apiResponse = await response.json()
-          setImpactData(apiResponse.result)
+        const impactResponse = await response.json()
+        
+        if (response.ok && impactResponse.success) {
+          console.log('✅ Impact assessment completed successfully:', impactResponse)
+          toast.success("Impact assessment completed successfully")
+          
+          // Update simulation with enhanced results
+          if (created?.simulation_id && impactResponse.data) {
+            await updateSimulation(created.simulation_id, {
+              status: "completed",
+              result_summary: {
+                enhanced_analysis: true,
+                impact_assessment_completed: true,
+                analysis_timestamp: new Date().toISOString(),
+                ...impactResponse.data
+              },
+              simulated_at: new Date().toISOString()
+            })
+          }
         } else {
-          console.error('Impact API error:', response.status)
-          toast.error(`Impact API returned status: ${response.status}`)
+          console.warn('Impact assessment warning:', impactResponse.error)
+          toast.warning("Impact assessment completed with warnings")
+          
+          // Still update simulation as completed but without enhanced data
+          if (created?.simulation_id) {
+            await updateSimulation(created.simulation_id, {
+              status: "completed",
+              result_summary: {
+                enhanced_analysis: false,
+                impact_assessment_completed: false,
+                costImpact: "$1.2M",
+                timeDelay: "14.5 days",
+                inventoryImpact: "-42%",
+                recoveryTime: "35 days"
+              },
+              simulated_at: new Date().toISOString()
+            })
+          }
         }
       } catch (error) {
-        console.error('Error calling impact API:', error)
-        toast.error("Failed to fetch impact assessment data")
+        console.error('❌ Error calling impact assessment agent:', error)
+        toast.error("Failed to run impact assessment, using basic simulation")
+        
+        // Fallback: Update simulation as completed without impact assessment
+        if (created?.simulation_id) {
+          await updateSimulation(created.simulation_id, {
+            status: "completed",
+            result_summary: {
+              enhanced_analysis: false,
+              impact_assessment_completed: false,
+              error: "Impact assessment failed",
+              costImpact: "$1.2M",
+              timeDelay: "14.5 days",
+              inventoryImpact: "-42%",
+              recoveryTime: "35 days"
+            },
+            simulated_at: new Date().toISOString()
+          })
+        }
       } finally {
         setIsLoading(false)
       }
@@ -277,20 +386,13 @@ function SimulationPageContent() {
             setSimulationRunning(false)
             setSimulationComplete(true)
             
-            // Navigate to results page instead of changing view
-            router.push('/simulation/result')
-
-            if (created) {
-              updateSimulation(created.simulation_id, {
-                status: "completed",
-                result_summary: {
-                  costImpact: "$1.2M",
-                  timeDelay: "14.5 days",
-                  inventoryImpact: "-42%",
-                  recoveryTime: "35 days"
-                },
-                simulated_at: new Date().toISOString()
-              }).then(() => fetchSimulationHistory(selectedSupplyChainId))
+            // Set navigation URL for pending navigation
+            if (created?.simulation_id) {
+              console.log(`✅ Setting navigation for simulation: ${created.simulation_id}`)
+              setPendingNavigation(`/simulation/result?id=${created.simulation_id}`)
+            } else {
+              console.warn('⚠️ No simulation ID available, setting basic results page navigation')
+              setPendingNavigation('/simulation/result')
             }
 
             return 100
@@ -311,8 +413,28 @@ function SimulationPageContent() {
     setSimulationRunning(false)
     setSimulationComplete(false)
     setProgress(0)
+    setPendingNavigation(null) // Reset any pending navigation
     setCurrentSimulation(null)
   }
+
+  // Function to view existing simulation results
+  const handleViewSimulationResults = (simulationId: string) => {
+    // Navigate directly to results page with simulation ID
+    router.push(`/simulation/result?id=${simulationId}`)
+  }
+
+  // Handle navigation when simulation is complete
+  useEffect(() => {
+    if (simulationComplete && pendingNavigation) {
+      console.log(`🎯 Navigating to: ${pendingNavigation}`)
+      router.push(pendingNavigation)
+      setPendingNavigation(null)
+      
+      if (selectedSupplyChainId) {
+        fetchSimulationHistory(selectedSupplyChainId)
+      }
+    }
+  }, [simulationComplete, pendingNavigation, selectedSupplyChainId, router])
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-100/60 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950 overflow-x-hidden">
@@ -398,7 +520,11 @@ function SimulationPageContent() {
             </div>
 
             {/* Floating Action Button */}
-            <FloatingRunButton isFormValid={isFormValid} onRunSimulation={runSimulation} />
+            <FloatingRunButton 
+              isFormValid={isFormValid} 
+              onRunSimulation={runSimulation} 
+              scenarioData={scenarioData}
+            />
           </div>
         )}
 

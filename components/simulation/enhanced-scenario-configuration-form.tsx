@@ -313,6 +313,7 @@ export function EnhancedScenarioConfigurationForm() {
                   Affected Nodes
                 </LabelWithTooltip>
                 <MultiSelect
+                  key={scenarioData.affectedNode} // Force re-mount when affectedNode changes
                   options={affectedNodeOptions}
                   onValueChange={(values) => updateScenarioData({ affectedNode: values.join(',') })}
                   defaultValue={scenarioData.affectedNode ? scenarioData.affectedNode.split(',') : []}

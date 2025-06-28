@@ -201,6 +201,12 @@
   background: hsl(var(--muted-foreground) / 0.7);
 }
 
+/* Vertical writing mode for collapsed panel */
+.writing-mode-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
 /* React Flow Template Group Styling - Minimal Subflow Effect */
 .template-group {
   background: rgba(0, 0, 0, 0.02) !important;
