@@ -19,6 +19,8 @@
 21. make the templates such that user does not have to fix any thing 
 22 . add power of saving to asistant 
 23. unable to update the temperature  and if not found temperateure just consider it as false there is some issue  with temperature  
+24.add the thinking , doing animation 
+25. add in rule if a function returns the icon or any type of jsx  it should be tsx extension 
 
 
 //suman improvment list :

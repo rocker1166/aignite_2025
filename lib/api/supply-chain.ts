@@ -346,6 +346,33 @@ export async function getSupplyChainById(
   }
 }
 
+/**
+ * Get news room info from get-news-room-info edge function
+ */
+export async function getNewsRoomInfo(userId: string) {
+  try {
+    const { data, error } = await supabaseClient.functions.invoke('get-news-room-info', {
+      body: {
+        user_id: userId,
+      },
+    })
+
+    if (error) {
+      console.error('get-news-room-info edge function error:', error)
+      throw new Error(error.message || 'Failed to fetch news room info')
+    }
+
+    if (!data) {
+      throw new Error('No data returned from get-news-room-info edge function')
+    }
+
+    return data
+  } catch (error) {
+    console.error('Error fetching news room info:', error)
+    throw error
+  }
+}
+
 // Re-export shared types so downstream consumers can import from the API layer
 export type {
   SupplyChainArch,

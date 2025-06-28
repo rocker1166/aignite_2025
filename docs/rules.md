@@ -70,11 +70,6 @@ When I request complex(not simple changes) **refactors** or **new features**, yo
    - API routes: `const supabase = supabaseServer;`
    - Client utils: Direct `supabaseClient` usage
    - Auth contexts: `supabaseClient.auth.onAuthStateChange()`
-
-
-
-
-
 ---
 
 ### 🧼 Clean Code Practices
@@ -87,13 +82,3 @@ When I request complex(not simple changes) **refactors** or **new features**, yo
 6. Store form schemas in `schema.ts`.[](mdc:tsconfig.json)
 7. When importing components use '@' view @tsconfig.json for path information.
 8. If a function returns JSX (including icons), the file must use a .tsx extension.
-
-
-
-
-
-
-
-
-
-
