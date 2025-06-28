@@ -5,6 +5,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQueryState, parseAsInteger, parseAsString, parseAsArrayOf } from 'nuqs';
+import { compressArchData, decompressArchData } from "@/lib/utils/url-compression";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,22 +42,38 @@ export default function CreationForm({ onSuccess, onCancel }: CreationFormProps)
   const [annualVolumeTypeParam, setAnnualVolumeTypeParam] = useQueryState('annualVolumeType', parseAsString);
   const [annualVolumeValueParam, setAnnualVolumeValueParam] = useQueryState('annualVolumeValue', parseAsInteger);
   const [risksParam, setRisksParam] = useQueryState('risks', parseAsArrayOf(parseAsString));
+  const [formParam, setFormParam] = useQueryState('form', parseAsString);
   
+  // Determine initial default values
+  const defaultValuesFromParams: FormData = {
+    productCharacteristics: productCharacteristicsParam || [],
+    operationsLocation: operationsLocationParam || [],
+    shippingMethods: shippingMethodsParam || [],
+    risks: risksParam || [],
+    annualVolumeType: (annualVolumeTypeParam as "units" | "currency") || "units",
+    annualVolumeValue: annualVolumeValueParam || 0,
+    industry: industryParam || "",
+    customIndustry: customIndustryParam || "",
+    supplierTiers: supplierTiersParam || "",
+    country: countryParam || "",
+    currency: currencyParam || "",
+  };
+
+  let mergedDefaultValues: FormData = defaultValuesFromParams;
+  if (formParam) {
+    try {
+      mergedDefaultValues = {
+        ...mergedDefaultValues,
+        ...decompressArchData(formParam) as Partial<FormData>,
+      } as FormData;
+    } catch (error) {
+      console.error('Failed to decompress form data from URL:', error);
+    }
+  }
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-        productCharacteristics: productCharacteristicsParam || [],
-        operationsLocation: operationsLocationParam || [],
-        shippingMethods: shippingMethodsParam || [],
-        risks: risksParam || [],
-        annualVolumeType: (annualVolumeTypeParam as "units" | "currency") || "units",
-        annualVolumeValue: annualVolumeValueParam || 0,
-        industry: industryParam || "",
-        customIndustry: customIndustryParam || "",
-        supplierTiers: supplierTiersParam || "",
-        country: countryParam || "",
-        currency: currencyParam || "",
-    }
+    defaultValues: mergedDefaultValues,
   });
 
   const watchOperationsLocation = form.watch("operationsLocation");

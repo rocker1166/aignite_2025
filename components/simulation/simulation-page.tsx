@@ -62,6 +62,9 @@ function SimulationPageContent() {
   const [view, setView] = useState('templates')
   const [simulationRunning, setSimulationRunning] = useState(false)
   const [simulationComplete, setSimulationComplete] = useState(false)
+  
+  // Navigation state to track when to navigate
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null)
 
   // Access scenario context
   const { 
@@ -120,12 +123,12 @@ function SimulationPageContent() {
         if (response.status === 'success' && response.data) {
           const transformedData = response.data.map((chain: SupplyChainData) => ({
             supply_chain_id: chain.supply_chain_id,
-            user_id: chain.user_id,
+            user_id: chain.user_id ?? null,
             name: chain.name,
-            description: chain.description,
-            status: 'active',
-            created_at: chain.timestamp,
-            updated_at: chain.timestamp
+            description: chain.description ?? null,
+            form_data: chain.form_data ?? {},
+            organisation: chain.organisation ?? {},
+            timestamp: chain.timestamp ?? null
           }))
           setSupplyChains(transformedData)
           if (transformedData.length > 0) {
@@ -218,6 +221,7 @@ function SimulationPageContent() {
       setSimulationRunning(true)
       setSimulationComplete(false)
       setProgress(0)
+      setPendingNavigation(null) // Reset any pending navigation
 
       // Check for cached simulation first
       console.log('🔍 Checking for cached simulation...')
@@ -236,12 +240,9 @@ function SimulationPageContent() {
               setSimulationRunning(false)
               setSimulationComplete(true)
               
-              console.log(`🎯 Navigating to cached results: ${cachedSimulation.simulation_id}`)
-              router.push(`/simulation/result?id=${cachedSimulation.simulation_id}`)
+              console.log(`✅ Setting navigation for cached results: ${cachedSimulation.simulation_id}`)
+              setPendingNavigation(`/simulation/result?id=${cachedSimulation.simulation_id}`)
               
-              if (selectedSupplyChainId) {
-                fetchSimulationHistory(selectedSupplyChainId)
-              }
               return 100
             }
             return prev + 25 // Faster progress for cached results
@@ -385,18 +386,13 @@ function SimulationPageContent() {
             setSimulationRunning(false)
             setSimulationComplete(true)
             
-            // Navigate to results page with simulation ID
+            // Set navigation URL for pending navigation
             if (created?.simulation_id) {
-              console.log(`🎯 Navigating to results page for simulation: ${created.simulation_id}`)
-              router.push(`/simulation/result?id=${created.simulation_id}`)
+              console.log(`✅ Setting navigation for simulation: ${created.simulation_id}`)
+              setPendingNavigation(`/simulation/result?id=${created.simulation_id}`)
             } else {
-              console.warn('⚠️ No simulation ID available, navigating to basic results page')
-              router.push('/simulation/result')
-            }
-
-            // Refresh simulation history
-            if (selectedSupplyChainId) {
-              fetchSimulationHistory(selectedSupplyChainId)
+              console.warn('⚠️ No simulation ID available, setting basic results page navigation')
+              setPendingNavigation('/simulation/result')
             }
 
             return 100
@@ -417,6 +413,7 @@ function SimulationPageContent() {
     setSimulationRunning(false)
     setSimulationComplete(false)
     setProgress(0)
+    setPendingNavigation(null) // Reset any pending navigation
     setCurrentSimulation(null)
   }
 
@@ -425,6 +422,19 @@ function SimulationPageContent() {
     // Navigate directly to results page with simulation ID
     router.push(`/simulation/result?id=${simulationId}`)
   }
+
+  // Handle navigation when simulation is complete
+  useEffect(() => {
+    if (simulationComplete && pendingNavigation) {
+      console.log(`🎯 Navigating to: ${pendingNavigation}`)
+      router.push(pendingNavigation)
+      setPendingNavigation(null)
+      
+      if (selectedSupplyChainId) {
+        fetchSimulationHistory(selectedSupplyChainId)
+      }
+    }
+  }, [simulationComplete, pendingNavigation, selectedSupplyChainId, router])
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-100/60 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950 overflow-x-hidden">

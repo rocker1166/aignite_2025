@@ -168,6 +168,18 @@ export default function SimulationResultPage() {
   // Get simulation ID from URL parameters
   const simulationId = searchParams.get('id')
 
+  // Add effect to handle missing simulation ID with localStorage fallback
+  useEffect(() => {
+    if (!simulationId) {
+      const storedSimulationId = localStorage.getItem('currentSimulationId')
+      if (storedSimulationId) {
+        // Redirect to the URL with the stored simulation ID
+        router.replace(`/simulation/result?id=${storedSimulationId}`)
+        return
+      }
+    }
+  }, [simulationId, router])
+
   // Fetch simulation data on component mount
   useEffect(() => {
     const fetchSimulationData = async () => {
@@ -293,8 +305,14 @@ export default function SimulationResultPage() {
   }, [router])
 
   const handleViewMitigationStrategy = useMemo(() => () => {
-    router.push("/simulation/mitigationstrategy")
-  }, [router])
+    // Pass the simulation ID to mitigation strategy page and store in localStorage as backup
+    if (simulationId) {
+      localStorage.setItem('currentSimulationId', simulationId)
+      router.push(`/simulation/mitigationstrategy?id=${simulationId}`)
+    } else {
+      router.push("/simulation/mitigationstrategy")
+    }
+  }, [router, simulationId])
 
   // Memoize date formatting
   const formattedDate = useMemo(() => {

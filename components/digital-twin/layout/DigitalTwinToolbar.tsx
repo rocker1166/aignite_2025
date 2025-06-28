@@ -5,7 +5,7 @@ import IntelligenceAnalysisDialog from '../IntelligenceAnalysisDialog';
 import FloatingSaveButton from './FloatingSaveButton';
 import { Node, Edge } from 'reactflow';
 
-interface SimulationToolbarProps {
+interface DigitalTwinToolbarProps {
   selectedSupplyChain: string;
   setSelectedSupplyChain: (id: string) => void;
   onSave: () => Promise<string | null>;
@@ -19,7 +19,7 @@ interface SimulationToolbarProps {
   edges: Edge[];
 }
 
-const SimulationToolbar: FC<SimulationToolbarProps> = ({
+const DigitalTwinToolbar: FC<DigitalTwinToolbarProps> = ({
   selectedSupplyChain,
   setSelectedSupplyChain,
   onSave,
@@ -163,4 +163,4 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
   );
 };
 
-export default SimulationToolbar; 
+export default DigitalTwinToolbar; 

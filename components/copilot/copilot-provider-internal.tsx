@@ -22,11 +22,11 @@ export function CopilotKitProviderWithUrl({
   children: React.ReactNode;
 }) {
   const copilotKitEnabled =
-    process.env.NEXT_PUBLIC_COPILOTKIT_ENABLED === 'true';
+    process.env.NEXT_PUBLIC_COPILOTKIT_ENABLED !== 'false';
 
   if (!copilotKitEnabled) {
     return <>{children}</>;
   }
 
   return <CopilotKitEnabledProvider>{children}</CopilotKitEnabledProvider>;
-} 
+}

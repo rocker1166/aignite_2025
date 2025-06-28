@@ -48,7 +48,7 @@ export default function AddressAutocompleteMap({
     const selectedItemRef = useRef<HTMLLIElement>(null)
 
     const olaMaps = useMemo(() => {
-        const apiKey = process.env.NEXT_PUBLIC_OLA_MAPS_API_KEY
+        const apiKey = process.env.OLA_MAPS_API_KEY
         if (!apiKey) {
             console.error('OlaMaps API key is not configured. Please set NEXT_PUBLIC_OLA_MAPS_API_KEY environment variable.')
             setError('Map service is not configured. Please check your API key settings.')
