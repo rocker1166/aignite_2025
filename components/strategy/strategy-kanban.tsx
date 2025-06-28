@@ -353,7 +353,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2">Task Kanban Board</h2>
+          <h2 className="text-2xl font-bold text-black mb-2">Task Kanban Board</h2>
           <p className="text-slate-400">Drag and drop tasks to update their status and track progress</p>
         </div>
         <div className="flex items-center gap-3">
@@ -525,10 +525,10 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
               return (
                 <div key={column.id} className="w-80 flex-shrink-0 space-y-4">
                   {/* Column Header */}
-                  <div className="flex items-center justify-between p-4 bg-slate-800/60 rounded-xl border border-slate-700/50">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 dark:bg-slate-800/30 dark:border-slate-700/50 rounded-xl shadow-md">
                     <div className="flex items-center gap-3">
                       <div className={`w-3 h-3 rounded-full ${column.color}`} />
-                      <h3 className="font-semibold text-white">{column.title}</h3>
+                      <h3 className="font-semibold text-black dark:text-white">{column.title}</h3>
                       <Badge className={`${column.color} text-white font-medium`}>
                         {stats.totalTasks}
                       </Badge>
@@ -552,10 +552,10 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
 
                   {/* Column Content */}
                   <div 
-                    className={`space-y-3 min-h-[600px] p-4 bg-slate-800/30 rounded-xl border-2 border-dashed transition-all duration-300 ${
+                    className={`space-y-3 min-h-[600px] p-4 bg-gray-50 border border-gray-100 dark:bg-slate-800/30 dark:border-slate-700/50 rounded-xl transition-all duration-300 ${
                       draggedOverColumn === column.id 
                         ? 'border-blue-500/50 bg-blue-500/10' 
-                        : 'border-slate-700/50'
+                        : 'border-gray-200 dark:border-slate-700/50'
                     }`}
                     onDragOver={(e) => handleDragOver(e, column.id)}
                     onDragLeave={handleDragLeave}
@@ -567,13 +567,13 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                         draggable
                         onDragStart={(e) => handleDragStart(e, task)}
                         onDragEnd={handleDragEnd}
-                        className="bg-slate-800/80 border-slate-700/50 cursor-move hover:bg-slate-800/90 transition-all duration-300 hover:shadow-xl hover:shadow-slate-500/10 transform hover:-translate-y-1 group"
+                        className="bg-white border-gray-200 dark:bg-slate-800/80 dark:border-slate-700/50 cursor-move hover:bg-gray-100 dark:hover:bg-slate-800/90 transition-all duration-300 hover:shadow-xl hover:shadow-slate-500/10 transform hover:-translate-y-1 group shadow-md"
                         style={{ animationDelay: `${taskIndex * 50}ms` }}
                       >
                         <CardContent className="p-4">
                           {/* Task Header */}
                           <div className="flex items-start justify-between mb-3">
-                            <h4 className="font-medium text-white text-sm leading-tight flex-1 mr-2">{task.title}</h4>
+                            <h4 className="font-medium text-black text-sm leading-tight flex-1 mr-2">{task.title}</h4>
                             <div className="flex items-center gap-2">
                               {isCriticalPath(task) && (
                                 <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs animate-pulse">
@@ -605,13 +605,13 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                           {/* Task Details */}
                           <div className="space-y-3">
                             {task.description && (
-                              <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                              <p className="text-xs text-gray-700 line-clamp-2 leading-relaxed">
                                 {task.description}
                               </p>
                             )}
                             
                             <div className="flex items-center justify-between text-xs">
-                              <div className="flex items-center gap-1 text-slate-400">
+                              <div className="flex items-center gap-1 text-gray-700">
                                 <GitBranch className="w-3 h-3" />
                                 <span className="font-medium">{task.nodeName}</span>
                               </div>
@@ -619,11 +619,11 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                             </div>
 
                             <div className="flex items-center justify-between text-xs">
-                              <div className="flex items-center gap-1 text-slate-400">
+                              <div className="flex items-center gap-1 text-gray-700">
                                 <User className="w-3 h-3" />
                                 <span>{task.assignee}</span>
                               </div>
-                              <div className="flex items-center gap-1 text-slate-400">
+                              <div className="flex items-center gap-1 text-gray-700">
                                 <Clock className="w-3 h-3" />
                                 <span className="font-medium">{task.deadline}</span>
                               </div>
@@ -633,7 +633,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                             {task.tags && task.tags.length > 0 && (
                               <div className="flex flex-wrap gap-1">
                                 {task.tags.map((tag, index) => (
-                                  <Badge key={index} className="bg-slate-600/50 text-slate-300 text-xs">
+                                  <Badge key={index} className="bg-slate-600/50 text-gray-700 text-xs">
                                     {tag}
                                   </Badge>
                                 ))}
@@ -656,9 +656,9 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
 
                     {/* Empty State */}
                     {column.tasks.length === 0 && (
-                      <div className="flex items-center justify-center h-32 text-slate-500 border-2 border-dashed border-slate-600 rounded-lg">
+                      <div className="flex items-center justify-center h-32 text-gray-700 border-2 border-dashed border-gray-200 dark:border-slate-700/50 rounded-lg">
                         <div className="text-center">
-                          <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-slate-700 flex items-center justify-center">
+                          <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-gray-700 flex items-center justify-center">
                             <Plus className="w-4 h-4" />
                           </div>
                           <p className="text-sm font-medium">No tasks</p>
@@ -669,12 +669,12 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                   </div>
 
                   {/* Column Stats */}
-                  <Card className="bg-slate-800/60 border-slate-700/50">
+                  <Card className="bg-gray-50 border border-gray-100 dark:bg-slate-800/60 dark:border-slate-700/50 shadow-md">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-slate-400 font-medium">{column.title}</p>
-                          <p className="text-2xl font-bold text-white">{stats.totalTasks}</p>
+                          <p className="text-sm text-gray-700 font-medium">{column.title}</p>
+                          <p className="text-2xl font-bold text-black dark:text-white">{stats.totalTasks}</p>
                         </div>
                         <div className="text-right">
                           {stats.criticalTasks > 0 && (
@@ -705,7 +705,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
         {/* Scroll Indicator */}
         {columns.length > 4 && (
           <div className="absolute bottom-4 right-4 bg-slate-800/80 backdrop-blur-sm rounded-lg px-3 py-2 border border-slate-600/50">
-            <div className="flex items-center gap-2 text-xs text-slate-400">
+            <div className="flex items-center gap-2 text-xs text-gray-700">
               <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
               <span>Scroll horizontally to see more columns</span>
             </div>
@@ -803,9 +803,9 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
       )}
 
       {/* Board Summary */}
-      <Card className="bg-slate-800/60 border-slate-700/50">
+      <Card className="bg-white border-gray-200 shadow-md dark:bg-slate-800/60 dark:border-slate-700/50">
         <CardHeader>
-          <CardTitle className="text-white">Board Summary</CardTitle>
+          <CardTitle className="text-black dark:text-white">Board Summary</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-4 gap-6">
@@ -818,9 +818,9 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                       column.id === "in-progress" ? "In Progress" : 
                       column.id === "blocked" ? "Blocked" : "Done")}
                   </div>
-                  <p className="text-sm text-slate-400 font-medium">{column.title}</p>
-                  <p className="text-2xl font-bold text-white">{stats.totalTasks}</p>
-                  <p className="text-xs text-slate-500">tasks</p>
+                  <p className="text-lg font-semibold text-gray-800 dark:text-slate-200">{column.title}</p>
+                  <p className="text-2xl font-bold text-black dark:text-white">{stats.totalTasks}</p>
+                  <p className="text-sm text-gray-600 dark:text-slate-400">tasks</p>
                 </div>
               )
             })}

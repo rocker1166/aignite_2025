@@ -258,22 +258,22 @@ export function NodeBreakdown({ strategy }: NodeBreakdownProps) {
           {supplyChainNodes.map((node) => (
             <Card
               key={node.id}
-              className={`cursor-pointer transition-all duration-200 border-slate-700/50 hover:border-slate-600 ${
+              className={`cursor-pointer transition-all duration-200 border-gray-200 shadow-md dark:border-slate-700/50 hover:border-slate-600 ${
                 selectedNode.id === node.id
-                  ? "bg-slate-800/80 border-blue-500/50 shadow-lg shadow-blue-500/10"
-                  : "bg-slate-800/40 hover:bg-slate-800/60"
+                  ? "bg-gray-100 border-blue-500/50 shadow-lg shadow-blue-500/10 dark:bg-slate-800/80"
+                  : "bg-white hover:bg-gray-50 dark:bg-slate-800/40"
               }`}
               onClick={() => setSelectedNode(node)}
             >
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-slate-700/50">
+                  <div className="p-2 rounded-lg bg-blue-100 dark:bg-slate-700/50">
                     <node.icon className="w-5 h-5 text-blue-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-white text-sm truncate">{node.name}</h4>
-                      <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                      <h4 className="font-bold text-gray-800 dark:text-white text-sm truncate">{node.name}</h4>
+                      <ChevronRight className="w-4 h-4 text-gray-400 dark:text-slate-400 flex-shrink-0" />
                     </div>
 
                     <div className="flex items-center gap-2 mb-3">
@@ -283,12 +283,12 @@ export function NodeBreakdown({ strategy }: NodeBreakdownProps) {
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs">
-                        <span className="text-slate-400">Progress</span>
-                        <span className="text-white">{node.progress}%</span>
+                        <span className="text-gray-600 dark:text-slate-400">Progress</span>
+                        <span className="text-gray-800 dark:text-white font-bold">{node.progress}%</span>
                       </div>
-                      <Progress value={node.progress} className="h-1.5 bg-slate-700" />
+                      <Progress value={node.progress} className="h-1.5 bg-gray-200 dark:bg-slate-700" />
 
-                      <div className="flex justify-between text-xs text-slate-400">
+                      <div className="flex justify-between text-xs text-gray-600 dark:text-slate-400">
                         <span>
                           {node.completedActions}/{node.actions} actions
                         </span>

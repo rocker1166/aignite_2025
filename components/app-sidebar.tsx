@@ -9,6 +9,8 @@ import {
   Network, 
   Settings,
   ShieldAlert,
+  Target,
+  Truck,
   User,
   Sparkles,
 } from "lucide-react"

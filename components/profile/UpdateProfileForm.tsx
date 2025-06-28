@@ -31,6 +31,7 @@ interface UpdateProfileFormProps {
   isOpen: boolean;
   onClose: () => void;
   currentProfile?: OrganizationProfile;
+  mandatory?: boolean; // Add mandatory prop
 }
 
 // Industry categories with subcategories
@@ -57,7 +58,7 @@ const industryCategories: IndustryCategories = {
   }
 }
 
-export function UpdateProfileForm({ isOpen, onClose, currentProfile = {} }: UpdateProfileFormProps) {
+export function UpdateProfileForm({ isOpen, onClose, currentProfile = {}, mandatory = false }: UpdateProfileFormProps) {
   const [category, setCategory] = useState<string>(currentProfile.industry_category || "")
   const [formData, setFormData] = useState<OrganizationProfile>({
     organization_name: currentProfile.organization_name || "",
@@ -109,7 +110,13 @@ export function UpdateProfileForm({ isOpen, onClose, currentProfile = {} }: Upda
 
       console.log("Submitting organization profile:", updatedData);
       await updateUserData(updatedData);
-      onClose();
+      
+      // If mandatory, redirect to clean URL after successful update
+      if (mandatory) {
+        window.location.href = '/profile';
+      } else {
+        onClose();
+      }
     } catch (error) {
       console.error("Error updating profile:", error);
       // Handle error (you might want to show an error message to the user)
@@ -118,11 +125,31 @@ export function UpdateProfileForm({ isOpen, onClose, currentProfile = {} }: Upda
     }
   }
 
+  const handleClose = () => {
+    if (!mandatory) {
+      onClose();
+    }
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={mandatory ? undefined : onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Update Organization Profile</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl font-bold">
+              {mandatory ? "Complete Your Profile" : "Update Organization Profile"}
+            </DialogTitle>
+            {!mandatory && (
+              <Button variant="ghost" size="sm" onClick={handleClose} className="h-8 w-8 p-0">
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          {mandatory && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Please complete your organization profile to continue using the platform.
+            </p>
+          )}
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 py-4">

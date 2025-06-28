@@ -11,4 +11,4 @@ export function SimulationHeader() {
       className="z-10 bg-white dark:bg-gray-800"
     />
   )
-} 
+}
