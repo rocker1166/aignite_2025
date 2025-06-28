@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect } from "react"
-import { Edit, Lock, Mail, Phone, Globe } from "lucide-react"
+import { useSearchParams } from "next/navigation"
+import { Edit, Lock, Mail, Phone, Globe, LogOut } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Switch } from "../ui/switch"
 import { Button } from "../ui/button"
@@ -9,6 +10,7 @@ import { Skeleton } from "../ui/skeleton"
 import { UpdateProfileForm } from "./UpdateProfileForm"
 import { ChangePasswordDialog } from "./ChangePasswordDialog"
 import { useUser } from "@/lib/stores/user"
+import { logout } from "@/lib/functions/signout"
 
 // Default values for notification preferences
 const defaultPreferences = {
@@ -18,14 +20,25 @@ const defaultPreferences = {
 
 export function ProfilePage(): React.ReactElement {
   const { userData, setUserData, userLoading } = useUser();
+  const searchParams = useSearchParams();
   
   const [notifPrefs, setNotifPrefs] = useState(defaultPreferences);
   const [isUpdateFormOpen, setIsUpdateFormOpen] = useState<boolean>(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState<boolean>(false);
+  const [isMandatoryUpdate, setIsMandatoryUpdate] = useState<boolean>(false);
 
   useEffect(() => {
     setUserData()
   }, []);
+
+  // Check for show_popup parameter and open form if true
+  useEffect(() => {
+    const showPopup = searchParams.get('show_popup');
+    if (showPopup === 'true') {
+      setIsUpdateFormOpen(true);
+      setIsMandatoryUpdate(true);
+    }
+  }, [searchParams]);
 
   // If still loading or no user data, show skeleton loading
   if (userLoading || !userData) {
@@ -157,13 +170,26 @@ export function ProfilePage(): React.ReactElement {
               </div>
             </div>
             
-            <Button 
-              onClick={() => setIsUpdateFormOpen(true)}
-              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-200 gap-2"
-            >
-              <Edit className="h-4 w-4" />
-              Update Profile
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button 
+                onClick={() => {
+                  setIsUpdateFormOpen(true);
+                  setIsMandatoryUpdate(false);
+                }}
+                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-200 gap-2"
+              >
+                <Edit className="h-4 w-4" />
+                Update Profile
+              </Button>
+              <Button 
+                onClick={logout}
+                variant="destructive"
+                className="shadow-lg hover:shadow-xl transition-all duration-200 gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -289,8 +315,12 @@ export function ProfilePage(): React.ReactElement {
       {/* Profile Update Form Modal */}
       <UpdateProfileForm 
         isOpen={isUpdateFormOpen} 
-        onClose={() => setIsUpdateFormOpen(false)}
+        onClose={() => {
+          setIsUpdateFormOpen(false);
+          setIsMandatoryUpdate(false);
+        }}
         currentProfile={userData}
+        mandatory={isMandatoryUpdate}
       />
 
       {/* Password Change Dialog */}

@@ -434,9 +434,10 @@ export default function Home() {
                   <p className="text-gray-200 mb-8 text-lg leading-relaxed">
                     Experience the power of AI-driven supply chain resilience. Join industry leaders already using our platform to navigate disruptions with confidence.
                   </p>
+                  <div className="flex flex-wrap gap-4">
                   <div className="flex flex-wrap gap-6">
                     <GlowyButton 
-                      href="/dashboard" 
+                      href="/signin" 
                       className="bg-white hover:bg-gray-50 text-[#5B21FF] shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
                     >
                       <span className="font-medium">Get Started</span>
