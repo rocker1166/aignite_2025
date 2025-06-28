@@ -5,7 +5,6 @@ import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { Toaster } from "@/components/ui/toaster"
 import AIChatOverlay from "@/components/ui/ai-chat-overlay"
-import { ThemeHydrated } from "@/components/theme/ThemeHydrated"
 
 export const metadata: Metadata = {
   title: "Intellisupply",
@@ -23,9 +22,7 @@ export default function MainLayout({
         <div className="flex h-screen w-full overflow-hidden">
           <AppSidebar />
           <main className="flex-1 min-h-0 flex flex-col overflow-auto bg-background">
-            <ThemeHydrated>
-              {children}
-            </ThemeHydrated>
+            {children}
           </main>
         </div>
 
