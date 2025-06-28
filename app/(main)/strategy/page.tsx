@@ -1,18 +1,21 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { SidebarTrigger } from "@/components/ui/sidebar"
 import { 
   Clock, 
   Play, 
   Filter, 
   Search, 
   ArrowLeft, 
+  Home,
   FileText, 
   Download, 
   MapPin, 
@@ -41,7 +44,6 @@ import { NodeGanttTimeline } from "@/components/strategy/node-gantt-timeline"
 import { ExecutionAssistantAgent } from "@/components/strategy/execution-assistant-agent"
 import { DependencyGraphModal } from "@/components/strategy/dependency-graph-modal"
 import { LiveExecutionStats } from "@/components/strategy/live-execution-stats"
-import { useRouter } from "next/navigation"
 
 // Enhanced strategy data with execution details
 const strategies = [
@@ -267,85 +269,81 @@ export default function StrategyPage() {
   const [selectedStrategy, setSelectedStrategy] = useState(strategies[0])
   const [activeTab, setActiveTab] = useState("execution")
   const [showAIAssistant, setShowAIAssistant] = useState(false)
-  const router = useRouter()
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "critical":
-        return "bg-red-500/20 text-red-400 border-red-500/30"
+        return "bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/30"
       case "high":
-        return "bg-orange-500/20 text-orange-400 border-orange-500/30"
+        return "bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/30"
       case "medium":
-        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+        return "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border-yellow-500/30"
       default:
-        return "bg-gray-500/20 text-gray-400 border-gray-500/30"
+        return "bg-muted text-muted-foreground border-border"
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-blue-500/20 text-blue-400 border-blue-500/30"
+        return "bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30"
       case "planning":
-        return "bg-purple-500/20 text-purple-400 border-purple-500/30"
+        return "bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30"
       case "completed":
-        return "bg-green-500/20 text-green-400 border-green-500/30"
+        return "bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30"
       default:
-        return "bg-gray-500/20 text-gray-400 border-gray-500/30"
+        return "bg-muted text-muted-foreground border-border"
     }
   }
 
   const getTaskStatusIcon = (status: string) => {
     switch (status) {
       case "Done":
-        return <CheckCircle className="w-4 h-4 text-green-400" />
+        return <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
       case "In Progress":
-        return <Clock className="w-4 h-4 text-blue-400" />
+        return <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
       case "Blocked":
-        return <XCircle className="w-4 h-4 text-red-400" />
+        return <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
       default:
-        return <Pause className="w-4 h-4 text-slate-400" />
+        return <Pause className="w-4 h-4 text-muted-foreground" />
     }
   }
 
   const getRiskLevelColor = (riskLevel: string) => {
     switch (riskLevel) {
       case "CRITICAL":
-        return "bg-red-500/20 text-red-400 border-red-500/30"
+        return "bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/30"
       case "HIGH":
-        return "bg-orange-500/20 text-orange-400 border-orange-500/30"
+        return "bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/30"
       case "MEDIUM":
-        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+        return "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border-yellow-500/30"
       case "LOW":
-        return "bg-green-500/20 text-green-400 border-green-500/30"
+        return "bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30"
       default:
-        return "bg-gray-500/20 text-gray-400 border-gray-500/30"
+        return "bg-muted text-muted-foreground border-border"
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background text-foreground">
       {/* Sticky Header Bar */}
-      <div className="sticky top-0 z-50 border-b border-gray-200 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-lg mt-2">
-        <div className="flex h-16 items-center gap-x-4 px-6">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="-ml-2 flex items-center gap-x-1 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white"
-            onClick={() => router.push('/dashboard')}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm font-medium">Back to Scenario</span>
-          </Button>
-          <div className="flex flex-col justify-center min-w-0">
-            <span className="font-bold text-lg text-gray-900 dark:text-white truncate leading-tight">{selectedStrategy.name}</span>
-            <span className="text-xs text-gray-600 dark:text-slate-400 truncate">{selectedStrategy.scenarioSource} • Finalized {selectedStrategy.dateFinalized}</span>
+      <div className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl shadow-lg">
+        <div className="flex items-center justify-between p-6">
+          <div className="flex items-center gap-4">
+            <SidebarTrigger />
+            <div className="h-6 w-px bg-border" />
+            <div className="animate-fade-in">
+              <h1 className="text-xl font-bold text-foreground mb-1">{selectedStrategy.name}</h1>
+              <p className="text-sm text-muted-foreground">
+                {selectedStrategy.scenarioSource} • Finalized {selectedStrategy.dateFinalized}
+              </p>
+            </div>
           </div>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="flex items-center gap-3">
             <Button 
               variant="outline" 
               size="sm" 
-              className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 hover:border-gray-400 dark:hover:border-slate-500 bg-transparent transition-all duration-200"
+              className="border-border text-muted-foreground hover:bg-muted hover:border-border/60 bg-transparent transition-all duration-200"
             >
               <FileText className="w-4 h-4 mr-2" />
               View Reports
@@ -353,43 +351,43 @@ export default function StrategyPage() {
             <Button 
               variant="outline" 
               size="sm" 
-              className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 hover:border-gray-400 dark:hover:border-slate-500 bg-transparent transition-all duration-200"
+              className="border-border text-muted-foreground hover:bg-muted hover:border-border/60 bg-transparent transition-all duration-200"
             >
               <Download className="w-4 h-4 mr-2" />
               Export PDF
             </Button>
             <DependencyGraphModal nodes={selectedStrategy.nodes} />
-            <Button 
+            {/* <Button 
               onClick={() => setShowAIAssistant(!showAIAssistant)}
-              className="bg-blue-600 hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
+              className="bg-blue-600 hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-blue-500/25 text-white"
             >
               <MessageSquare className="w-4 h-4 mr-2" />
               AI Assistant
-            </Button>
+            </Button> */}
           </div>
         </div>
       </div>
 
       <div className="flex h-[calc(100vh-120px)]">
         {/* Strategy List Sidebar */}
-        <div className="w-80 border-r border-gray-200 dark:border-slate-700/50 bg-gray-50/90 dark:bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
+        <div className="w-80 border-r border-border bg-card/50 backdrop-blur-sm overflow-y-auto">
           <div className="p-6">
-            <h3 className="text-lg font-semibold mb-6 text-gray-900 dark:text-white">Active Strategies</h3>
+            <h3 className="text-lg font-semibold mb-6 text-foreground">Active Strategies</h3>
             <div className="space-y-4">
               {strategies.map((strategy, index) => (
                 <Card
                   key={strategy.id}
-                  className={`cursor-pointer transition-all duration-300 border-gray-200 dark:border-slate-700/50 hover:border-gray-300 dark:hover:border-slate-600 hover:shadow-lg hover:shadow-gray-500/10 dark:hover:shadow-slate-500/10 transform hover:-translate-y-1 ${
+                  className={`cursor-pointer transition-all duration-300 border-border hover:border-border/60 hover:shadow-lg hover:shadow-muted/10 transform hover:-translate-y-1 ${
                     selectedStrategy.id === strategy.id
-                      ? "bg-blue-50 dark:bg-slate-800/80 border-blue-300 dark:border-blue-500/50 shadow-xl shadow-blue-500/20 ring-2 ring-blue-500/20"
-                      : "bg-white dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800/60"
+                      ? "bg-card/80 border-blue-500/50 shadow-xl shadow-blue-500/20 ring-2 ring-blue-500/20"
+                      : "bg-card/40 hover:bg-card/60"
                   }`}
                   onClick={() => setSelectedStrategy(strategy)}
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-3">
-                      <h4 className="font-medium text-gray-900 dark:text-white text-sm leading-tight">{strategy.name}</h4>
+                      <h4 className="font-medium text-foreground text-sm leading-tight">{strategy.name}</h4>
                       <div className="flex gap-1">
                         <Badge className={`text-xs px-2 py-1 ${getPriorityColor(strategy.priority)}`}>
                           {strategy.priority}
@@ -399,12 +397,12 @@ export default function StrategyPage() {
 
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-600 dark:text-slate-400">Progress</span>
-                        <span className="text-gray-900 dark:text-white font-medium">{strategy.progress}%</span>
+                        <span className="text-muted-foreground">Progress</span>
+                        <span className="text-foreground font-medium">{strategy.progress}%</span>
                       </div>
-                      <Progress value={strategy.progress} className="h-2 bg-gray-200 dark:bg-slate-700" />
+                      <Progress value={strategy.progress} className="h-2 bg-muted" />
 
-                      <div className="flex items-center justify-between text-xs text-gray-600 dark:text-slate-400">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {strategy.estimatedCompletion}
@@ -422,32 +420,32 @@ export default function StrategyPage() {
         {/* Main Content */}
         <div className="flex-1 min-w-0 overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-            <div className="border-b border-gray-200 dark:border-slate-700/50 bg-gray-50/90 dark:bg-slate-900/50 backdrop-blur-sm px-6 py-4">
-              <TabsList className="bg-gray-100 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 p-1">
+            <div className="border-b border-border bg-card/50 backdrop-blur-sm px-6 py-4">
+              <TabsList className="bg-muted/50 border border-border p-1">
                 <TabsTrigger
                   value="execution"
-                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-gray-700 dark:text-gray-300 transition-all duration-200"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
                 >
                   <Zap className="w-4 h-4 mr-2" />
                   Execution
                 </TabsTrigger>
                 <TabsTrigger
                   value="overview"
-                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-gray-700 dark:text-gray-300 transition-all duration-200"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
                   Overview
                 </TabsTrigger>
                 <TabsTrigger
                   value="kanban"
-                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-gray-700 dark:text-gray-300 transition-all duration-200"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
                 >
                   <GitBranch className="w-4 h-4 mr-2" />
                   Kanban
                 </TabsTrigger>
                 <TabsTrigger 
                   value="timeline" 
-                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-gray-700 dark:text-gray-300 transition-all duration-200"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
                 >
                   <Calendar className="w-4 h-4 mr-2" />
                   Timeline
@@ -457,49 +455,60 @@ export default function StrategyPage() {
 
             <div className="flex-1 overflow-y-auto">
               {/* Strategy Summary Panel */}
-              <div className="p-6 border-b border-gray-200 dark:border-slate-700/50 bg-white dark:bg-gradient-to-r dark:from-slate-800/30 dark:to-slate-900/30">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-6">
-                  <Card className="min-w-0 bg-white dark:bg-slate-800/60 border-gray-200 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-gray-500/10 dark:hover:shadow-slate-500/10 transform hover:-translate-y-1">
+              <div className="p-6 border-b border-border bg-gradient-to-r from-muted/50 to-background/50">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <Card className="bg-card border-border hover:bg-card/90 transition-all duration-300 hover:shadow-lg hover:shadow-muted/10 transform hover:-translate-y-1">
                     <CardContent className="p-6">
-                      <div className={`flex flex-col items-center gap-y-2 ${showAIAssistant ? 'justify-start' : ''}`}>  
-                        <div className={`mb-1 ${showAIAssistant ? 'self-start' : ''} p-3 ${showAIAssistant ? 'p-2' : ''} ${showAIAssistant ? '' : ''} ${showAIAssistant ? '' : ''} ${showAIAssistant ? '' : ''} ${showAIAssistant ? '' : ''}`}>  
-                          <Target className={`${showAIAssistant ? 'w-5 h-5' : 'w-6 h-6'} text-blue-400`} />
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-blue-500/20 rounded-xl">
+                          <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                         </div>
-                        <p className={`font-bold text-gray-900 dark:text-white text-center ${showAIAssistant ? 'text-xs' : 'text-xs sm:text-sm md:text-base lg:text-lg'}`}>{selectedStrategy.type}</p>
-                        <p className={`text-[10px] sm:text-xs md:text-sm text-gray-600 dark:text-slate-400 font-medium text-center ${showAIAssistant ? 'text-[9px]' : ''}`}>Strategy Type</p>
+                        <div>
+                          <p className="text-sm text-muted-foreground font-medium">Strategy Type</p>
+                          <p className="text-lg font-bold text-foreground">{selectedStrategy.type}</p>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
-                  <Card className="min-w-0 bg-white dark:bg-slate-800/60 border-gray-200 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-gray-500/10 dark:hover:shadow-slate-500/10 transform hover:-translate-y-1">
+
+                  <Card className="bg-card border-border hover:bg-card/90 transition-all duration-300 hover:shadow-lg hover:shadow-muted/10 transform hover:-translate-y-1">
                     <CardContent className="p-6">
-                      <div className={`flex flex-col items-center gap-y-2 ${showAIAssistant ? 'justify-start' : ''}`}>  
-                        <div className={`mb-1 ${showAIAssistant ? 'self-start' : ''} p-3 ${showAIAssistant ? 'p-2' : ''} ${showAIAssistant ? '' : ''} ${showAIAssistant ? '' : ''} ${showAIAssistant ? '' : ''} ${showAIAssistant ? '' : ''}`}>  
-                          <TrendingUp className={`${showAIAssistant ? 'w-5 h-5' : 'w-6 h-6'} text-green-400`} />
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-green-500/20 rounded-xl">
+                          <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
                         </div>
-                        <p className={`font-bold text-gray-900 dark:text-white text-center ${showAIAssistant ? 'text-xs' : 'text-xs sm:text-sm md:text-base lg:text-lg'}`}>{selectedStrategy.roi}</p>
-                        <p className={`text-[10px] sm:text-xs md:text-sm text-gray-600 dark:text-slate-400 font-medium text-center ${showAIAssistant ? 'text-[9px]' : ''}`}>Projected ROI</p>
+                        <div>
+                          <p className="text-sm text-muted-foreground font-medium">Projected ROI</p>
+                          <p className="text-lg font-bold text-foreground">{selectedStrategy.roi}</p>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
-                  <Card className="min-w-0 bg-white dark:bg-slate-800/60 border-gray-200 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-gray-500/10 dark:hover:shadow-slate-500/10 transform hover:-translate-y-1">
+
+                  <Card className="bg-card border-border hover:bg-card/90 transition-all duration-300 hover:shadow-lg hover:shadow-muted/10 transform hover:-translate-y-1">
                     <CardContent className="p-6">
-                      <div className={`flex flex-col items-center gap-y-2 ${showAIAssistant ? 'justify-start' : ''}`}>  
-                        <div className={`mb-1 ${showAIAssistant ? 'self-start' : ''} p-3 ${showAIAssistant ? 'p-2' : ''} ${showAIAssistant ? '' : ''} ${showAIAssistant ? '' : ''} ${showAIAssistant ? '' : ''} ${showAIAssistant ? '' : ''}`}>  
-                          <Shield className={`${showAIAssistant ? 'w-5 h-5' : 'w-6 h-6'} text-yellow-400`} />
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-yellow-500/20 rounded-xl">
+                          <Shield className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
                         </div>
-                        <p className={`font-bold text-gray-900 dark:text-white text-center ${showAIAssistant ? 'text-xs' : 'text-xs sm:text-sm md:text-base lg:text-lg'}`}>{selectedStrategy.riskReduction}</p>
-                        <p className={`text-[10px] sm:text-xs md:text-sm text-gray-600 dark:text-slate-400 font-medium text-center ${showAIAssistant ? 'text-[9px]' : ''}`}>Risk Reduction</p>
+                        <div>
+                          <p className="text-sm text-muted-foreground font-medium">Risk Reduction</p>
+                          <p className="text-lg font-bold text-foreground">{selectedStrategy.riskReduction}</p>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
-                  <Card className="min-w-0 bg-white dark:bg-slate-800/60 border-gray-200 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-gray-500/10 dark:hover:shadow-slate-500/10 transform hover:-translate-y-1">
+
+                  <Card className="bg-card border-border hover:bg-card/90 transition-all duration-300 hover:shadow-lg hover:shadow-muted/10 transform hover:-translate-y-1">
                     <CardContent className="p-6">
-                      <div className={`flex flex-col items-center gap-y-2 ${showAIAssistant ? 'justify-start' : ''}`}>  
-                        <div className={`mb-1 ${showAIAssistant ? 'self-start' : ''} p-3 ${showAIAssistant ? 'p-2' : ''} ${showAIAssistant ? '' : ''} ${showAIAssistant ? '' : ''} ${showAIAssistant ? '' : ''} ${showAIAssistant ? '' : ''}`}>  
-                          <Users className={`${showAIAssistant ? 'w-5 h-5' : 'w-6 h-6'} text-purple-400`} />
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-purple-500/20 rounded-xl">
+                          <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                         </div>
-                        <p className={`font-bold text-gray-900 dark:text-white text-center ${showAIAssistant ? 'text-xs' : 'text-xs sm:text-sm md:text-base lg:text-lg'}`}>{selectedStrategy.teamLead}</p>
-                        <p className={`text-[10px] sm:text-xs md:text-sm text-gray-600 dark:text-slate-400 font-medium text-center ${showAIAssistant ? 'text-[9px]' : ''}`}>Team Lead</p>
+                        <div>
+                          <p className="text-sm text-muted-foreground font-medium">Team Lead</p>
+                          <p className="text-lg font-bold text-foreground">{selectedStrategy.teamLead}</p>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -520,19 +529,19 @@ export default function StrategyPage() {
                         <AccordionItem 
                           key={node.id} 
                           value={`node-${node.id}`} 
-                          className="border-gray-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/60 rounded-xl hover:bg-white dark:hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg"
+                          className="border-border bg-card/60 rounded-xl hover:bg-card/80 transition-all duration-300 hover:shadow-lg"
                           style={{ animationDelay: `${index * 100}ms` }}
                         >
-                          <AccordionTrigger className="px-6 py-5 hover:bg-gray-100 dark:hover:bg-slate-700/30 rounded-xl transition-all duration-200">
+                          <AccordionTrigger className="px-6 py-5 hover:bg-muted/30 rounded-xl transition-all duration-200">
                             <div className="flex items-center justify-between w-full pr-4">
                               <div className="flex items-center gap-4">
-                                <h3 className={`font-semibold text-gray-900 dark:text-white ${showAIAssistant ? 'text-base sm:text-sm' : 'text-lg'}`}>{node.name}</h3>
-                                <Badge className={`${getRiskLevelColor(node.riskLevel)} ${showAIAssistant ? 'text-xs px-2 py-1' : ''}`}>{node.riskLevel}</Badge>
-                                <Badge className={`bg-blue-500/20 text-blue-400 border-blue-500/30 ${showAIAssistant ? 'text-xs px-2 py-1' : ''}`}>
+                                <h3 className="font-semibold text-foreground text-lg">{node.name}</h3>
+                                <Badge className={getRiskLevelColor(node.riskLevel)}>{node.riskLevel}</Badge>
+                                <Badge className="bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30">
                                   Confidence: {Math.round(node.confidence * 100)}%
                                 </Badge>
                               </div>
-                              <div className={`flex items-center gap-3 ${showAIAssistant ? 'text-xs' : 'text-sm'} text-gray-600 dark:text-slate-400`}>
+                              <div className="flex items-center gap-3 text-sm text-muted-foreground">
                                 <span className="font-medium">{node.status}</span>
                                 <span>•</span>
                                 <span>{node.assignedTeam}</span>
@@ -544,21 +553,21 @@ export default function StrategyPage() {
                               {node.tasks.map((task, taskIndex) => (
                                 <div 
                                   key={task.id} 
-                                  className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-700/40 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700/60 transition-all duration-200 transform hover:scale-[1.02]"
+                                  className="flex items-center justify-between p-4 bg-muted/40 rounded-lg hover:bg-muted/60 transition-all duration-200 transform hover:scale-[1.02]"
                                   style={{ animationDelay: `${taskIndex * 50}ms` }}
                                 >
                                   <div className="flex items-center gap-4">
                                     {getTaskStatusIcon(task.status)}
                                     <div>
-                                      <p className="font-medium text-gray-900 dark:text-white">{task.title}</p>
-                                      <p className="text-sm text-gray-600 dark:text-slate-400">Assigned to {task.assignee}</p>
+                                      <p className="font-medium text-foreground">{task.title}</p>
+                                      <p className="text-sm text-muted-foreground">Assigned to {task.assignee}</p>
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-3">
                                     <Badge className={getPriorityColor(task.priority)}>{task.priority}</Badge>
-                                    <span className="text-sm text-gray-600 dark:text-slate-400 font-medium">{task.deadline}</span>
+                                    <span className="text-sm text-muted-foreground font-medium">{task.deadline}</span>
                                     {task.blocker && (
-                                      <Badge className="bg-red-500/20 text-red-400 border-red-500/30">
+                                      <Badge className="bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/30">
                                         {task.blocker}
                                       </Badge>
                                     )}
@@ -576,7 +585,7 @@ export default function StrategyPage() {
 
               <TabsContent value="overview" className="h-full m-0">
                 <div className="p-6">
-                  <LiveExecutionStats nodes={selectedStrategy.nodes} strategy={selectedStrategy} compact={showAIAssistant} />
+                  <LiveExecutionStats nodes={selectedStrategy.nodes} strategy={selectedStrategy} />
                 </div>
               </TabsContent>
 
@@ -596,11 +605,11 @@ export default function StrategyPage() {
         </div>
 
         {/* AI Assistant Sidebar */}
-        {showAIAssistant && (
-          <div className="w-80 h-[calc(100vh-120px)] border-l border-slate-700/50 bg-slate-900/50 backdrop-blur-sm animate-slide-in-right overflow-y-auto">
+        {/* {showAIAssistant && (
+          <div className="w-80 h-[calc(100vh-120px)] border-l border-border bg-card/50 backdrop-blur-sm animate-slide-in-right overflow-y-auto">
             <ExecutionAssistantAgent strategy={selectedStrategy} />
           </div>
-        )}
+        )} */}
       </div>
 
       <style jsx>{`
