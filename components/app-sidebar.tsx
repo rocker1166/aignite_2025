@@ -17,6 +17,7 @@ import {
   PanelLeft,
   Settings,
   ShieldAlert,
+  Target,
   Truck,
   User,
   Sparkles,
@@ -70,7 +71,7 @@ export function AppSidebar() {
     { href: "/digital-twin", icon: Network, label: "Digital Twin", isActive: pathname === "/digital-twin" },
     { href: "/simulation", icon: LineChart, label: "Simulation", isActive: pathname === "/simulation" },
     { href: "/analytics", icon: BarChart3, label: "Analytics", isActive: pathname === "/analytics" },
-    { href: "/strategy", icon: Settings, label: "Strategy", isActive: pathname === "/strategy" },
+    { href: "/strategy", icon: Target, label: "Strategy", isActive: pathname === "/strategy" },
   ]
 
   const footerItems = [
