@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card"
  * It supports all Card props and can be used for visually elevated UI sections.
  */
 export interface GlassmorphicCardProps extends React.ComponentProps<typeof Card> {
-  variant?: "default" | "accent" | "subtle"
+  variant?: "default" | "accent" | "subtle" | "premium"
 }
 
 export const GlassmorphicCard = React.forwardRef<HTMLDivElement, GlassmorphicCardProps>(
@@ -18,6 +18,8 @@ export const GlassmorphicCard = React.forwardRef<HTMLDivElement, GlassmorphicCar
         "border border-blue-200/50 dark:border-blue-800/30 bg-gradient-to-br from-white/90 to-blue-50/80 dark:from-slate-900/30 dark:to-blue-950/20 backdrop-blur-xl shadow-xl shadow-blue-500/10 dark:shadow-blue-500/20",
       subtle:
         "border border-white/20 dark:border-slate-700/10 bg-white/60 dark:bg-slate-900/10 backdrop-blur-lg shadow-lg shadow-black/5 dark:shadow-black/20",
+      premium:
+        "border border-purple-200/50 dark:border-purple-800/30 bg-gradient-to-br from-white/95 via-purple-50/80 to-indigo-50/80 dark:from-slate-900/40 dark:via-purple-950/20 dark:to-indigo-950/20 backdrop-blur-xl shadow-2xl shadow-purple-500/15 dark:shadow-purple-500/25",
     } as const
 
     return (

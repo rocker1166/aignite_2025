@@ -193,25 +193,25 @@ export default function DigitalTwinDashboard() {
         <div className="relative p-4 sm:p-6 lg:p-8">
           <header className="flex items-center justify-between mb-8">
             <div className="space-y-2">
-              <Skeleton className="h-9 w-64" />
-              <Skeleton className="h-4 w-96" />
+              <Skeleton className="h-9 w-64 bg-muted" />
+              <Skeleton className="h-4 w-96 bg-muted" />
             </div>
-            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-32 bg-muted" />
           </header>
           <main>
             <div className="mb-6">
-              <Skeleton className="h-4 w-48" />
+              <Skeleton className="h-4 w-48 bg-muted" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array.from({ length: 6 }).map((_, i) => (
                 <GlassmorphicCard key={i} className="space-y-4 p-6">
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-6 w-3/4 bg-muted" />
+                  <Skeleton className="h-4 w-full bg-muted" />
+                  <Skeleton className="h-4 w-2/3 bg-muted" />
                   <div className="flex gap-2">
-                    <Skeleton className="h-6 w-16" />
-                    <Skeleton className="h-6 w-20" />
-                    <Skeleton className="h-6 w-14" />
+                    <Skeleton className="h-6 w-16 bg-muted" />
+                    <Skeleton className="h-6 w-20 bg-muted" />
+                    <Skeleton className="h-6 w-14 bg-muted" />
                   </div>
                 </GlassmorphicCard>
               ))}

@@ -153,26 +153,26 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "critical":
-        return "bg-red-500/20 text-red-400 border-red-500/30"
+        return "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20"
       case "high":
-        return "bg-orange-500/20 text-orange-400 border-orange-500/30"
+        return "bg-orange-400/10 text-orange-600 dark:text-orange-400 border-orange-400/20"
       case "medium":
-        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+        return "bg-yellow-400/10 text-yellow-600 dark:text-yellow-400 border-yellow-400/20"
       default:
-        return "bg-gray-500/20 text-gray-400 border-gray-500/30"
+        return "bg-muted text-muted-foreground border-border"
     }
   }
 
   const getTaskStatusIcon = (status: string) => {
     switch (status) {
       case "Done":
-        return <CheckCircle className="w-4 h-4 text-green-400" />
+        return <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
       case "In Progress":
-        return <Clock className="w-4 h-4 text-blue-400" />
+        return <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
       case "Blocked":
-        return <XCircle className="w-4 h-4 text-red-400" />
+        return <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
       default:
-        return <Pause className="w-4 h-4 text-slate-400" />
+        return <Pause className="w-4 h-4 text-muted-foreground" />
     }
   }
 
@@ -353,42 +353,42 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2">Task Kanban Board</h2>
-          <p className="text-slate-400">Drag and drop tasks to update their status and track progress</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Task Kanban Board</h2>
+          <p className="text-muted-foreground">Drag and drop tasks to update their status and track progress</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:border-slate-500 transition-all duration-200">
+          <Button variant="outline" className="border-border text-muted-foreground hover:bg-muted hover:border-border/60 transition-all duration-200">
             <Filter className="w-4 h-4 mr-2" />
             Filter
           </Button>
           <Dialog open={showAddColumnDialog} onOpenChange={setShowAddColumnDialog}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:border-slate-500 transition-all duration-200">
+              <Button variant="outline" className="border-border text-muted-foreground hover:bg-muted hover:border-border/60 transition-all duration-200">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Section
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-slate-800 border-slate-600">
+            <DialogContent className="bg-card border-border">
               <DialogHeader>
-                <DialogTitle className="text-white">Add New Column</DialogTitle>
+                <DialogTitle className="text-foreground">Add New Column</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-slate-300">Column Title</label>
+                  <label className="text-sm font-medium text-muted-foreground">Column Title</label>
                   <Input
                     value={newColumnData.title}
                     onChange={(e) => setNewColumnData({ ...newColumnData, title: e.target.value })}
                     placeholder="e.g., Review, Testing"
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-muted border-border text-foreground"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-300">Color</label>
+                  <label className="text-sm font-medium text-muted-foreground">Color</label>
                   <Select value={newColumnData.color} onValueChange={(value) => setNewColumnData({ ...newColumnData, color: value })}>
-                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                    <SelectTrigger className="bg-muted border-border text-foreground">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectContent className="bg-muted border-border">
                       <SelectItem value="bg-slate-600">Gray</SelectItem>
                       <SelectItem value="bg-blue-600">Blue</SelectItem>
                       <SelectItem value="bg-green-600">Green</SelectItem>
@@ -399,7 +399,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                   </Select>
                 </div>
                 <div className="flex gap-2">
-                  <Button onClick={addNewColumn} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                  <Button onClick={addNewColumn} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white dark:text-white">
                     Add Column
                   </Button>
                   <Button variant="outline" onClick={() => setShowAddColumnDialog(false)} className="flex-1">
@@ -411,43 +411,43 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
           </Dialog>
           <Dialog open={showAddTaskDialog} onOpenChange={setShowAddTaskDialog}>
             <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-blue-500/25">
+              <Button className="bg-blue-600 hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-blue-500/25 text-white dark:text-white">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Task
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-slate-800 border-slate-600 max-w-md">
+            <DialogContent className="bg-card border-border max-w-md">
               <DialogHeader>
-                <DialogTitle className="text-white">Create New Task</DialogTitle>
+                <DialogTitle className="text-foreground">Create New Task</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-slate-300">Task Title</label>
+                  <label className="text-sm font-medium text-muted-foreground">Task Title</label>
                   <Input
                     value={newTaskData.title}
                     onChange={(e) => setNewTaskData({ ...newTaskData, title: e.target.value })}
                     placeholder="Enter task title"
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-muted border-border text-foreground"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-300">Description</label>
+                  <label className="text-sm font-medium text-muted-foreground">Description</label>
                   <Textarea
                     value={newTaskData.description}
                     onChange={(e) => setNewTaskData({ ...newTaskData, description: e.target.value })}
                     placeholder="Enter task description"
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-muted border-border text-foreground"
                     rows={3}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-slate-300">Priority</label>
+                    <label className="text-sm font-medium text-muted-foreground">Priority</label>
                     <Select value={newTaskData.priority} onValueChange={(value) => setNewTaskData({ ...newTaskData, priority: value })}>
-                      <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                      <SelectTrigger className="bg-muted border-border text-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-700 border-slate-600">
+                      <SelectContent className="bg-muted border-border">
                         <SelectItem value="low">Low</SelectItem>
                         <SelectItem value="medium">Medium</SelectItem>
                         <SelectItem value="high">High</SelectItem>
@@ -456,12 +456,12 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-300">Assignee</label>
+                    <label className="text-sm font-medium text-muted-foreground">Assignee</label>
                     <Select value={newTaskData.assignee} onValueChange={(value) => setNewTaskData({ ...newTaskData, assignee: value })}>
-                      <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                      <SelectTrigger className="bg-muted border-border text-foreground">
                         <SelectValue placeholder="Select assignee" />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-700 border-slate-600">
+                      <SelectContent className="bg-muted border-border">
                         {availableAssignees.map(assignee => (
                           <SelectItem key={assignee} value={assignee}>{assignee}</SelectItem>
                         ))}
@@ -471,21 +471,21 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-slate-300">Deadline</label>
+                    <label className="text-sm font-medium text-muted-foreground">Deadline</label>
                     <Input
                       type="date"
                       value={newTaskData.deadline}
                       onChange={(e) => setNewTaskData({ ...newTaskData, deadline: e.target.value })}
-                      className="bg-slate-700 border-slate-600 text-white"
+                      className="bg-muted border-border text-foreground"
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-300">Node</label>
+                    <label className="text-sm font-medium text-muted-foreground">Node</label>
                     <Select value={newTaskData.nodeName} onValueChange={(value) => setNewTaskData({ ...newTaskData, nodeName: value })}>
-                      <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                      <SelectTrigger className="bg-muted border-border text-foreground">
                         <SelectValue placeholder="Select node" />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-700 border-slate-600">
+                      <SelectContent className="bg-muted border-border">
                         {availableNodes.map(node => (
                           <SelectItem key={node} value={node}>{node}</SelectItem>
                         ))}
@@ -494,16 +494,16 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-300">Tags (comma separated)</label>
+                  <label className="text-sm font-medium text-muted-foreground">Tags (comma separated)</label>
                   <Input
                     value={newTaskData.tags}
                     onChange={(e) => setNewTaskData({ ...newTaskData, tags: e.target.value })}
                     placeholder="urgent, planning, backend"
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-muted border-border text-foreground"
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Button onClick={addNewTask} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                  <Button onClick={addNewTask} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white dark:text-white">
                     Create Task
                   </Button>
                   <Button variant="outline" onClick={() => setShowAddTaskDialog(false)} className="flex-1">
@@ -518,17 +518,17 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
 
       {/* Kanban Board */}
       <div className="relative">
-        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-background">
           <div className="flex gap-6 min-w-max p-1">
             {columns.map((column, columnIndex) => {
               const stats = getColumnStats(column)
               return (
                 <div key={column.id} className="w-80 flex-shrink-0 space-y-4">
                   {/* Column Header */}
-                  <div className="flex items-center justify-between p-4 bg-slate-800/60 rounded-xl border border-slate-700/50">
+                  <div className="flex items-center justify-between p-4 bg-card rounded-xl border border-border shadow-sm">
                     <div className="flex items-center gap-3">
                       <div className={`w-3 h-3 rounded-full ${column.color}`} />
-                      <h3 className="font-semibold text-white">{column.title}</h3>
+                      <h3 className="font-semibold text-foreground">{column.title}</h3>
                       <Badge className={`${column.color} text-white font-medium`}>
                         {stats.totalTasks}
                       </Badge>
@@ -539,12 +539,12 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                           variant="ghost"
                           size="sm"
                           onClick={() => deleteColumn(column.id)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                          className="text-red-600 dark:text-red-400 hover:text-red-400 hover:bg-red-500/20"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       )}
-                      <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-slate-700/50">
+                      <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-muted/50">
                         <MoreHorizontal className="w-4 h-4" />
                       </Button>
                     </div>
@@ -552,10 +552,10 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
 
                   {/* Column Content */}
                   <div 
-                    className={`space-y-3 min-h-[600px] p-4 bg-slate-800/30 rounded-xl border-2 border-dashed transition-all duration-300 ${
+                    className={`space-y-3 min-h-[600px] p-4 bg-background rounded-xl border-2 border-dashed transition-all duration-300 ${
                       draggedOverColumn === column.id 
-                        ? 'border-blue-500/50 bg-blue-500/10' 
-                        : 'border-slate-700/50'
+                        ? 'border-blue-500/50 bg-blue-500/5' 
+                        : 'border-border'
                     }`}
                     onDragOver={(e) => handleDragOver(e, column.id)}
                     onDragLeave={handleDragLeave}
@@ -567,16 +567,16 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                         draggable
                         onDragStart={(e) => handleDragStart(e, task)}
                         onDragEnd={handleDragEnd}
-                        className="bg-slate-800/80 border-slate-700/50 cursor-move hover:bg-slate-800/90 transition-all duration-300 hover:shadow-xl hover:shadow-slate-500/10 transform hover:-translate-y-1 group"
+                        className="bg-card border-border cursor-move hover:bg-muted transition-all duration-300 hover:shadow-xl hover:shadow-muted/10 transform hover:-translate-y-1 group"
                         style={{ animationDelay: `${taskIndex * 50}ms` }}
                       >
                         <CardContent className="p-4">
                           {/* Task Header */}
                           <div className="flex items-start justify-between mb-3">
-                            <h4 className="font-medium text-white text-sm leading-tight flex-1 mr-2">{task.title}</h4>
+                            <h4 className="font-medium text-foreground text-sm leading-tight flex-1 mr-2">{task.title}</h4>
                             <div className="flex items-center gap-2">
                               {isCriticalPath(task) && (
-                                <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs animate-pulse">
+                                <Badge className="bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20 text-xs animate-pulse">
                                   🔥 Critical
                                 </Badge>
                               )}
@@ -585,7 +585,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => setEditingTask(task)}
-                                  className="text-slate-400 hover:text-blue-400 hover:bg-blue-500/20"
+                                  className="text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-500/10"
                                 >
                                   <Edit className="w-3 h-3" />
                                 </Button>
@@ -593,25 +593,25 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => deleteTask(task.id)}
-                                  className="text-slate-400 hover:text-red-400 hover:bg-red-500/20"
+                                  className="text-muted-foreground hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10"
                                 >
                                   <Trash2 className="w-3 h-3" />
                                 </Button>
                               </div>
-                              <Move className="w-4 h-4 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                              <Move className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                             </div>
                           </div>
 
                           {/* Task Details */}
                           <div className="space-y-3">
                             {task.description && (
-                              <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                                 {task.description}
                               </p>
                             )}
                             
                             <div className="flex items-center justify-between text-xs">
-                              <div className="flex items-center gap-1 text-slate-400">
+                              <div className="flex items-center gap-1 text-muted-foreground">
                                 <GitBranch className="w-3 h-3" />
                                 <span className="font-medium">{task.nodeName}</span>
                               </div>
@@ -619,11 +619,11 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                             </div>
 
                             <div className="flex items-center justify-between text-xs">
-                              <div className="flex items-center gap-1 text-slate-400">
+                              <div className="flex items-center gap-1 text-muted-foreground">
                                 <User className="w-3 h-3" />
                                 <span>{task.assignee}</span>
                               </div>
-                              <div className="flex items-center gap-1 text-slate-400">
+                              <div className="flex items-center gap-1 text-muted-foreground">
                                 <Clock className="w-3 h-3" />
                                 <span className="font-medium">{task.deadline}</span>
                               </div>
@@ -633,7 +633,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                             {task.tags && task.tags.length > 0 && (
                               <div className="flex flex-wrap gap-1">
                                 {task.tags.map((tag, index) => (
-                                  <Badge key={index} className="bg-slate-600/50 text-slate-300 text-xs">
+                                  <Badge key={index} className="bg-muted text-muted-foreground text-xs border border-border">
                                     {tag}
                                   </Badge>
                                 ))}
@@ -644,8 +644,8 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                             {task.blocker && (
                               <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
                                 <div className="flex items-center gap-2">
-                                  <AlertTriangle className="w-3 h-3 text-red-400" />
-                                  <span className="text-xs text-red-400 font-medium">{task.blocker}</span>
+                                  <AlertTriangle className="w-3 h-3 text-red-600 dark:text-red-400" />
+                                  <span className="text-xs text-red-600 dark:text-red-400 font-medium">{task.blocker}</span>
                                 </div>
                               </div>
                             )}
@@ -656,9 +656,9 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
 
                     {/* Empty State */}
                     {column.tasks.length === 0 && (
-                      <div className="flex items-center justify-center h-32 text-slate-500 border-2 border-dashed border-slate-600 rounded-lg">
+                      <div className="flex items-center justify-center h-32 text-muted-foreground border-2 border-dashed border-border rounded-lg">
                         <div className="text-center">
-                          <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-slate-700 flex items-center justify-center">
+                          <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-muted flex items-center justify-center">
                             <Plus className="w-4 h-4" />
                           </div>
                           <p className="text-sm font-medium">No tasks</p>
@@ -669,21 +669,21 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                   </div>
 
                   {/* Column Stats */}
-                  <Card className="bg-slate-800/60 border-slate-700/50">
+                  <Card className="bg-card border-border">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-slate-400 font-medium">{column.title}</p>
-                          <p className="text-2xl font-bold text-white">{stats.totalTasks}</p>
+                          <p className="text-sm text-muted-foreground font-medium">{column.title}</p>
+                          <p className="text-2xl font-bold text-foreground">{stats.totalTasks}</p>
                         </div>
                         <div className="text-right">
                           {stats.criticalTasks > 0 && (
-                            <Badge className="bg-red-500/20 text-red-400 text-xs mb-1">
+                            <Badge className="bg-red-500/10 text-red-600 dark:text-red-400 text-xs mb-1">
                               {stats.criticalTasks} Critical
                             </Badge>
                           )}
                           {stats.blockedTasks > 0 && (
-                            <Badge className="bg-orange-500/20 text-orange-400 text-xs">
+                            <Badge className="bg-orange-400/10 text-orange-600 dark:text-orange-400 text-xs">
                               {stats.blockedTasks} Blocked
                             </Badge>
                           )}
@@ -699,14 +699,14 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
         
         {/* Gradient fade effect to indicate more content */}
         {columns.length > 4 && (
-          <div className="absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-slate-900 to-transparent pointer-events-none" />
+          <div className="absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-background to-transparent pointer-events-none" />
         )}
         
         {/* Scroll Indicator */}
         {columns.length > 4 && (
-          <div className="absolute bottom-4 right-4 bg-slate-800/80 backdrop-blur-sm rounded-lg px-3 py-2 border border-slate-600/50">
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+          <div className="absolute bottom-4 right-4 bg-card/80 backdrop-blur-sm rounded-lg px-3 py-2 border border-border">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full animate-pulse" />
               <span>Scroll horizontally to see more columns</span>
             </div>
           </div>
@@ -716,36 +716,36 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
       {/* Edit Task Dialog */}
       {editingTask && (
         <Dialog open={!!editingTask} onOpenChange={() => setEditingTask(null)}>
-          <DialogContent className="bg-slate-800 border-slate-600 max-w-md">
+          <DialogContent className="bg-card border-border max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-white">Edit Task</DialogTitle>
+              <DialogTitle className="text-foreground">Edit Task</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-slate-300">Task Title</label>
+                <label className="text-sm font-medium text-muted-foreground">Task Title</label>
                 <Input
                   value={editingTask.title}
                   onChange={(e) => setEditingTask({ ...editingTask, title: e.target.value })}
-                  className="bg-slate-700 border-slate-600 text-white"
+                  className="bg-muted border-border text-foreground"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-300">Description</label>
+                <label className="text-sm font-medium text-muted-foreground">Description</label>
                 <Textarea
                   value={editingTask.description || ""}
                   onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
-                  className="bg-slate-700 border-slate-600 text-white"
+                  className="bg-muted border-border text-foreground"
                   rows={3}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-slate-300">Priority</label>
+                  <label className="text-sm font-medium text-muted-foreground">Priority</label>
                   <Select value={editingTask.priority} onValueChange={(value) => setEditingTask({ ...editingTask, priority: value })}>
-                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                    <SelectTrigger className="bg-muted border-border text-foreground">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectContent className="bg-muted border-border">
                       <SelectItem value="low">Low</SelectItem>
                       <SelectItem value="medium">Medium</SelectItem>
                       <SelectItem value="high">High</SelectItem>
@@ -754,12 +754,12 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-300">Assignee</label>
+                  <label className="text-sm font-medium text-muted-foreground">Assignee</label>
                   <Select value={editingTask.assignee} onValueChange={(value) => setEditingTask({ ...editingTask, assignee: value })}>
-                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                    <SelectTrigger className="bg-muted border-border text-foreground">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectContent className="bg-muted border-border">
                       {availableAssignees.map(assignee => (
                         <SelectItem key={assignee} value={assignee}>{assignee}</SelectItem>
                       ))}
@@ -769,26 +769,26 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-slate-300">Deadline</label>
+                  <label className="text-sm font-medium text-muted-foreground">Deadline</label>
                   <Input
                     type="date"
                     value={editingTask.deadline}
                     onChange={(e) => setEditingTask({ ...editingTask, deadline: e.target.value })}
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-muted border-border text-foreground"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-300">Blocker (optional)</label>
+                  <label className="text-sm font-medium text-muted-foreground">Blocker (optional)</label>
                   <Input
                     value={editingTask.blocker || ""}
                     onChange={(e) => setEditingTask({ ...editingTask, blocker: e.target.value })}
                     placeholder="What's blocking this task?"
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-muted border-border text-foreground"
                   />
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button onClick={() => updateTask(editingTask.id, editingTask)} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                <Button onClick={() => updateTask(editingTask.id, editingTask)} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white dark:text-white">
                   <Save className="w-4 h-4 mr-2" />
                   Save Changes
                 </Button>
@@ -803,9 +803,9 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
       )}
 
       {/* Board Summary */}
-      <Card className="bg-slate-800/60 border-slate-700/50">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-white">Board Summary</CardTitle>
+          <CardTitle className="text-foreground">Board Summary</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-4 gap-6">
@@ -818,9 +818,9 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                       column.id === "in-progress" ? "In Progress" : 
                       column.id === "blocked" ? "Blocked" : "Done")}
                   </div>
-                  <p className="text-sm text-slate-400 font-medium">{column.title}</p>
-                  <p className="text-2xl font-bold text-white">{stats.totalTasks}</p>
-                  <p className="text-xs text-slate-500">tasks</p>
+                  <p className="text-sm text-muted-foreground font-medium">{column.title}</p>
+                  <p className="text-2xl font-bold text-foreground">{stats.totalTasks}</p>
+                  <p className="text-xs text-muted-foreground">tasks</p>
                 </div>
               )
             })}

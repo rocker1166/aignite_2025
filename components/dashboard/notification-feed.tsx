@@ -191,32 +191,32 @@ export function NotificationFeed() {
   }
 
   const getNotificationBg = (type: NotificationType, read: boolean) => {
-    if (read) return "bg-gradient-to-br from-white/80 via-slate-50/60 to-white/70 dark:bg-gradient-to-br dark:from-slate-800/30 dark:via-slate-700/20 dark:to-slate-800/30"
+    if (read) return "bg-gradient-to-br from-white/90 via-slate-50/80 to-white/85 dark:bg-gradient-to-br dark:from-slate-800/70 dark:via-slate-700/60 dark:to-slate-800/70"
     
     switch (type) {
       case "alert":
-        return "bg-gradient-to-br from-red-100/80 via-red-50/60 to-pink-100/70 dark:bg-gradient-to-br dark:from-red-950/20 dark:via-slate-800/30 dark:to-red-950/20"
+        return "bg-gradient-to-br from-red-50/90 via-red-100/70 to-pink-50/80 dark:bg-gradient-to-br dark:from-red-950/30 dark:via-slate-800/50 dark:to-red-950/30"
       case "warning":
-        return "bg-gradient-to-br from-amber-100/80 via-yellow-50/60 to-orange-100/80 dark:bg-gradient-to-br dark:from-amber-950/20 dark:via-slate-800/30 dark:to-amber-950/20"
+        return "bg-gradient-to-br from-amber-50/90 via-yellow-100/70 to-orange-50/80 dark:bg-gradient-to-br dark:from-amber-950/30 dark:via-slate-800/50 dark:to-amber-950/30"
       case "info":
-        return "bg-gradient-to-br from-blue-100/80 via-sky-50/60 to-cyan-100/70 dark:bg-gradient-to-br dark:from-blue-950/20 dark:via-slate-800/30 dark:to-blue-950/20"
+        return "bg-gradient-to-br from-blue-50/90 via-sky-100/70 to-cyan-50/80 dark:bg-gradient-to-br dark:from-blue-950/30 dark:via-slate-800/50 dark:to-blue-950/30"
       case "success":
-        return "bg-gradient-to-br from-green-100/80 via-emerald-50/60 to-teal-100/70 dark:bg-gradient-to-br dark:from-green-950/20 dark:via-slate-800/30 dark:to-green-950/20"
+        return "bg-gradient-to-br from-green-50/90 via-emerald-100/70 to-teal-50/80 dark:bg-gradient-to-br dark:from-green-950/30 dark:via-slate-800/50 dark:to-green-950/30"
     }
   }
 
   const getNotificationBorder = (type: NotificationType, read: boolean) => {
-    if (read) return "border-slate-200/60 dark:border-slate-600/30"
+    if (read) return "border-slate-200/70 dark:border-slate-600/40"
     
     switch (type) {
       case "alert":
-        return "border-red-200/80 dark:border-red-900/30"
+        return "border-red-200/80 dark:border-red-800/40"
       case "warning":
-        return "border-amber-200/80 dark:border-amber-900/30"
+        return "border-amber-200/80 dark:border-amber-800/40"
       case "info":
-        return "border-blue-200/80 dark:border-blue-900/30"
+        return "border-blue-200/80 dark:border-blue-800/40"
       case "success":
-        return "border-green-200/80 dark:border-green-900/30"
+        return "border-green-200/80 dark:border-green-800/40"
     }
   }
 
@@ -265,15 +265,15 @@ export function NotificationFeed() {
               <DropdownMenuTrigger asChild>
                 <Button 
                   variant="outline" 
-                  className="flex items-center gap-2 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-white/40 dark:border-slate-600/40 hover:bg-white/80 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50"
+                  className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200/60 dark:border-slate-600/50 hover:bg-white/90 dark:hover:bg-slate-800/90 text-slate-700 dark:text-slate-200"
                 >
                   {getCategoryIcon(selectedCategory)}
                   <span className="text-sm font-medium">{getCategoryLabel(selectedCategory)}</span>
                   <ChevronDown className="h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/20 dark:border-slate-700/20">
-                <DropdownMenuLabel className="flex items-center gap-2">
+              <DropdownMenuContent align="start" className="w-56 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 shadow-xl">
+                <DropdownMenuLabel className="flex items-center gap-2 text-slate-700 dark:text-slate-200">
                   <Filter className="h-4 w-4" />
                   Filter Notifications
                 </DropdownMenuLabel>
@@ -282,7 +282,7 @@ export function NotificationFeed() {
                   onClick={() => setSelectedCategory("all")}
                   className={cn(
                     "flex items-center gap-2 cursor-pointer",
-                    selectedCategory === "all" && "bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300"
+                    selectedCategory === "all" && "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300"
                   )}
                 >
                   <BellIcon size={16} className="text-blue-500" />
@@ -293,7 +293,7 @@ export function NotificationFeed() {
                   onClick={() => setSelectedCategory("edge")}
                   className={cn(
                     "flex items-center gap-2 cursor-pointer",
-                    selectedCategory === "edge" && "bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300"
+                    selectedCategory === "edge" && "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300"
                   )}
                 >
                   <Truck className="h-4 w-4 text-blue-500" />
@@ -304,7 +304,7 @@ export function NotificationFeed() {
                   onClick={() => setSelectedCategory("node")}
                   className={cn(
                     "flex items-center gap-2 cursor-pointer",
-                    selectedCategory === "node" && "bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300"
+                    selectedCategory === "node" && "bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300"
                   )}
                 >
                   <Factory className="h-4 w-4 text-purple-500" />
@@ -315,7 +315,7 @@ export function NotificationFeed() {
             </DropdownMenu>
             
             {unreadCount > 0 && (
-              <Badge variant="destructive" className="ml-2 bg-red-500 hover:bg-red-600 text-xs">
+              <Badge variant="destructive" className="ml-2 bg-red-500 hover:bg-red-600 text-white text-xs">
                 {unreadCount} new
               </Badge>
             )}
@@ -325,7 +325,7 @@ export function NotificationFeed() {
             variant="ghost" 
             size="sm" 
             onClick={handleMarkAllAsRead}
-            className="text-xs text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40"
           >
             <BellOff className="h-3 w-3 mr-1" />
             Mark all read
@@ -362,10 +362,10 @@ export function NotificationFeed() {
                   {/* Category Icon */}
                   <div className="flex-shrink-0 mt-0.5">
                     <span className={cn(
-                      "rounded-full p-2.5 flex items-center justify-center shadow-lg ring-1 ring-white/20 dark:ring-slate-600/30",
+                      "rounded-full p-2.5 flex items-center justify-center shadow-lg ring-1 ring-white/30 dark:ring-slate-600/40",
                       notification.category === "edge" 
-                        ? "bg-gradient-to-br from-blue-200 via-cyan-100 to-blue-300 dark:bg-gradient-to-br dark:from-blue-900/40 dark:via-slate-700/50 dark:to-blue-900/40 text-blue-700 dark:text-blue-400 shadow-blue-200/50 dark:shadow-blue-900/20"
-                        : "bg-gradient-to-br from-purple-200 via-pink-100 to-purple-300 dark:bg-gradient-to-br dark:from-purple-900/40 dark:via-slate-700/50 dark:to-purple-900/40 text-purple-700 dark:text-purple-400 shadow-purple-200/50 dark:shadow-purple-900/20"
+                        ? "bg-gradient-to-br from-blue-200 via-cyan-100 to-blue-300 dark:bg-gradient-to-br dark:from-blue-900/50 dark:via-slate-700/60 dark:to-blue-900/50 text-blue-700 dark:text-blue-300 shadow-blue-200/50 dark:shadow-blue-900/30"
+                        : "bg-gradient-to-br from-purple-200 via-pink-100 to-purple-300 dark:bg-gradient-to-br dark:from-purple-900/50 dark:via-slate-700/60 dark:to-purple-900/50 text-purple-700 dark:text-purple-300 shadow-purple-200/50 dark:shadow-purple-900/30"
                     )}>
                       {notification.icon}
                     </span>
@@ -375,7 +375,7 @@ export function NotificationFeed() {
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <p className="font-semibold text-slate-900 dark:text-slate-200">{notification.title}</p>
+                        <p className="font-semibold text-slate-900 dark:text-slate-100">{notification.title}</p>
                         {!notification.read && (
                           <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
                         )}
@@ -387,7 +387,7 @@ export function NotificationFeed() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-6 w-6 p-0 rounded-full"
+                            className="h-6 w-6 p-0 rounded-full hover:bg-slate-200/50 dark:hover:bg-slate-700/50"
                             onClick={() => handleMarkAsRead(notification.id)}
                           >
                             <X className="h-3 w-3" />
@@ -395,12 +395,12 @@ export function NotificationFeed() {
                         )}
                       </div>
                     </div>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{notification.message}</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">{notification.message}</p>
                     <div className="pt-1 flex justify-end">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 px-2 text-xs text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                        className="h-6 px-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40"
                       >
                         View Details <ArrowRight className="ml-1 h-3 w-3" />
                       </Button>
@@ -419,9 +419,9 @@ export function NotificationFeed() {
               variant="outline"
               size="sm"
               onClick={() => setShowMore(!showMore)}
-              className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white border-none shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300 relative group"
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 hover:from-blue-700 hover:to-blue-800 dark:hover:from-blue-600 dark:hover:to-blue-700 text-white border-none shadow-lg shadow-blue-500/25 dark:shadow-blue-500/30 hover:shadow-blue-500/40 dark:hover:shadow-blue-500/50 transition-all duration-300 relative group"
             >
-              <span className="absolute inset-0 rounded-md bg-blue-400/30 blur-md opacity-60 group-hover:opacity-100 transition-opacity animate-pulse"></span>
+              <span className="absolute inset-0 rounded-md bg-blue-400/30 dark:bg-blue-400/20 blur-md opacity-60 group-hover:opacity-100 transition-opacity animate-pulse"></span>
               <span className="absolute inset-0 rounded-md bg-white/10 blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></span>
               {showMore ? (
                 <>
@@ -443,7 +443,7 @@ export function NotificationFeed() {
   return (
     <div className="p-4">
       {/* Main Tab Navigation */}
-      <div className="bg-white/60 dark:bg-slate-800/10 backdrop-blur-sm border border-white/40 dark:border-slate-700/20 shadow-lg rounded-lg p-1 flex space-x-1 w-fit mb-6">
+      <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/40 shadow-lg rounded-lg p-1 flex space-x-1 w-fit mb-6">
         {[
           { id: "alerts" as MainTab, label: "Real-Time Alerts" },
           { id: "activity" as MainTab, label: "Recent Activity" }
@@ -454,7 +454,7 @@ export function NotificationFeed() {
             className={`relative px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
               activeMainTab === tab.id
                 ? "text-white"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                : "text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100"
             }`}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -462,7 +462,7 @@ export function NotificationFeed() {
             {activeMainTab === tab.id && (
               <motion.div
                 layoutId="activeMainTab"
-                className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-700 rounded-md shadow-lg shadow-blue-500/25"
+                className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 rounded-md shadow-lg shadow-blue-500/25 dark:shadow-blue-500/30"
                 initial={false}
                 transition={{
                   type: "spring",

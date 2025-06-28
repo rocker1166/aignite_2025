@@ -3,13 +3,15 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from 'sonner'
-import { Sparkles } from "lucide-react"
+import { Sparkles, Zap, Target, TrendingUp, Shield, Clock, BarChart3, Layers, Play, Settings, History, Plus, ArrowRight, CheckCircle, AlertTriangle, Info } from "lucide-react"
 import { WorkflowIcon, HistoryIcon } from "@/components/icons"
 import { PlusIcon } from "@/components/icons/plus-icon"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
 
 import { SimulationHistory } from "@/components/simulation/simulation-history"
 import { SimulationLoader } from "@/components/simulation/test/simulation-loader"
@@ -28,26 +30,103 @@ import { EnhancedScenarioConfigurationForm } from "./enhanced-scenario-configura
 import { ProfessionalTemplateSelection } from "./professional-template-selection"
 import type { ApiResponse, SupplyChainData } from "./types"
 
-// Glassmorphic Card Component with enhanced styling
+// Enhanced Glassmorphic Card Component with improved styling
 function GlassmorphicCard({ children, className = "", variant = "default", ...props }: { 
   children: React.ReactNode; 
   className?: string; 
-  variant?: "default" | "accent" | "subtle";
+  variant?: "default" | "accent" | "subtle" | "premium";
   [key: string]: any 
 }) {
   const variantStyles = {
     default: "border border-white/30 dark:border-slate-700/20 bg-white/80 dark:bg-slate-900/20 backdrop-blur-xl shadow-xl shadow-black/5 dark:shadow-black/30",
     accent: "border border-blue-200/50 dark:border-blue-800/30 bg-gradient-to-br from-white/90 to-blue-50/80 dark:from-slate-900/30 dark:to-blue-950/20 backdrop-blur-xl shadow-xl shadow-blue-500/10 dark:shadow-blue-500/20",
-    subtle: "border border-white/20 dark:border-slate-700/10 bg-white/60 dark:bg-slate-900/10 backdrop-blur-lg shadow-lg shadow-black/5 dark:shadow-black/20"
+    subtle: "border border-white/20 dark:border-slate-700/10 bg-white/60 dark:bg-slate-900/10 backdrop-blur-lg shadow-lg shadow-black/5 dark:shadow-black/20",
+    premium: "border border-purple-200/50 dark:border-purple-800/30 bg-gradient-to-br from-white/95 via-purple-50/80 to-indigo-50/80 dark:from-slate-900/40 dark:via-purple-950/20 dark:to-indigo-950/20 backdrop-blur-xl shadow-2xl shadow-purple-500/15 dark:shadow-purple-500/25"
   }
   
   return (
     <Card 
-      className={`${variantStyles[variant]} rounded-2xl transition-all duration-300 hover:shadow-2xl hover:shadow-black/10 dark:hover:shadow-black/40 ${className}`} 
+      className={`${variantStyles[variant]} rounded-2xl transition-all duration-500 hover:shadow-2xl hover:shadow-black/10 dark:hover:shadow-black/40 hover:scale-[1.02] ${className}`} 
       {...props}
     >
       {children}
     </Card>
+  )
+}
+
+// Enhanced Feature Card Component
+function FeatureCard({ icon: Icon, title, description, color = "blue", onClick }: {
+  icon: any;
+  title: string;
+  description: string;
+  color?: "blue" | "purple" | "green" | "orange" | "red";
+  onClick?: () => void;
+}) {
+  const colorClasses = {
+    blue: "from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700",
+    purple: "from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700",
+    green: "from-green-500 to-green-600 hover:from-green-600 hover:to-green-700",
+    orange: "from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700",
+    red: "from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+  }
+
+  return (
+    <GlassmorphicCard 
+      className="p-6 cursor-pointer group hover:scale-105 transition-all duration-300"
+      onClick={onClick}
+    >
+      <div className="flex items-start gap-4">
+        <div className={`w-12 h-12 bg-gradient-to-br ${colorClasses[color]} rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300`}>
+          <Icon className="h-6 w-6 text-white" />
+        </div>
+        <div className="flex-1">
+          <h3 className="font-semibold text-lg mb-2 text-slate-800 dark:text-slate-200">{title}</h3>
+          <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{description}</p>
+        </div>
+        <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors duration-300" />
+      </div>
+    </GlassmorphicCard>
+  )
+}
+
+// Enhanced Stats Card Component
+function StatsCard({ icon: Icon, title, value, subtitle, trend, color = "blue" }: {
+  icon: any;
+  title: string;
+  value: string;
+  subtitle: string;
+  trend?: { value: string; positive: boolean };
+  color?: "blue" | "green" | "orange" | "red" | "purple";
+}) {
+  const colorClasses = {
+    blue: "from-blue-500 to-blue-600",
+    green: "from-green-500 to-green-600",
+    orange: "from-orange-500 to-orange-600",
+    red: "from-red-500 to-red-600",
+    purple: "from-purple-500 to-purple-600"
+  }
+
+  return (
+    <GlassmorphicCard className="p-6">
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">{title}</p>
+          <p className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-1">{value}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-500">{subtitle}</p>
+          {trend && (
+            <div className="flex items-center gap-1 mt-2">
+              <TrendingUp className={`h-3 w-3 ${trend.positive ? 'text-green-500' : 'text-red-500'}`} />
+              <span className={`text-xs font-medium ${trend.positive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {trend.value}
+              </span>
+            </div>
+          )}
+        </div>
+        <div className={`w-12 h-12 bg-gradient-to-br ${colorClasses[color]} rounded-xl flex items-center justify-center shadow-lg`}>
+          <Icon className="h-6 w-6 text-white" />
+        </div>
+      </div>
+    </GlassmorphicCard>
   )
 }
 
@@ -459,6 +538,10 @@ function SimulationPageContent() {
             <div className="max-w-7xl mx-auto">
               {/* Enhanced header for templates view */}
               <div className="text-center mb-12">
+                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 px-4 py-2 rounded-full border border-blue-200/30 dark:border-blue-800/30 mb-6">
+                  <Sparkles className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300">AI-Powered Supply Chain Intelligence</span>
+                </div>
                 <h1 className="text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-400 dark:via-purple-400 dark:to-indigo-400 mb-4">
                   Choose Your Simulation
                 </h1>
@@ -466,13 +549,126 @@ function SimulationPageContent() {
                   Start with AI-powered scenarios, professional templates, or build from scratch to analyze your supply chain resilience
                 </p>
               </div>
+
+              {/* Enhanced Stats Overview */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <StatsCard
+                  icon={BarChart3}
+                  title="Total Simulations"
+                  value={simulationHistory.length.toString()}
+                  subtitle="Completed analyses"
+                  color="blue"
+                />
+                <StatsCard
+                  icon={Target}
+                  title="Success Rate"
+                  value="94%"
+                  subtitle="Effective strategies"
+                  trend={{ value: "+2.3%", positive: true }}
+                  color="green"
+                />
+                <StatsCard
+                  icon={Clock}
+                  title="Avg. Processing"
+                  value="2.4s"
+                  subtitle="Per simulation"
+                  trend={{ value: "-0.8s", positive: true }}
+                  color="orange"
+                />
+                <StatsCard
+                  icon={Shield}
+                  title="Risk Reduction"
+                  value="67%"
+                  subtitle="Average improvement"
+                  trend={{ value: "+5.2%", positive: true }}
+                  color="purple"
+                />
+              </div>
               
+              {/* Enhanced Template Selection */}
               <ProfessionalTemplateSelection
                 onTemplateSelect={handleTemplateSelect}
                 onStartFromScratch={handleStartFromScratch}
                 onAIScenarios={() => setIsAIScenarioOpen(true)}
                 onSelectScenario={handleForecastScenarioSelect}
               />
+
+              {/* Enhanced Quick Actions */}
+              <div className="mt-12">
+                <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-6 text-center">Quick Actions</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FeatureCard
+                    icon={Zap}
+                    title="AI Scenario Generator"
+                    description="Generate intelligent scenarios based on your supply chain data and market conditions"
+                    color="purple"
+                    onClick={() => setIsAIScenarioOpen(true)}
+                  />
+                  <FeatureCard
+                    icon={Layers}
+                    title="Template Library"
+                    description="Access industry-specific templates for common supply chain disruption scenarios"
+                    color="blue"
+                    onClick={() => setView('form')}
+                  />
+                  <FeatureCard
+                    icon={Play}
+                    title="Start from Scratch"
+                    description="Build a custom simulation with full control over all parameters and settings"
+                    color="green"
+                    onClick={handleStartFromScratch}
+                  />
+                </div>
+              </div>
+
+              {/* Enhanced Recent Activity */}
+              {simulationHistory.length > 0 && (
+                <div className="mt-12">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Recent Simulations</h2>
+                    <Button variant="outline" className="flex items-center gap-2">
+                      <History className="h-4 w-4" />
+                      View All
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {simulationHistory.slice(0, 3).map((sim, index) => (
+                      <GlassmorphicCard key={sim.simulation_id} className="p-6 hover:scale-105 transition-all duration-300 cursor-pointer" onClick={() => handleViewSimulationResults(sim.simulation_id)}>
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                              <BarChart3 className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-slate-800 dark:text-slate-200">{sim.name || `Simulation ${index + 1}`}</h3>
+                              <p className="text-sm text-slate-500 dark:text-slate-500">{sim.scenario_type}</p>
+                            </div>
+                          </div>
+                          <Badge className={`text-xs ${
+                            sim.status === 'completed' ? 'bg-green-500/15 text-green-700 dark:text-green-300' :
+                            sim.status === 'running' ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300' :
+                            'bg-gray-500/15 text-gray-700 dark:text-gray-300'
+                          }`}>
+                            {sim.status}
+                          </Badge>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                            <Clock className="h-3 w-3" />
+                            {new Date(sim.created_at).toLocaleDateString()}
+                          </div>
+                          {sim.result_summary && (
+                            <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                              <Target className="h-3 w-3" />
+                              Impact: {sim.result_summary.costImpact || 'N/A'}
+                            </div>
+                          )}
+                        </div>
+                      </GlassmorphicCard>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -482,23 +678,34 @@ function SimulationPageContent() {
             <div className="p-6 px-10 space-y-8">
               {/* Enhanced Header Section */}
               <div className="max-w-7xl mx-auto">
-                <GlassmorphicCard variant="accent" className="p-8 mb-8">
+                <GlassmorphicCard variant="premium" className="p-8 mb-8">
                   <div className="flex items-center justify-between">
-                    <div className="space-y-3">
-                      <h1 className="text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-400 dark:via-purple-400 dark:to-indigo-400">
-                        Scenario Builder
-                      </h1>
-                      <p className="text-slate-600 dark:text-slate-300 text-xl leading-relaxed max-w-2xl">
-                        Configure scenarios and analyze supply chain resilience with advanced Monte Carlo simulations
-                      </p>
-                      <div className="flex items-center gap-4 pt-2">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                          <Settings className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 dark:from-purple-400 dark:via-blue-400 dark:to-indigo-400">
+                            Scenario Builder
+                          </h1>
+                          <p className="text-slate-600 dark:text-slate-300 text-lg leading-relaxed max-w-2xl">
+                            Configure scenarios and analyze supply chain resilience with advanced Monte Carlo simulations
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6 pt-2">
                         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                           Real-time analysis enabled
                         </div>
                         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                          <Sparkles className="w-4 h-4 text-blue-500" />
+                          <Sparkles className="w-4 h-4 text-purple-500" />
                           AI-powered insights
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                          <Shield className="w-4 h-4 text-blue-500" />
+                          Advanced security
                         </div>
                       </div>
                     </div>
@@ -513,13 +720,62 @@ function SimulationPageContent() {
                 </GlassmorphicCard>
               </div>
 
-              {/* Enhanced Form Configuration */}
+              {/* Enhanced Form Configuration with Progress */}
               <div className="max-w-7xl mx-auto">
+                {/* Form Progress Indicator */}
+                <GlassmorphicCard className="p-6 mb-8">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Configuration Progress</h3>
+                      <span className="text-sm text-slate-500 dark:text-slate-400">
+                        {isFormValid ? 'Complete' : 'In Progress'}
+                      </span>
+                    </div>
+                    <Progress 
+                      value={isFormValid ? 100 : 
+                        (scenarioData.scenarioName ? 20 : 0) +
+                        (scenarioData.scenarioType ? 20 : 0) +
+                        (scenarioData.affectedNode ? 20 : 0) +
+                        (selectedSupplyChainId ? 20 : 0) +
+                        (scenarioData.disruptionSeverity > 0 ? 10 : 0) +
+                        (scenarioData.disruptionDuration > 0 ? 10 : 0)
+                      } 
+                      className="h-2"
+                    />
+                    <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-xs">
+                      <div className={`flex items-center gap-1 ${scenarioData.scenarioName ? 'text-green-600 dark:text-green-400' : 'text-slate-400'}`}>
+                        <CheckCircle className="h-3 w-3" />
+                        Name
+                      </div>
+                      <div className={`flex items-center gap-1 ${scenarioData.scenarioType ? 'text-green-600 dark:text-green-400' : 'text-slate-400'}`}>
+                        <CheckCircle className="h-3 w-3" />
+                        Type
+                      </div>
+                      <div className={`flex items-center gap-1 ${scenarioData.affectedNode ? 'text-green-600 dark:text-green-400' : 'text-slate-400'}`}>
+                        <CheckCircle className="h-3 w-3" />
+                        Node
+                      </div>
+                      <div className={`flex items-center gap-1 ${selectedSupplyChainId ? 'text-green-600 dark:text-green-400' : 'text-slate-400'}`}>
+                        <CheckCircle className="h-3 w-3" />
+                        Chain
+                      </div>
+                      <div className={`flex items-center gap-1 ${scenarioData.disruptionSeverity > 0 ? 'text-green-600 dark:text-green-400' : 'text-slate-400'}`}>
+                        <CheckCircle className="h-3 w-3" />
+                        Severity
+                      </div>
+                      <div className={`flex items-center gap-1 ${scenarioData.disruptionDuration > 0 ? 'text-green-600 dark:text-green-400' : 'text-slate-400'}`}>
+                        <CheckCircle className="h-3 w-3" />
+                        Duration
+                      </div>
+                    </div>
+                  </div>
+                </GlassmorphicCard>
+
                 <EnhancedScenarioConfigurationForm />
               </div>
             </div>
 
-            {/* Floating Action Button */}
+            {/* Enhanced Floating Action Button */}
             <FloatingRunButton 
               isFormValid={isFormValid} 
               onRunSimulation={runSimulation} 

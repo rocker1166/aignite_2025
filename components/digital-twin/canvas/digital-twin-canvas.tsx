@@ -165,8 +165,8 @@ export default function DigitalTwinCanvas({ initialNodes, initialEdges, viewOnly
 
   if (!isHydrated) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-gray-500">Loading canvas...</div>
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="text-muted-foreground">Loading canvas...</div>
       </div>
     );
   }

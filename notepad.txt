@@ -99,3 +99,10 @@ Contraints : 1. A forecase scenario -> Impact analize -> Strategy Selection --> 
              thing overall picture .. and make the product.
 
  5. News Room : News panel to see whats going on around the supplychain, latest news, suggestions , can bookmark news, can comment , tag like nodes , suplychain tag from where is it happening.
+
+
+
+ //
+ 1. agegent command removed
+ 2. sceanrio gen history. / remove view all button .
+ 3. 

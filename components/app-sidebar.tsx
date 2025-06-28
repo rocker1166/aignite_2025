@@ -6,6 +6,7 @@ import Link from "next/link"
 import {
   BarChart3,
   Box,
+  Brain,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -67,9 +68,9 @@ export function AppSidebar() {
   // Navigation items configuration
   const navigationItems = [
     { href: "/dashboard", icon: Home, label: "Dashboard", isActive: pathname === "/dashboard" },
+    { href: "/orchestrator", icon: Brain, label: "MACG Orchestrator", isActive: pathname === "/orchestrator", badge: "NEW" },
     { href: "/digital-twin", icon: Network, label: "Digital Twin", isActive: pathname === "/digital-twin" },
     { href: "/simulation", icon: LineChart, label: "Simulation", isActive: pathname === "/simulation" },
-    { href: "/analytics", icon: BarChart3, label: "Analytics", isActive: pathname === "/analytics" },
     { href: "/strategy", icon: Settings, label: "Strategy", isActive: pathname === "/strategy" },
   ]
 
@@ -169,21 +170,21 @@ export function AppSidebar() {
   return (
     <Sidebar 
       className={cn(
-        "border-r-0 shadow-xl w-64",
-        "bg-gradient-to-b from-background/95 via-background/90 to-background/95 backdrop-blur-xl"
+        "border-r-0 shadow-2xl w-72 min-w-[16rem]",
+        "bg-gradient-to-b from-[#f8fafc] via-[#f1f5f9] to-[#e0e7ef] dark:from-[#181c24] dark:via-[#23283a] dark:to-[#181c24] backdrop-blur-2xl"
       )}
     >
-      <SidebarHeader className="border-b border-border/50 bg-gradient-to-r from-primary/5 via-primary/3 to-primary/5">
-        <div className="flex items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-3">
+      <SidebarHeader className="border-b border-border/40 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 shadow-md">
+        <div className="flex items-center justify-between px-6 py-5">
+          <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl blur-sm"></div>
-              <div className="relative bg-gradient-to-br from-primary to-primary/80 p-2 rounded-xl shadow-lg">
-                <ShieldAlert className="h-5 w-5 text-primary-foreground" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-primary/10 rounded-2xl blur-md"></div>
+              <div className="relative bg-gradient-to-br from-primary to-primary/80 p-3 rounded-2xl shadow-xl">
+                <ShieldAlert className="h-6 w-6 text-primary-foreground" />
               </div>
             </div>
-            <div className="font-bold text-xl">
-              <Link href="/" className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent hover:from-primary hover:to-primary/80 transition-all duration-200">
+            <div className="font-extrabold text-2xl tracking-tight">
+              <Link href="/" className="bg-gradient-to-r from-blue-700 via-purple-700 to-indigo-700 bg-clip-text text-transparent hover:from-primary hover:to-primary/80 transition-all duration-200">
                 Intellisupply
               </Link>
             </div>
@@ -191,13 +192,13 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       
-      <SidebarContent className="px-2 py-4">
+      <SidebarContent className="px-4 py-6">
         <SidebarGroup>
-          <SidebarGroupLabel className="px-4 text-xs font-semibold text-muted-foreground/80 uppercase tracking-wider mb-2">
-            Navigation
+          <SidebarGroupLabel className="px-2 text-xs font-bold text-muted-foreground/90 uppercase tracking-widest mb-3">
+            Main Navigation
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu className="space-y-2">
               {navigationItems.map((item) => {
                 const Icon = item.icon
                 return (
@@ -206,15 +207,22 @@ export function AppSidebar() {
                       asChild 
                       isActive={item.isActive}
                       className={cn(
-                        "group relative mx-2 rounded-xl transition-all duration-200",
+                        "group relative mx-1 rounded-2xl px-3 py-2 flex items-center gap-3 transition-all duration-200 font-semibold text-base",
                         item.isActive
-                          ? "bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 shadow-sm text-primary" 
-                          : "hover:bg-gradient-to-r hover:from-muted/80 hover:to-muted/40 hover:shadow-sm hover:scale-[1.02]"
+                          ? "bg-gradient-to-r from-blue-100 via-purple-100 to-indigo-100 dark:from-blue-900/30 dark:via-purple-900/20 dark:to-indigo-900/20 border border-primary/20 shadow-lg text-primary scale-[1.03]"
+                          : "hover:bg-gradient-to-r hover:from-muted/80 hover:to-muted/40 hover:shadow-md hover:scale-[1.04]"
                       )}
                     >
-                      <Link href={item.href}>
-                        <Icon className={cn("h-4 w-4", item.isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
-                        <span className="font-medium">{item.label}</span>
+                      <Link href={item.href} className="flex items-center gap-3 w-full">
+                        <span className={cn("flex items-center justify-center h-7 w-7 rounded-xl transition-colors", item.isActive ? "bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-500 text-white shadow-md" : "bg-muted text-muted-foreground group-hover:bg-gradient-to-br group-hover:from-blue-100 group-hover:to-indigo-100 group-hover:text-blue-700") }>
+                          <Icon className="h-5 w-5" />
+                        </span>
+                        <span className="truncate">{item.label}</span>
+                        {item.badge && (
+                          <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-sm animate-pulse">
+                            {item.badge}
+                          </span>
+                        )}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -225,10 +233,10 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       
-      <SidebarFooter className="border-t border-border/50 bg-gradient-to-r from-muted/20 via-muted/10 to-muted/20 p-2">
+      <SidebarFooter className="border-t border-border/40 bg-gradient-to-r from-muted/20 via-muted/10 to-muted/20 p-4">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu className="space-y-2">
               {footerItems.map((item) => {
                 const Icon = item.icon
                 return (
@@ -237,15 +245,17 @@ export function AppSidebar() {
                       asChild 
                       isActive={item.isActive}
                       className={cn(
-                        "group relative mx-2 rounded-xl transition-all duration-200",
+                        "group relative mx-1 rounded-2xl px-3 py-2 flex items-center gap-3 transition-all duration-200 font-semibold text-base",
                         item.isActive
-                          ? "bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 shadow-sm text-primary" 
-                          : "hover:bg-gradient-to-r hover:from-muted/80 hover:to-muted/40 hover:shadow-sm hover:scale-[1.02]"
+                          ? "bg-gradient-to-r from-blue-100 via-purple-100 to-indigo-100 dark:from-blue-900/30 dark:via-purple-900/20 dark:to-indigo-900/20 border border-primary/20 shadow-lg text-primary scale-[1.03]"
+                          : "hover:bg-gradient-to-r hover:from-muted/80 hover:to-muted/40 hover:shadow-md hover:scale-[1.04]"
                       )}
                     >
-                      <Link href={item.href}>
-                        <Icon className={cn("h-4 w-4", item.isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
-                        <span className="font-medium">{item.label}</span>
+                      <Link href={item.href} className="flex items-center gap-3 w-full">
+                        <span className={cn("flex items-center justify-center h-7 w-7 rounded-xl transition-colors", item.isActive ? "bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-500 text-white shadow-md" : "bg-muted text-muted-foreground group-hover:bg-gradient-to-br group-hover:from-blue-100 group-hover:to-indigo-100 group-hover:text-blue-700") }>
+                          <Icon className="h-5 w-5" />
+                        </span>
+                        <span className="truncate">{item.label}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -254,12 +264,11 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <div className="p-4 flex items-center justify-between bg-gradient-to-r from-background/60 to-background/40 rounded-xl mx-2 mt-2 border border-border/30 shadow-sm">
+        <div className="mt-6 flex items-center justify-between bg-gradient-to-r from-background/70 to-background/40 rounded-2xl mx-1 p-3 border border-border/30 shadow-sm">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-3 w-3 text-primary" />
-            <div className="text-xs font-medium text-muted-foreground">v1.0.0</div>
+            <SidebarThemeToggle />
           </div>
-          <ThemeToggle />
+          <span className="text-xs text-muted-foreground/70 font-semibold">v2.0</span>
         </div>
       </SidebarFooter>
     </Sidebar>

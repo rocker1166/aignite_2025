@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Shield, Target, Clock, TrendingUp, CheckCircle, AlertCircle, RefreshCw, Sparkles, Eye, Activity, FileCheck } from "lucide-react"
+import { ArrowLeft, Shield, Target, Clock, TrendingUp, CheckCircle, AlertCircle, RefreshCw, Sparkles, Eye, Activity, FileCheck, Layers, AlertTriangle, Users } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useState, useEffect, useMemo, useRef } from "react"
 import { ImplementationRoadmapPanel } from "@/components/simulation/ImplementationRoadmapPanel"
@@ -258,115 +258,144 @@ function StrategyCard({ strategy, index }: { strategy: ApiMitigationStrategy | M
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <GlassmorphicCard className="p-4 sm:p-6 hover:scale-[1.01] transition-all duration-300 hover:shadow-lg group">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0 shadow-sm">
-            {index + 1}
-          </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-base sm:text-lg break-words line-clamp-2">{strategy.title}</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">{strategy.timeframe}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-          <Badge className={`text-xs font-medium ${getPriorityColor(strategy.priority)}`}>
-            {strategy.priority}
-          </Badge>
-          {getStatusIcon(strategy.status)}
-        </div>
-      </div>
+    <GlassmorphicCard className="p-6 hover:scale-[1.02] transition-all duration-500 hover:shadow-2xl group relative overflow-hidden">
+      {/* Enhanced background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-white/30 to-purple-50/50 dark:from-blue-950/20 dark:via-slate-900/10 dark:to-purple-950/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
       
-      <p className="text-sm text-muted-foreground mb-4 leading-relaxed line-clamp-3">
-        {strategy.description}
-      </p>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-sm mb-4">
-        <div className="bg-gray-50 dark:bg-gray-900/30 rounded-lg p-3">
-          <p className="font-medium text-muted-foreground text-xs mb-1">Cost</p>
-          <p className="font-semibold text-green-600 dark:text-green-400">{strategy.costEstimate}</p>
-        </div>
-        <div className="bg-gray-50 dark:bg-gray-900/30 rounded-lg p-3">
-          <p className="font-medium text-muted-foreground text-xs mb-1">Impact Reduction</p>
-          <p className="font-semibold text-emerald-600 dark:text-emerald-400">{strategy.impactReduction}</p>
-        </div>
-        <div className="bg-gray-50 dark:bg-gray-900/30 rounded-lg p-3">
-          <p className="font-medium text-muted-foreground text-xs mb-1">Feasibility</p>
-          <Badge className={`text-xs font-medium ${getFeasibilityColor(apiStrategy.feasibility)}`}>
-            {apiStrategy.feasibility}
-          </Badge>
-        </div>
-      </div>
-
-      {/* Expandable Details Section */}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setExpanded(!expanded)}
-        className="w-full mb-2 text-xs font-medium"
-      >
-        {expanded ? 'Hide Details' : 'Show Details'}
-        <Eye className="h-3 w-3 ml-2" />
-      </Button>
-
-      {expanded && (
-        <div className="space-y-4 pt-4 border-t border-border/50">
-          {apiStrategy.dependencies.length > 0 && (
-            <div className="bg-blue-50/50 dark:bg-blue-950/20 rounded-lg p-3 border border-blue-200/30 dark:border-blue-800/30">
-              <p className="font-medium text-sm mb-2 text-blue-700 dark:text-blue-300">Dependencies:</p>
-              <ul className="text-xs text-blue-600 dark:text-blue-400 space-y-1">
-                {apiStrategy.dependencies.map((dep: string, idx: number) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 flex-shrink-0"></span>
-                    {dep}
-                  </li>
-                ))}
-              </ul>
+      <div className="relative z-10">
+        <div className="flex items-start justify-between mb-6">
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-lg group-hover:shadow-xl transition-all duration-300">
+              {index + 1}
             </div>
-          )}
-
-          {apiStrategy.riskFactors.length > 0 && (
-            <div className="bg-red-50/50 dark:bg-red-950/20 rounded-lg p-3 border border-red-200/30 dark:border-red-800/30">
-              <p className="font-medium text-sm mb-2 text-red-700 dark:text-red-300">Risk Factors:</p>
-              <ul className="text-xs text-red-600 dark:text-red-400 space-y-1">
-                {apiStrategy.riskFactors.map((risk: string, idx: number) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <AlertCircle className="w-3 h-3 text-red-500 mt-0.5 flex-shrink-0" />
-                    {risk}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {apiStrategy.successMetrics.length > 0 && (
-            <div className="bg-green-50/50 dark:bg-green-950/20 rounded-lg p-3 border border-green-200/30 dark:border-green-800/30">
-              <p className="font-medium text-sm mb-2 text-green-700 dark:text-green-300">Success Metrics:</p>
-              <ul className="text-xs text-green-600 dark:text-green-400 space-y-1">
-                {apiStrategy.successMetrics.map((metric: string, idx: number) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <Target className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
-                    {metric}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div className="bg-gray-50/50 dark:bg-gray-950/20 rounded-lg p-3 border border-gray-200/30 dark:border-gray-800/30">
-            <p className="font-medium text-sm mb-2">Resource Requirements:</p>
-            <div className="text-xs text-muted-foreground space-y-1">
-              <p><span className="font-medium">Personnel:</span> {apiStrategy.resourceRequirements.personnel} people</p>
-              {apiStrategy.resourceRequirements.equipment.length > 0 && (
-                <p><span className="font-medium">Equipment:</span> {apiStrategy.resourceRequirements.equipment.join(', ')}</p>
-              )}
-              {apiStrategy.resourceRequirements.partnerships.length > 0 && (
-                <p><span className="font-medium">Partnerships:</span> {apiStrategy.resourceRequirements.partnerships.join(', ')}</p>
-              )}
+            <div className="min-w-0 flex-1">
+              <h3 className="font-bold text-lg break-words line-clamp-2 text-slate-800 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors duration-300">{strategy.title}</h3>
+              <div className="flex items-center gap-2 mt-2">
+                <Clock className="h-3 w-3 text-slate-400" />
+                <p className="text-sm text-slate-500 dark:text-slate-400">{strategy.timeframe}</p>
+              </div>
             </div>
           </div>
+          <div className="flex items-center gap-3 flex-shrink-0 ml-4">
+            <Badge className={`text-xs font-semibold px-3 py-1 ${getPriorityColor(strategy.priority)}`}>
+              {strategy.priority}
+            </Badge>
+            {getStatusIcon(strategy.status)}
+          </div>
         </div>
-      )}
+        
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed line-clamp-3 group-hover:line-clamp-none transition-all duration-300">
+          {strategy.description}
+        </p>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-xl p-4 border border-green-200/50 dark:border-green-800/30">
+            <p className="font-medium text-muted-foreground text-xs mb-2 flex items-center gap-1">
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              Cost
+            </p>
+            <p className="font-bold text-green-600 dark:text-green-400 text-lg">{strategy.costEstimate}</p>
+          </div>
+          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 rounded-xl p-4 border border-blue-200/50 dark:border-blue-800/30">
+            <p className="font-medium text-muted-foreground text-xs mb-2 flex items-center gap-1">
+              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+              Impact Reduction
+            </p>
+            <p className="font-bold text-blue-600 dark:text-blue-400 text-lg">{strategy.impactReduction}</p>
+          </div>
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 rounded-xl p-4 border border-purple-200/50 dark:border-purple-800/30">
+            <p className="font-medium text-muted-foreground text-xs mb-2 flex items-center gap-1">
+              <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+              Feasibility
+            </p>
+            <Badge className={`text-xs font-semibold ${getFeasibilityColor(apiStrategy.feasibility)}`}>
+              {apiStrategy.feasibility}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Enhanced Expandable Details Section */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setExpanded(!expanded)}
+          className="w-full mb-4 text-sm font-medium border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-300"
+        >
+          {expanded ? 'Hide Details' : 'Show Details'}
+          <Eye className="h-4 w-4 ml-2 transition-transform duration-300" style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+        </Button>
+
+        {expanded && (
+          <div className="space-y-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+            {apiStrategy.dependencies.length > 0 && (
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-4 border border-blue-200/50 dark:border-blue-800/30">
+                <p className="font-semibold text-sm mb-3 text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                  <Layers className="h-4 w-4" />
+                  Dependencies
+                </p>
+                <ul className="text-sm text-blue-600 dark:text-blue-400 space-y-2">
+                  {apiStrategy.dependencies.map((dep: string, idx: number) => (
+                    <li key={idx} className="flex items-start gap-3">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                      <span className="leading-relaxed">{dep}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {apiStrategy.riskFactors.length > 0 && (
+              <div className="bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-950/30 dark:to-pink-950/30 rounded-xl p-4 border border-red-200/50 dark:border-red-800/30">
+                <p className="font-semibold text-sm mb-3 text-red-700 dark:text-red-300 flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  Risk Factors
+                </p>
+                <ul className="text-sm text-red-600 dark:text-red-400 space-y-2">
+                  {apiStrategy.riskFactors.map((risk: string, idx: number) => (
+                    <li key={idx} className="flex items-start gap-3">
+                      <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                      <span className="leading-relaxed">{risk}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {apiStrategy.successMetrics.length > 0 && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-xl p-4 border border-green-200/50 dark:border-green-800/30">
+                <p className="font-semibold text-sm mb-3 text-green-700 dark:text-green-300 flex items-center gap-2">
+                  <Target className="h-4 w-4" />
+                  Success Metrics
+                </p>
+                <ul className="text-sm text-green-600 dark:text-green-400 space-y-2">
+                  {apiStrategy.successMetrics.map((metric: string, idx: number) => (
+                    <li key={idx} className="flex items-start gap-3">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span className="leading-relaxed">{metric}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-950/30 dark:to-gray-950/30 rounded-xl p-4 border border-slate-200/50 dark:border-slate-700/30">
+              <p className="font-semibold text-sm mb-3 text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Resource Requirements
+              </p>
+              <div className="text-sm text-slate-600 dark:text-slate-400 space-y-2">
+                <p><span className="font-semibold">Personnel:</span> {apiStrategy.resourceRequirements.personnel} people</p>
+                {apiStrategy.resourceRequirements.equipment.length > 0 && (
+                  <p><span className="font-semibold">Equipment:</span> {apiStrategy.resourceRequirements.equipment.join(', ')}</p>
+                )}
+                {apiStrategy.resourceRequirements.partnerships.length > 0 && (
+                  <p><span className="font-semibold">Partnerships:</span> {apiStrategy.resourceRequirements.partnerships.join(', ')}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </GlassmorphicCard>
   )
 }
@@ -754,55 +783,57 @@ export default function MitigationStrategyPage() {
       }`}>
         <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <GlassmorphicCard variant="accent" className="p-6 sm:p-8 mb-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-3 flex-1">
+        <GlassmorphicCard variant="premium" className="p-8 mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="space-y-4 flex-1">
               <div className="flex items-center gap-4">
                 <Button 
                   variant="ghost" 
                   onClick={handleBackToResults}
-                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg px-3 py-2"
+                  className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors rounded-xl px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-800"
                   aria-label="Navigate back to simulation results"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back to Results
                 </Button>
                 {strategyData?.enhanced && (
-                  <Badge className="bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/25 flex items-center gap-2 px-3 py-1">
+                  <Badge className="bg-gradient-to-r from-purple-500/15 to-pink-500/15 text-purple-700 dark:text-purple-300 border-purple-500/25 flex items-center gap-2 px-4 py-2">
                     <Sparkles className="h-3 w-3" />
                     AI Enhanced
                   </Badge>
                 )}
               </div>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 dark:from-purple-400 dark:via-blue-400 dark:to-indigo-400">
-                Mitigation Strategy
-              </h1>
-              <p className="text-slate-600 dark:text-slate-300 text-lg sm:text-xl leading-relaxed max-w-3xl">
-                {strategyData ? 'AI-powered comprehensive action plan' : 'Comprehensive action plan'} to minimize disruption impact and enhance supply chain resilience
-              </p>
-              {error && (
-                <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-950/20 px-4 py-2 rounded-lg border border-amber-200/30 dark:border-amber-800/30">
-                  <AlertCircle className="h-4 w-4" />
-                  {error}
-                </div>
-              )}
+              <div className="space-y-3">
+                <h1 className="text-4xl sm:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 dark:from-purple-400 dark:via-blue-400 dark:to-indigo-400">
+                  Mitigation Strategy
+                </h1>
+                <p className="text-slate-600 dark:text-slate-300 text-lg sm:text-xl leading-relaxed max-w-3xl">
+                  {strategyData ? 'AI-powered comprehensive action plan' : 'Comprehensive action plan'} to minimize disruption impact and enhance supply chain resilience
+                </p>
+                {error && (
+                  <div className="flex items-center gap-3 text-sm text-amber-600 dark:text-amber-400 bg-gradient-to-r from-amber-50/80 to-orange-50/80 dark:from-amber-950/30 dark:to-orange-950/30 px-6 py-4 rounded-xl border border-amber-200/50 dark:border-amber-800/30">
+                    <AlertCircle className="h-5 w-5" />
+                    <span className="font-medium">{error}</span>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 shrink-0">
               <Button 
                 onClick={() => setFinalizeOpen(true)}
-                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-3 font-semibold"
                 aria-label="Finalize Strategy"
               >
-                <FileCheck className="mr-2 h-4 w-4" />
+                <FileCheck className="mr-2 h-5 w-5" />
                 Finalize Strategy
               </Button>
               <Button 
                 onClick={() => setRoadmapOpen(!roadmapOpen)}
                 variant="outline"
-                className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+                className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-3 font-semibold border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
                 aria-label={roadmapOpen ? "Close Implementation Roadmap" : "Open Implementation Roadmap"}
               >
-                <TrendingUp className="mr-2 h-4 w-4" />
+                <TrendingUp className="mr-2 h-5 w-5" />
                 {roadmapOpen ? 'Close Roadmap' : 'View Roadmap'}
               </Button>
               {simulationId && (
@@ -810,17 +841,17 @@ export default function MitigationStrategyPage() {
                   onClick={handleRefresh}
                   disabled={isRefreshing}
                   variant="outline"
-                  className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+                  className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-3 font-semibold border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
                   aria-label="Refresh strategy analysis"
                 >
                   {isRefreshing ? (
                     <>
-                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
+                      <div className="mr-2 h-5 w-5 animate-spin rounded-full border-2 border-current border-r-transparent" />
                       Refreshing...
                     </>
                   ) : (
                     <>
-                      <RefreshCw className="mr-2 h-4 w-4" />
+                      <RefreshCw className="mr-2 h-5 w-5" />
                       Refresh
                     </>
                   )}
@@ -834,44 +865,56 @@ export default function MitigationStrategyPage() {
         <MobileRoadmapSection />
 
         {/* Risk Reduction Overview */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <GlassmorphicCard className="p-4 sm:p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <GlassmorphicCard className="p-6 hover:scale-105 transition-all duration-300">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-1">Current Risk</p>
-                <p className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400">{currentStrategies.riskMitigationMetrics.currentRisk}%</p>
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Current Risk</p>
+                <p className="text-3xl font-bold text-red-600 dark:text-red-400">{currentStrategies.riskMitigationMetrics.currentRisk}%</p>
+                <p className="text-xs text-slate-500 dark:text-slate-500">High risk level</p>
               </div>
-              <AlertCircle className="h-6 w-6 sm:h-8 sm:w-8 text-red-500" />
+              <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                <AlertCircle className="h-8 w-8 text-white" />
+              </div>
             </div>
           </GlassmorphicCard>
 
-          <GlassmorphicCard className="p-4 sm:p-6">
+          <GlassmorphicCard className="p-6 hover:scale-105 transition-all duration-300">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-1">Target Risk</p>
-                <p className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">{currentStrategies.riskMitigationMetrics.targetRisk}%</p>
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Target Risk</p>
+                <p className="text-3xl font-bold text-green-600 dark:text-green-400">{currentStrategies.riskMitigationMetrics.targetRisk}%</p>
+                <p className="text-xs text-slate-500 dark:text-slate-500">Target reduction</p>
               </div>
-              <Target className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Target className="h-8 w-8 text-white" />
+              </div>
             </div>
           </GlassmorphicCard>
 
-          <GlassmorphicCard className="p-4 sm:p-6">
+          <GlassmorphicCard className="p-6 hover:scale-105 transition-all duration-300">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-1">Expected ROI</p>
-                <p className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">{currentStrategies.riskMitigationMetrics.expectedROI}</p>
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Expected ROI</p>
+                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{currentStrategies.riskMitigationMetrics.expectedROI}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-500">Return on investment</p>
               </div>
-              <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <TrendingUp className="h-8 w-8 text-white" />
+              </div>
             </div>
           </GlassmorphicCard>
 
-          <GlassmorphicCard className="p-4 sm:p-6">
+          <GlassmorphicCard className="p-6 hover:scale-105 transition-all duration-300">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-1">Risk Reduction</p>
-                <p className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">{currentStrategies.riskMitigationMetrics.riskReduction}</p>
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Risk Reduction</p>
+                <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{currentStrategies.riskMitigationMetrics.riskReduction}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-500">Overall improvement</p>
               </div>
-              <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-500" />
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Shield className="h-8 w-8 text-white" />
+              </div>
             </div>
           </GlassmorphicCard>
         </div>
