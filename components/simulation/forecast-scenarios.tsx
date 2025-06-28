@@ -22,8 +22,8 @@ import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import { ScenarioData, useScenario } from "@/lib/context/scenario-context"
 import { useUser } from "@/lib/stores/user"
-import { useToast } from "@/hooks/use-toast"
 import { scenarioCache } from "@/lib/utils/scenario-cache"
+import { toast } from "sonner"
 
 // Enhanced Glassmorphic Card Component
 function GlassmorphicCard({ 
@@ -58,8 +58,7 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
   const [processingTime, setProcessingTime] = useState<number | null>(null)
   const [fromCache, setFromCache] = useState(false)
   
-  const { userData } = useUser()
-  const { toast } = useToast()
+  // const { userData } = useUser()
   const { selectedSupplyChainId } = useScenario()
 
   // Map API scenario types to UI scenario types
@@ -109,10 +108,7 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
     if (selectedSupplyChainId) {
       scenarioCache.clear(selectedSupplyChainId)
       await fetchScenarios(true)
-      toast({
-        title: "Scenarios Refreshed",
-        description: "AI forecast scenarios have been updated with latest data.",
-      })
+      toast("Scenarios Refreshed",{ description:"AI forecast scenarios have been updated with latest data."})
     }
   }
 
@@ -172,11 +168,7 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
         console.log(`✅ Successfully loaded ${transformedScenarios.length} forecast scenarios`)
         
         if (transformedScenarios.length === 0) {
-          toast({
-            title: "No Forecast Scenarios",
-            description: "No forecast scenarios found for this supply chain. Generate a forecast first.",
-            variant: "default"
-          })
+           toast("Event has been created.",{ description:"No forecast scenarios found for this supply chain. Generate a forecast first."})
         }
       } else {
         console.log('📭 No scenarios available:', data.message)
@@ -184,11 +176,8 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
       }
     } catch (error) {
       console.error('❌ Error fetching forecast scenarios:', error)
-      toast({
-        title: "Failed to Load Forecast Scenarios",
-        description: "Unable to fetch forecast scenarios. Please try again.",
-        variant: "destructive"
-      })
+      toast("Failed to Load Forecast Scenarios",{ description:"Unable to fetch forecast scenarios. Please try again."})
+
       setScenarios([])
     } finally {
       setIsLoading(false)
