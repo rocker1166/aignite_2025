@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { User } from "lucide-react"
 import Link from "next/link"
 import { motion, type Variants } from "framer-motion"
+import { useUser } from "@/lib/stores/user"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -14,8 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { getUserData } from "@/utils/functions/userUtils"
-import type { Tables } from "@/lib/types/database"
+import { Skeleton } from "@/components/ui/skeleton"
 
 // Animation variants for dropdown content
 const dropdownContent: Variants = {
@@ -65,28 +65,37 @@ const dropdownItem: Variants = {
 }
 
 export function ProfileDropdown() {
-  const [user, setUser] = useState<Tables<"users"> | null>(null)
+  const { userData, userLoading } = useUser()
+  const setUserData = useUser(state => state.setUserData)
   const [initials, setInitials] = useState("SC")
 
   useEffect(() => {
-    async function fetchUser() {
-      const userData = await getUserData()
-      if (userData) {
-        setUser(userData)
-        const email = userData.email || ""
-        const initials = email.substring(0, 2).toUpperCase()
-        setInitials(initials || "SC")
-      }
+    setUserData()
+  }, [setUserData])
+
+  useEffect(() => {
+    if (userData?.email) {
+      setInitials(userData.email.substring(0, 2).toUpperCase())
+    } else {
+      setInitials("SC")
     }
-    fetchUser()
-  }, [])
+  }, [userData])
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-full"
+          disabled={userLoading}
+        >
           <Avatar className="h-8 w-8">
-            <AvatarFallback>{initials}</AvatarFallback>
+            {userLoading ? (
+              <Skeleton className="h-full w-full rounded-full" />
+            ) : (
+              <AvatarFallback>{initials}</AvatarFallback>
+            )}
           </Avatar>
           <span className="sr-only">User menu</span>
         </Button>

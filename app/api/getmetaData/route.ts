@@ -17,6 +17,18 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "Missing url query parameter" }, { status: 400 })
         }
 
+        try {
+            const url = new URL(link)
+            if (url.protocol !== "http:" && url.protocol !== "https:") {
+                return NextResponse.json(
+                    { error: "Invalid URL protocol. Only HTTP and HTTPS are allowed." },
+                    { status: 400 },
+                )
+            }
+        } catch (error) {
+            return NextResponse.json({ error: "Invalid URL format" }, { status: 400 })
+        }
+
         const options = { url: link }
         const { error, result } = await ogs(options)
 
