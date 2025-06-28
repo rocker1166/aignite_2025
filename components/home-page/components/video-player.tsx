@@ -55,6 +55,8 @@ export const VideoPlayerContent = ({ slot, className, ...props }: VideoPlayerCon
   <video 
     slot={slot} 
     className={cn("w-full h-full object-cover", className)}
+    tabIndex={-1}
+    suppressHydrationWarning={true}
     {...props} 
   />
 );

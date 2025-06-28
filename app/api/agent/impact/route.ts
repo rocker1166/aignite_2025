@@ -755,7 +755,7 @@ ANALYSIS METADATA:
       default: ['Operational Disruption', 'Performance Degradation', 'Service Issues']
     }
 
-    const nodeType = node.type.toLowerCase()
+    const nodeType = node.type ? node.type.toLowerCase() : 'default'
     const relevantImpacts = impactTypes[nodeType as keyof typeof impactTypes] || impactTypes.default
     const index = Math.floor(impactLevel * relevantImpacts.length)
     return relevantImpacts[Math.min(index, relevantImpacts.length - 1)]
