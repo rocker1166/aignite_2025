@@ -8,6 +8,7 @@ import { useUser } from "@/lib/stores/user";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { ShieldAlert, Menu, X, User, Settings, LogOut, LayoutDashboard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { logout } from "@/lib/functions/signout";
 
 export function LandingHeader() {
   const setUser = useUser((state) => state.setUserData);
@@ -24,19 +25,19 @@ export function LandingHeader() {
   // Function to calculate pill position and width based on active nav item
   const updatePillPosition = useCallback((targetSection: string) => {
     if (!navRef.current) return;
-    
+
     const navContainer = navRef.current;
     const pillContainer = navContainer.parentElement; // The container with padding
     const activeItem = navContainer.querySelector(`[data-nav-item="${targetSection}"]`) as HTMLElement;
-    
+
     if (activeItem && pillContainer) {
       const containerRect = pillContainer.getBoundingClientRect();
       const itemRect = activeItem.getBoundingClientRect();
-      
+
       // Calculate position relative to the pill container (not nav container)
       const width = itemRect.width;
       const x = itemRect.left - containerRect.left;
-      
+
       setPillStyle({ width, x });
     }
   }, []);
@@ -47,7 +48,7 @@ export function LandingHeader() {
     const timer = setTimeout(() => {
       updatePillPosition(activeSection);
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, [activeSection, updatePillPosition]);
 
@@ -63,7 +64,7 @@ export function LandingHeader() {
     const timer = setTimeout(() => {
       updatePillPosition(activeSection);
     }, 200);
-    
+
     return () => clearTimeout(timer);
   }, [updatePillPosition]);
 
@@ -89,7 +90,7 @@ export function LandingHeader() {
 
     // Set scrolling state to prevent intersection observer conflicts
     setIsScrolling(true);
-    
+
     // Update active section immediately for responsive UI
     setActiveSection(targetId);
 
@@ -106,7 +107,7 @@ export function LandingHeader() {
     const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight;
     const startPosition = window.pageYOffset;
     const distance = targetPosition - startPosition;
-    
+
     // Longer duration for smoother scroll
     const duration = 1500;
     let start: number | null = null;
@@ -121,16 +122,16 @@ export function LandingHeader() {
       if (start === null) start = currentTime;
       const timeElapsed = currentTime - start;
       const progress = Math.min(timeElapsed / duration, 1);
-      
+
       // Apply easing
       const easeProgress = easeOutQuint(progress);
-      
+
       // Smooth scroll with easing
       window.scrollTo({
         top: startPosition + (distance * easeProgress),
         behavior: 'auto' // Use 'auto' to prevent competing with CSS smooth scroll
       });
-      
+
       if (timeElapsed < duration) {
         requestAnimationFrame(animation);
       } else {
@@ -152,12 +153,12 @@ export function LandingHeader() {
   // Auto-update active section based on scroll position (only when not manually scrolling)
   useEffect(() => {
     const sections = ['features', 'benefits', 'contact'];
-    
+
     const observer = new IntersectionObserver(
       (entries) => {
         // Only update if we're not in a manual scroll state
         if (isScrolling) return;
-        
+
         entries.forEach((entry) => {
           if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
             const sectionId = entry.target.id;
@@ -194,7 +195,7 @@ export function LandingHeader() {
   }, []);
 
   return (
-    <motion.header 
+    <motion.header
       className="fixed top-0 left-0 w-full bg-background/80 backdrop-blur-md z-50 border-b border-border/40"
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
@@ -206,27 +207,27 @@ export function LandingHeader() {
           whileTap={{ scale: 0.95 }}
           transition={{ type: "spring", stiffness: 400, damping: 25 }}
         >
-          <a 
-            href="#top" 
+          <a
+            href="#top"
             onClick={(e) => smoothScroll(e, 'top')}
             className="flex items-center gap-3 group"
           >
             <div className="relative">
-              <motion.div 
+              <motion.div
                 className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl blur-sm"
-                animate={{ 
+                animate={{
                   scale: [1, 1.1, 1],
                   rotate: [0, 5, -5, 0]
                 }}
-                transition={{ 
+                transition={{
                   duration: 4,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
               />
-              <motion.div 
+              <motion.div
                 className="relative bg-gradient-to-br from-primary to-primary/80 p-2 rounded-xl shadow-lg"
-                whileHover={{ 
+                whileHover={{
                   rotate: 360,
                   scale: 1.1
                 }}
@@ -242,7 +243,7 @@ export function LandingHeader() {
         </motion.div>
 
         {/* Desktop Navigation with Modern Pill Design */}
-        <motion.nav 
+        <motion.nav
           className="hidden md:flex items-center relative"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -264,7 +265,7 @@ export function LandingHeader() {
                 duration: 0.4
               }}
             />
-            
+
             {/* Navigation Items */}
             <div className="relative flex items-center gap-1" ref={navRef}>
               {[
@@ -276,7 +277,7 @@ export function LandingHeader() {
                   key={item.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ 
+                  transition={{
                     duration: 0.4,
                     delay: index * 0.1 + 0.4,
                     ease: "easeOut"
@@ -293,8 +294,8 @@ export function LandingHeader() {
                     }}
                     className={`
                       relative z-10 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 group
-                      ${activeSection === item.id 
-                        ? "text-primary font-semibold" 
+                      ${activeSection === item.id
+                        ? "text-primary font-semibold"
                         : "text-muted-foreground hover:text-foreground"
                       }
                     `}
@@ -304,7 +305,7 @@ export function LandingHeader() {
                       {/* Hover underline effect */}
                       <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-primary/60 rounded-full transition-all duration-300 group-hover:w-full" />
                     </span>
-                    
+
                     {/* Ripple effect overlay */}
                     <span className="absolute inset-0 rounded-lg bg-primary/5 scale-0 group-active:scale-100 transition-transform duration-200" />
                   </a>
@@ -341,7 +342,7 @@ export function LandingHeader() {
           >
             <ThemeToggle start="top-right" />
           </motion.div>
-          
+
           {/* Profile Dropdown */}
           <motion.div
             ref={profileDropdownRef}
@@ -383,11 +384,14 @@ export function LandingHeader() {
                         </Link>
                         <div className="h-px bg-border/50 mx-2" />
                         <div
-                          onClick={() => setProfileDropdownOpen(false)}
+                          onClick={() => {
+                            setProfileDropdownOpen(false);
+                            logout();
+                          }}
                           className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-foreground hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600 dark:hover:text-red-400 transition-colors group cursor-pointer"
                         >
                           <LogOut className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                          <SignoutButton />
+                          Sign Out
                         </div>
                       </div>
                     </motion.div>
@@ -395,8 +399,8 @@ export function LandingHeader() {
                 </AnimatePresence>
               </>
             ) : (
-              <Link 
-                href="/signin" 
+              <Link
+                href="/signin"
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <User className="h-4 w-4" />
@@ -428,7 +432,7 @@ export function LandingHeader() {
                     key={item.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ 
+                    transition={{
                       duration: 0.3,
                       delay: index * 0.1,
                       ease: "easeOut"
