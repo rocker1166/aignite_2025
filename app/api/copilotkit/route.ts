@@ -5,7 +5,6 @@ import {
   } from '@copilotkit/runtime';
   
   import { NextRequest } from 'next/server';
-  import * as Sentry from '@sentry/nextjs';
    
   
   const serviceAdapter = new GoogleGenerativeAIAdapter({ model: "gemini-2.0-flash-lite" });
@@ -20,10 +19,5 @@ import {
       endpoint: '/api/copilotkit',
     });
    
-      return handleRequest(req);
-    } catch (error) {
-      console.error('CopilotKit API error:', error);
-      Sentry.captureException(error);
-      throw error;
-    }
+    return handleRequest(req);
   };

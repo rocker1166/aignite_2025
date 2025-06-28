@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { Redis } from '@upstash/redis';
-import { withSentry } from '@/lib/utils/sentry-utils';
-import * as Sentry from '@sentry/nextjs';
 
 // Use the correct paths to import the modules - distance from app folder to lib folder
 // Path aliases are not resolving correctly, so we'll use relative paths
@@ -33,7 +31,7 @@ const ForecastRequestSchema = z.object({
  * POST /api/agent/forecast
  * Generates a forecast for a supply chain or node based on intelligence and historical data
  */
-async function POST(request: NextRequest) {
+export async function POST(request: NextRequest) {
   const traceId = `forecast-${Date.now()}`;
   const startTime = Date.now();
 
@@ -43,16 +41,6 @@ async function POST(request: NextRequest) {
     
     const validationResult = ForecastRequestSchema.safeParse(requestBody);
     if (!validationResult.success) {
-      const validationError = new Error('Validation error: Invalid forecast request parameters');
-      Sentry.captureException(validationError, {
-        contexts: {
-          validation: {
-            errors: validationResult.error.errors,
-            traceId
-          }
-        }
-      });
-      
       logger.error({
         message: 'Invalid forecast request',
         errors: validationResult.error.errors,
@@ -78,7 +66,6 @@ async function POST(request: NextRequest) {
       .single();
 
     if (supplyChainError || !supplyChain) {
-      Sentry.captureException(supplyChainError);
       logger.error({
         message: 'Supply chain not found',
         supplyChainId: params.supplyChainId,
@@ -105,7 +92,6 @@ async function POST(request: NextRequest) {
         .single();
 
       if (nodeError || !node) {
-        Sentry.captureException(nodeError);
         logger.error({
           message: 'Node not found or does not belong to specified supply chain',
           nodeId: params.nodeId,
@@ -168,7 +154,6 @@ async function POST(request: NextRequest) {
   } catch (error: any) {
     const processingTime = Date.now() - startTime;
     
-    Sentry.captureException(error);
     logger.error({
       message: 'Error generating forecast',
       error: error.message,
@@ -188,7 +173,7 @@ async function POST(request: NextRequest) {
   }
 }
 
-async function GET(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const supply_chain_id = searchParams.get('supply_chain_id');
@@ -226,7 +211,6 @@ async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Database query error:', error);
-      Sentry.captureException(error);
       return NextResponse.json({ error: 'Database query failed' }, { status: 500 });
     }
 
@@ -250,16 +234,9 @@ async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Forecast API GET error:', error);
-    Sentry.captureException(error);
     return NextResponse.json(
       { error: 'Failed to retrieve forecasts', details: error instanceof Error ? error.message : 'Unknown error' }, 
       { status: 500 }
     );
   }
 }
-
-// Wrap handlers with Sentry
-const wrappedPOST = withSentry(POST);
-const wrappedGET = withSentry(GET);
-
-export { wrappedPOST as POST, wrappedGET as GET };

@@ -2,18 +2,15 @@
 
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
-import { withSentry } from '@/lib/utils/sentry-utils';
-import * as Sentry from '@sentry/nextjs';
 
-const handler = async (request: Request) => {
+
+export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const input = searchParams.get('input');
 
         // Validate input
         if (!input || input.trim().length < 2) {
-            const error = new Error('Input validation failed: Input is too short. Minimum 2 characters required.');
-            Sentry.captureException(error);
             return NextResponse.json(
                 { error: 'Input is too short. Minimum 2 characters required.' },
                 { status: 400 }
@@ -23,8 +20,6 @@ const handler = async (request: Request) => {
         // Retrieve API key from environment variables
         const apiKey = process.env.OLA_MAPS_API_KEY;
         if (!apiKey) {
-            const error = new Error('Configuration error: OLA_MAPS_API_KEY is missing in environment variables');
-            Sentry.captureException(error);
             return NextResponse.json(
                 { error: 'API key is missing in environment variables.' },
                 { status: 500 }
@@ -50,8 +45,6 @@ const handler = async (request: Request) => {
         // Handle non-OK responses
         if (!olaResponse.ok) {
             const errorData = await olaResponse.json();
-            const error = new Error(`Ola Maps API error: ${olaResponse.status}`);
-            Sentry.captureException(error);
             return NextResponse.json(
                 { error: 'Failed to fetch data from Ola Maps.', details: errorData },
                 { status: olaResponse.status }
@@ -66,12 +59,9 @@ const handler = async (request: Request) => {
         return NextResponse.json(data);
     } catch (error) {
         console.error('Error in autocomplete API route:', error);
-        Sentry.captureException(error);
         return NextResponse.json(
             { error: 'An unexpected error occurred.' },
             { status: 500 }
         );
     }
-};
-
-export const GET = withSentry(handler);
+}

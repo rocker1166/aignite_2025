@@ -4,8 +4,6 @@ import { google } from '@ai-sdk/google';
 import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase/server';
 import { storeSupplyChainIntel, NodeIntel } from '@/lib/api/supply-chain-intel';
-import { withSentry } from '@/lib/utils/sentry-utils';
-import * as Sentry from '@sentry/nextjs';
 
 // Enhanced schema: array of node intel objects
 const NodeIntelSchema = z.object({
@@ -69,7 +67,7 @@ Return a JSON array matching this schema exactly without extra commentary.
 }
 
 // ✅ API Handler
-const handler = async (request: any) => {
+export async function GET(request:any) {
   try {
     // Use the existing supabaseServer client
     const supabase = supabaseServer;
@@ -82,13 +80,10 @@ const handler = async (request: any) => {
       
     if (usersError) {
       console.error("Error fetching users:", usersError);
-      Sentry.captureException(usersError);
       return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
     }
     
     if (!users || users.length === 0) {
-      const error = new Error("No users found in the database");
-      Sentry.captureException(error);
       return NextResponse.json({ error: "No users found in the database" }, { status: 404 });
     }
     
@@ -106,7 +101,6 @@ const handler = async (request: any) => {
       
       if (supplyChainError) {
         console.error(`Error fetching supply chains for user ${userData.id}:`, supplyChainError);
-        Sentry.captureException(supplyChainError);
         continue; // Skip this user and continue with the next one
       }
       
@@ -147,9 +141,6 @@ const handler = async (request: any) => {
     return NextResponse.json({ results });
   } catch (error) {
     console.error("AI agent error:", error);
-    Sentry.captureException(error);
     return NextResponse.json({ error: "Failed to gather supply chain intel", details: (error instanceof Error ? error.message : "Unknown error") }, { status: 500 });
    }
-};
-
-export const GET = withSentry(handler);
+}
