@@ -15,18 +15,14 @@ import {
   ShoppingCart, 
   Plus, 
   ChevronRight,
-  Filter,
   Search,
-  Layers,
   Shield,
   BarChart3
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { ScenarioData } from "@/lib/context/scenario-context"
 import { ForecastScenarios } from "./forecast-scenarios"

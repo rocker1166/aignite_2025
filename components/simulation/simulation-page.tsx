@@ -3,21 +3,16 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from 'sonner'
-import { Sparkles } from "lucide-react"
-import { WorkflowIcon, HistoryIcon } from "@/components/icons"
-import { PlusIcon } from "@/components/icons/plus-icon"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
 
-import { SimulationHistory } from "@/components/simulation/simulation-history"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+
 import { SimulationLoader } from "@/components/simulation/test/simulation-loader"
 import { AIScenarioSuggestions } from "@/components/simulation/test/ai-scenario-suggestions"
 import { ScenarioProvider, useScenario, ScenarioData } from "@/lib/context/scenario-context"
 import type { Simulation } from "@/lib/types/database"
 import { getUserSupplyChains } from "@/lib/api/supply-chain"
-import { createSimulation, updateSimulation, getSimulations, findCachedSimulation, createSimulationWithCache } from "@/lib/api/simulation"
+import {  updateSimulation, getSimulations, findCachedSimulation, createSimulationWithCache } from "@/lib/api/simulation"
 import { useUser } from "@/lib/stores/user"
 import { useImpact } from "@/lib/context/impact-context"
 
