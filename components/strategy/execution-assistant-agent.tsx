@@ -188,51 +188,6 @@ export function ExecutionAssistantAgent({ strategy }: ExecutionAssistantAgentPro
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col p-0 bg-white dark:bg-slate-900/50">
-        {/* Insights Panel */}
-        <div className="p-4 border-b border-gray-200 dark:border-slate-700/50">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Live Insights</h3>
-          <div className="space-y-3 max-h-48 overflow-y-auto">
-            {insights.map((insight) => (
-              <div
-                key={insight.id}
-                className={`p-3 rounded-lg border ${getInsightColor(insight.type)}`}
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    {getInsightIcon(insight.type)}
-                    <span className="font-medium text-gray-900 dark:text-white text-sm">{insight.title}</span>
-                  </div>
-                  <Badge className={`text-xs ${getPriorityColor(insight.priority)}`}>
-                    {insight.priority}
-                  </Badge>
-                </div>
-                <p className="text-xs text-gray-700 dark:text-slate-300 mb-2">{insight.description}</p>
-                <span className="text-xs text-gray-500 dark:text-slate-500">
-                  {insight.timestamp.toLocaleTimeString()}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Quick Prompts */}
-        <div className="p-4 border-b border-gray-200 dark:border-slate-700/50">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Quick Prompts</h3>
-          <div className="flex flex-wrap gap-2">
-            {quickPrompts.map((prompt, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                size="sm"
-                onClick={() => handleQuickPrompt(prompt)}
-                className="text-xs border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 bg-transparent"
-              >
-                {prompt}
-              </Button>
-            ))}
-          </div>
-        </div>
-
         {/* Chat Messages */}
         <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50 dark:bg-slate-800/30">
           {messages.map((message) => (
@@ -269,6 +224,25 @@ export function ExecutionAssistantAgent({ strategy }: ExecutionAssistantAgentPro
 
         {/* Input */}
         <div className="p-4 border-t border-gray-200 dark:border-slate-700/50 bg-white dark:bg-slate-900/50">
+          {/* Quick Prompts Pills */}
+          <div className="mb-3">
+            <div className="flex items-center gap-1 mb-2">
+              <Lightbulb className="h-4 w-4 text-gray-500 dark:text-slate-400" />
+              <span className="text-sm font-medium text-gray-500 dark:text-slate-400">Quick Prompts</span>
+            </div>
+            <div className="flex gap-1.5 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {quickPrompts.map((prompt, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleQuickPrompt(prompt)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 hover:scale-105 bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 flex-shrink-0 whitespace-nowrap"
+                >
+                  <span className="truncate">{prompt}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
           <div className="flex gap-2">
             <Input
               value={inputValue}
