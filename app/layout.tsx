@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import type { Metadata } from 'next'
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme"
 import SessionProvider from "@/lib/context/SessionProvider";
@@ -7,6 +8,16 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Poppins } from 'next/font/google'
 import { CopilotProvider } from "@/components/copilot/copilot-provider";
 import "@copilotkit/react-textarea/styles.css";
+
+export const metadata: Metadata = {
+  title: 'IntelliSupply - AI-Powered Supply Chain Intelligence',
+  description: 'Transform your supply chain with intelligent resilience. Build resilient supply chains with AI-driven insights, real-time monitoring, and predictive analytics.',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
+}
 
 
 const poppins = Poppins({
@@ -19,6 +30,11 @@ const poppins = Poppins({
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`dark ${poppins.variable}`} suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="shortcut icon" href="/favicon.svg" />
+        <link rel="apple-touch-icon" href="/favicon.svg" />
+      </head>
       <body className="min-h-screen flex flex-col">
         <NuqsAdapter>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
