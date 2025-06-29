@@ -2,11 +2,14 @@
   "name": "IntelliSupply",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbo ",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "sentry:setup": "node scripts/add-sentry-to-apis.mjs",
+    "sentry:check": "node scripts/check-api-routes.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.2.11",
@@ -48,6 +51,7 @@
     "@radix-ui/react-toggle-group": "^1.1.1",
     "@radix-ui/react-tooltip": "^1.2.0",
     "@remixicon/react": "^4.6.0",
+    "@sentry/nextjs": "^9.33.0",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "latest",
     "@tavily/core": "^0.5.7",

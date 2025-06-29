@@ -8,6 +8,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Poppins } from 'next/font/google'
 import { CopilotProvider } from "@/components/copilot/copilot-provider";
 import "@copilotkit/react-textarea/styles.css";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 export const metadata: Metadata = {
   title: 'IntelliSupply - AI-Powered Supply Chain Intelligence',
@@ -36,15 +37,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="apple-touch-icon" href="/favicon.svg" />
       </head>
       <body className="min-h-screen flex flex-col">
-        <NuqsAdapter>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <CopilotProvider> 
-            {children}
-            </CopilotProvider>
-            <Toaster position="top-right" richColors />
-            <SessionProvider />
-          </ThemeProvider>
-        </NuqsAdapter>
+        <ErrorBoundary>
+          <NuqsAdapter>
+            <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+              <CopilotProvider> 
+                {children}
+              </CopilotProvider>
+              <Toaster position="top-right" richColors />
+              <SessionProvider />
+            </ThemeProvider>
+          </NuqsAdapter>
+        </ErrorBoundary>
       </body>
     </html>
   );
