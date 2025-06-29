@@ -5,14 +5,16 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import SignoutButton from "@/components/auth/Signout";
 import { useUser } from "@/lib/stores/user";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useLayoutEffect } from "react";
 import { ShieldAlert, Menu, X, User, Settings, LogOut, LayoutDashboard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { logout } from "@/lib/functions/signout";
+import { usePathname } from "next/navigation";
 
 export function LandingHeader() {
   const setUser = useUser((state) => state.setUserData);
   const { userData } = useUser();
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("features");
   const [isScrolling, setIsScrolling] = useState(false);
@@ -21,6 +23,16 @@ export function LandingHeader() {
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Set active section based on current pathname
+  useEffect(() => {
+    if (pathname === "/team") {
+      setActiveSection("team");
+    } else {
+      // Default to features for home page
+      setActiveSection("features");
+    }
+  }, [pathname]);
 
   // Function to calculate pill position and width based on active nav item
   const updatePillPosition = useCallback((targetSection: string) => {
@@ -44,12 +56,31 @@ export function LandingHeader() {
 
   // Update pill position when active section changes
   useEffect(() => {
-    // Small delay to ensure DOM is fully rendered
+    // Longer delay to ensure DOM is fully rendered, especially for route changes
     const timer = setTimeout(() => {
       updatePillPosition(activeSection);
-    }, 100);
+    }, 300);
 
     return () => clearTimeout(timer);
+  }, [activeSection, updatePillPosition]);
+
+  // Additional effect to handle pathname changes and force pill update
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updatePillPosition(activeSection);
+    }, 500); // Even longer delay for route changes
+
+    return () => clearTimeout(timer);
+  }, [pathname, activeSection, updatePillPosition]);
+
+  // Layout effect to ensure pill position is set after DOM is painted
+  useLayoutEffect(() => {
+    if (activeSection) {
+      const timer = setTimeout(() => {
+        updatePillPosition(activeSection);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
   }, [activeSection, updatePillPosition]);
 
   // Update pill position on window resize
@@ -85,6 +116,13 @@ export function LandingHeader() {
   // Enhanced smooth scroll function with scroll state management
   const smoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault();
+    
+    // If we're not on the home page, navigate to home page with the section hash
+    if (pathname !== "/") {
+      window.location.href = `/#${targetId}`;
+      return;
+    }
+
     const targetElement = document.getElementById(targetId);
     if (!targetElement) return;
 
@@ -104,17 +142,17 @@ export function LandingHeader() {
     const headerHeight = header ? header.offsetHeight : 0;
 
     // Calculate positions accounting for header height
-    const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+    const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
     const startPosition = window.pageYOffset;
     const distance = targetPosition - startPosition;
 
     // Longer duration for smoother scroll
-    const duration = 1500;
+    const duration = 1200;
     let start: number | null = null;
 
     // Enhanced easing function for smoother animation
     const easeOutQuint = (t: number): number => {
-      return 1 - Math.pow(1 - t, 5);
+      return 1 - Math.pow(1 - t, 4);
     };
 
     // Animation function
@@ -138,7 +176,7 @@ export function LandingHeader() {
         // Reset scrolling state after animation completes
         scrollTimeoutRef.current = setTimeout(() => {
           setIsScrolling(false);
-        }, 500); // Additional delay to ensure smooth transition
+        }, 300); // Shorter delay for better responsiveness
       }
     };
 
@@ -150,27 +188,67 @@ export function LandingHeader() {
     setUser();
   }, [userData, setUser]);
 
-  // Auto-update active section based on scroll position (only when not manually scrolling)
+  // Auto-update active section based on scroll position (only when not manually scrolling and on home page)
   useEffect(() => {
+    // Only enable scroll-based section detection on the home page
+    if (pathname !== "/") return;
+
     const sections = ['features', 'benefits', 'contact'];
+
+    // Function to get the currently visible section
+    const getCurrentSection = () => {
+      const header = document.querySelector('header');
+      const headerHeight = header ? header.offsetHeight : 0;
+      const scrollPosition = window.scrollY + headerHeight + 100; // Add offset for better detection
+
+      let currentSection = 'features'; // Default to features
+
+      for (const sectionId of sections) {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          const elementTop = rect.top + window.scrollY;
+          
+          if (scrollPosition >= elementTop) {
+            currentSection = sectionId;
+          }
+        }
+      }
+
+      return currentSection;
+    };
+
+    // Set initial section on mount
+    const initialSection = getCurrentSection();
+    setActiveSection(initialSection);
 
     const observer = new IntersectionObserver(
       (entries) => {
         // Only update if we're not in a manual scroll state
         if (isScrolling) return;
 
+        // Find the section that's most visible
+        let mostVisibleSection = '';
+        let maxVisibility = 0;
+
         entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+          if (entry.isIntersecting) {
             const sectionId = entry.target.id;
-            if (sections.includes(sectionId)) {
-              setActiveSection(sectionId);
+            if (sections.includes(sectionId) && entry.intersectionRatio > maxVisibility) {
+              maxVisibility = entry.intersectionRatio;
+              mostVisibleSection = sectionId;
             }
           }
         });
+
+        // Update active section if we found a visible section
+        if (mostVisibleSection) {
+          setActiveSection(mostVisibleSection);
+        }
       },
       {
-        threshold: [0.3, 0.5, 0.7],
-        rootMargin: '-80px 0px -80px 0px' // Account for header height
+        threshold: [0.1, 0.3, 0.5, 0.7, 0.9],
+        rootMargin: '-100px 0px -100px 0px' // Account for header height and provide better detection
       }
     );
 
@@ -182,8 +260,21 @@ export function LandingHeader() {
       }
     });
 
-    return () => observer.disconnect();
-  }, [isScrolling]);
+    // Also add scroll listener as backup
+    const handleScroll = () => {
+      if (!isScrolling) {
+        const currentSection = getCurrentSection();
+        setActiveSection(currentSection);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [isScrolling, pathname]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -208,8 +299,14 @@ export function LandingHeader() {
           transition={{ type: "spring", stiffness: 400, damping: 25 }}
         >
           <a
-            href="#top"
-            onClick={(e) => smoothScroll(e, 'top')}
+            href="/"
+            onClick={(e) => {
+              if (pathname !== "/") {
+                // Allow default navigation to home page
+                return;
+              }
+              smoothScroll(e, 'top');
+            }}
             className="flex items-center gap-3 group"
           >
             <div className="relative">
@@ -271,6 +368,7 @@ export function LandingHeader() {
               {[
                 { id: "features", label: "Features" },
                 { id: "benefits", label: "Benefits" },
+                { id: "team", label: "Team", href: "/team" },
                 { id: "contact", label: "Contact" }
               ].map((item, index) => (
                 <motion.div
@@ -285,30 +383,53 @@ export function LandingHeader() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <a
-                    href={`#${item.id}`}
-                    data-nav-item={item.id}
-                    onClick={(e) => {
-                      smoothScroll(e, item.id);
-                      setActiveSection(item.id);
-                    }}
-                    className={`
-                      relative z-10 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 group
-                      ${activeSection === item.id
-                        ? "text-primary font-semibold"
-                        : "text-muted-foreground hover:text-foreground"
-                      }
-                    `}
-                  >
-                    <span className="relative">
-                      {item.label}
-                      {/* Hover underline effect */}
-                      <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-primary/60 rounded-full transition-all duration-300 group-hover:w-full" />
-                    </span>
+                  {item.href ? (
+                    <Link
+                      href={item.href}
+                      data-nav-item={item.id}
+                      className={`
+                        relative z-10 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 group
+                        ${activeSection === item.id
+                          ? "text-primary font-semibold"
+                          : "text-muted-foreground hover:text-foreground"
+                        }
+                      `}
+                    >
+                      <span className="relative">
+                        {item.label}
+                        {/* Hover underline effect */}
+                        <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-primary/60 rounded-full transition-all duration-300 group-hover:w-full" />
+                      </span>
 
-                    {/* Ripple effect overlay */}
-                    <span className="absolute inset-0 rounded-lg bg-primary/5 scale-0 group-active:scale-100 transition-transform duration-200" />
-                  </a>
+                      {/* Ripple effect overlay */}
+                      <span className="absolute inset-0 rounded-lg bg-primary/5 scale-0 group-active:scale-100 transition-transform duration-200" />
+                    </Link>
+                  ) : (
+                    <a
+                      href={`#${item.id}`}
+                      data-nav-item={item.id}
+                      onClick={(e) => {
+                        smoothScroll(e, item.id);
+                        setActiveSection(item.id);
+                      }}
+                      className={`
+                        relative z-10 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 group
+                        ${activeSection === item.id
+                          ? "text-primary font-semibold"
+                          : "text-muted-foreground hover:text-foreground"
+                        }
+                      `}
+                    >
+                      <span className="relative">
+                        {item.label}
+                        {/* Hover underline effect */}
+                        <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-primary/60 rounded-full transition-all duration-300 group-hover:w-full" />
+                      </span>
+
+                      {/* Ripple effect overlay */}
+                      <span className="absolute inset-0 rounded-lg bg-primary/5 scale-0 group-active:scale-100 transition-transform duration-200" />
+                    </a>
+                  )}
                 </motion.div>
               ))}
             </div>
@@ -426,6 +547,7 @@ export function LandingHeader() {
                 {[
                   { id: "features", label: "Features" },
                   { id: "benefits", label: "Benefits" },
+                  { id: "team", label: "Team", href: "/team" },
                   { id: "contact", label: "Contact" }
                 ].map((item, index) => (
                   <motion.div
@@ -438,17 +560,32 @@ export function LandingHeader() {
                       ease: "easeOut"
                     }}
                   >
-                    <a
-                      href={`#${item.id}`}
-                      onClick={(e) => {
-                        smoothScroll(e, item.id);
-                        setActiveSection(item.id);
-                        setMobileMenuOpen(false);
-                      }}
-                      className="block px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-lg transition-all duration-200"
-                    >
-                      {item.label}
-                    </a>
+                    {item.href ? (
+                      <Link
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-lg transition-all duration-200"
+                      >
+                        {item.label}
+                      </Link>
+                    ) : (
+                      <a
+                        href={`#${item.id}`}
+                        onClick={(e) => {
+                          if (pathname !== "/") {
+                            // Navigate to home page with section hash
+                            window.location.href = `/#${item.id}`;
+                          } else {
+                            smoothScroll(e, item.id);
+                            setActiveSection(item.id);
+                          }
+                          setMobileMenuOpen(false);
+                        }}
+                        className="block px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-lg transition-all duration-200"
+                      >
+                        {item.label}
+                      </a>
+                    )}
                   </motion.div>
                 ))}
               </nav>
