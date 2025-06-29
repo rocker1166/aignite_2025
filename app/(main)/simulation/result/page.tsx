@@ -1223,7 +1223,7 @@ export default function SimulationResultPage() {
           )}
 
           {/* Node Analysis Section */}
-          <section aria-labelledby="node-analysis-title">
+          {/* <section aria-labelledby="node-analysis-title">
             <GlassmorphicCard className="p-6">
               <CardHeader className="p-0 pb-6">
                 <CardTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 dark:from-purple-400 dark:via-pink-400 dark:to-red-400" id="node-analysis-title">
@@ -1241,7 +1241,7 @@ export default function SimulationResultPage() {
                 />
               </CardContent>
             </GlassmorphicCard>
-          </section>
+          </section> */}
         </div>
       </div>
     </div>
