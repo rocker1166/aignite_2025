@@ -153,13 +153,13 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "critical":
-        return "bg-red-500/20 text-red-400 border-red-500/30"
+        return "bg-red-500/20 text-red-600 border-red-500/30 dark:text-red-400"
       case "high":
-        return "bg-orange-500/20 text-orange-400 border-orange-500/30"
+        return "bg-orange-500/20 text-orange-600 border-orange-500/30 dark:text-orange-400"
       case "medium":
-        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+        return "bg-yellow-500/20 text-yellow-600 border-yellow-500/30 dark:text-yellow-400"
       default:
-        return "bg-gray-500/20 text-gray-400 border-gray-500/30"
+        return "bg-gray-500/20 text-gray-600 border-gray-500/30 dark:text-gray-400"
     }
   }
 
@@ -353,42 +353,42 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-black mb-2">Task Kanban Board</h2>
-          <p className="text-slate-400">Drag and drop tasks to update their status and track progress</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Task Kanban Board</h2>
+          <p className="text-gray-600 dark:text-slate-400">Drag and drop tasks to update their status and track progress</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:border-slate-500 transition-all duration-200">
+          <Button variant="outline" className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 hover:border-gray-400 dark:hover:border-slate-500 transition-all duration-200">
             <Filter className="w-4 h-4 mr-2" />
             Filter
           </Button>
           <Dialog open={showAddColumnDialog} onOpenChange={setShowAddColumnDialog}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:border-slate-500 transition-all duration-200">
+              <Button variant="outline" className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 hover:border-gray-400 dark:hover:border-slate-500 transition-all duration-200">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Section
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-slate-800 border-slate-600">
+            <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600">
               <DialogHeader>
-                <DialogTitle className="text-white">Add New Column</DialogTitle>
+                <DialogTitle className="text-gray-900 dark:text-white">Add New Column</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-slate-300">Column Title</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Column Title</label>
                   <Input
                     value={newColumnData.title}
                     onChange={(e) => setNewColumnData({ ...newColumnData, title: e.target.value })}
                     placeholder="e.g., Review, Testing"
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-300">Color</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Color</label>
                   <Select value={newColumnData.color} onValueChange={(value) => setNewColumnData({ ...newColumnData, color: value })}>
-                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                    <SelectTrigger className="bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-gray-900 dark:text-white">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectContent className="bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600">
                       <SelectItem value="bg-slate-600">Gray</SelectItem>
                       <SelectItem value="bg-blue-600">Blue</SelectItem>
                       <SelectItem value="bg-green-600">Green</SelectItem>
@@ -427,7 +427,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                     value={newTaskData.title}
                     onChange={(e) => setNewTaskData({ ...newTaskData, title: e.target.value })}
                     placeholder="Enter task title"
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                   />
                 </div>
                 <div>
@@ -436,7 +436,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                     value={newTaskData.description}
                     onChange={(e) => setNewTaskData({ ...newTaskData, description: e.target.value })}
                     placeholder="Enter task description"
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                     rows={3}
                   />
                 </div>
@@ -476,7 +476,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                       type="date"
                       value={newTaskData.deadline}
                       onChange={(e) => setNewTaskData({ ...newTaskData, deadline: e.target.value })}
-                      className="bg-slate-700 border-slate-600 text-white"
+                      className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                     />
                   </div>
                   <div>
@@ -499,7 +499,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                     value={newTaskData.tags}
                     onChange={(e) => setNewTaskData({ ...newTaskData, tags: e.target.value })}
                     placeholder="urgent, planning, backend"
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -525,11 +525,11 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
               return (
                 <div key={column.id} className="w-80 flex-shrink-0 space-y-4">
                   {/* Column Header */}
-                  <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 dark:bg-slate-800/30 dark:border-slate-700/50 rounded-xl shadow-md">
+                  <div className="flex items-center justify-between p-4 bg-gray-50/80 border border-gray-200/50 dark:bg-slate-800/40 dark:border-slate-700/50 rounded-xl shadow-md backdrop-blur-sm">
                     <div className="flex items-center gap-3">
                       <div className={`w-3 h-3 rounded-full ${column.color}`} />
-                      <h3 className="font-semibold text-black dark:text-white">{column.title}</h3>
-                      <Badge className={`${column.color} text-white font-medium`}>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">{column.title}</h3>
+                      <Badge className={`${column.color} text-white font-medium border-0 shadow-sm`}>
                         {stats.totalTasks}
                       </Badge>
                     </div>
@@ -539,12 +539,12 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                           variant="ghost"
                           size="sm"
                           onClick={() => deleteColumn(column.id)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                          className="text-red-500 hover:text-red-400 hover:bg-red-500/20 dark:text-red-400 dark:hover:text-red-300"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       )}
-                      <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-slate-700/50">
+                      <Button variant="ghost" size="sm" className="text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-700/50">
                         <MoreHorizontal className="w-4 h-4" />
                       </Button>
                     </div>
@@ -552,10 +552,10 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
 
                   {/* Column Content */}
                   <div 
-                    className={`space-y-3 min-h-[600px] p-4 bg-gray-50 border border-gray-100 dark:bg-slate-800/30 dark:border-slate-700/50 rounded-xl transition-all duration-300 ${
+                    className={`space-y-3 min-h-[600px] p-4 bg-gray-50/50 border border-gray-200/50 dark:bg-slate-800/20 dark:border-slate-700/40 rounded-xl transition-all duration-300 backdrop-blur-sm ${
                       draggedOverColumn === column.id 
-                        ? 'border-blue-500/50 bg-blue-500/10' 
-                        : 'border-gray-200 dark:border-slate-700/50'
+                        ? 'border-blue-500/50 bg-blue-500/10 dark:border-blue-400/50 dark:bg-blue-500/5' 
+                        : 'border-gray-200/50 dark:border-slate-700/40'
                     }`}
                     onDragOver={(e) => handleDragOver(e, column.id)}
                     onDragLeave={handleDragLeave}
@@ -567,13 +567,13 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                         draggable
                         onDragStart={(e) => handleDragStart(e, task)}
                         onDragEnd={handleDragEnd}
-                        className="bg-white border-gray-200 dark:bg-slate-800/80 dark:border-slate-700/50 cursor-move hover:bg-gray-100 dark:hover:bg-slate-800/90 transition-all duration-300 hover:shadow-xl hover:shadow-slate-500/10 transform hover:-translate-y-1 group shadow-md"
+                        className="bg-white/90 border-gray-200/60 dark:bg-slate-800/70 dark:border-slate-700/40 cursor-move hover:bg-white dark:hover:bg-slate-800/90 transition-all duration-300 hover:shadow-xl hover:shadow-slate-500/10 dark:hover:shadow-slate-900/20 transform hover:-translate-y-1 group shadow-md backdrop-blur-sm"
                         style={{ animationDelay: `${taskIndex * 50}ms` }}
                       >
                         <CardContent className="p-4">
                           {/* Task Header */}
                           <div className="flex items-start justify-between mb-3">
-                            <h4 className="font-medium text-black text-sm leading-tight flex-1 mr-2">{task.title}</h4>
+                            <h4 className="font-medium text-gray-900 dark:text-white text-sm leading-tight flex-1 mr-2">{task.title}</h4>
                             <div className="flex items-center gap-2">
                               {isCriticalPath(task) && (
                                 <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs animate-pulse">
@@ -585,7 +585,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => setEditingTask(task)}
-                                  className="text-slate-400 hover:text-blue-400 hover:bg-blue-500/20"
+                                  className="text-slate-500 hover:text-blue-500 hover:bg-blue-500/20 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-blue-500/20"
                                 >
                                   <Edit className="w-3 h-3" />
                                 </Button>
@@ -593,7 +593,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => deleteTask(task.id)}
-                                  className="text-slate-400 hover:text-red-400 hover:bg-red-500/20"
+                                  className="text-slate-500 hover:text-red-500 hover:bg-red-500/20 dark:text-slate-400 dark:hover:text-red-400 dark:hover:bg-red-500/20"
                                 >
                                   <Trash2 className="w-3 h-3" />
                                 </Button>
@@ -605,13 +605,13 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                           {/* Task Details */}
                           <div className="space-y-3">
                             {task.description && (
-                              <p className="text-xs text-gray-700 line-clamp-2 leading-relaxed">
+                              <p className="text-xs text-gray-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
                                 {task.description}
                               </p>
                             )}
                             
                             <div className="flex items-center justify-between text-xs">
-                              <div className="flex items-center gap-1 text-gray-700">
+                              <div className="flex items-center gap-1 text-gray-600 dark:text-slate-400">
                                 <GitBranch className="w-3 h-3" />
                                 <span className="font-medium">{task.nodeName}</span>
                               </div>
@@ -619,11 +619,11 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                             </div>
 
                             <div className="flex items-center justify-between text-xs">
-                              <div className="flex items-center gap-1 text-gray-700">
+                              <div className="flex items-center gap-1 text-gray-600 dark:text-slate-400">
                                 <User className="w-3 h-3" />
                                 <span>{task.assignee}</span>
                               </div>
-                              <div className="flex items-center gap-1 text-gray-700">
+                              <div className="flex items-center gap-1 text-gray-600 dark:text-slate-400">
                                 <Clock className="w-3 h-3" />
                                 <span className="font-medium">{task.deadline}</span>
                               </div>
@@ -633,7 +633,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                             {task.tags && task.tags.length > 0 && (
                               <div className="flex flex-wrap gap-1">
                                 {task.tags.map((tag, index) => (
-                                  <Badge key={index} className="bg-slate-600/50 text-gray-700 text-xs">
+                                  <Badge key={index} className="bg-slate-200/80 text-slate-700 dark:bg-slate-700/80 dark:text-slate-300 border-slate-300/50 dark:border-slate-600/50 text-xs">
                                     {tag}
                                   </Badge>
                                 ))}
@@ -656,34 +656,34 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
 
                     {/* Empty State */}
                     {column.tasks.length === 0 && (
-                      <div className="flex items-center justify-center h-32 text-gray-700 border-2 border-dashed border-gray-200 dark:border-slate-700/50 rounded-lg">
+                      <div className="flex items-center justify-center h-32 text-gray-500 dark:text-slate-400 border-2 border-dashed border-gray-300 dark:border-slate-600/50 rounded-lg bg-gray-50/50 dark:bg-slate-800/30">
                         <div className="text-center">
-                          <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-gray-700 flex items-center justify-center">
-                            <Plus className="w-4 h-4" />
+                          <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-gray-200 dark:bg-slate-700 flex items-center justify-center">
+                            <Plus className="w-4 h-4 text-gray-500 dark:text-slate-400" />
                           </div>
-                          <p className="text-sm font-medium">No tasks</p>
-                          <p className="text-xs">Drop tasks here</p>
+                          <p className="text-sm font-medium text-gray-600 dark:text-slate-300">No tasks</p>
+                          <p className="text-xs text-gray-500 dark:text-slate-400">Drop tasks here</p>
                         </div>
                       </div>
                     )}
                   </div>
 
                   {/* Column Stats */}
-                  <Card className="bg-gray-50 border border-gray-100 dark:bg-slate-800/60 dark:border-slate-700/50 shadow-md">
+                  <Card className="bg-gray-50/80 border border-gray-200/50 dark:bg-slate-800/60 dark:border-slate-700/50 shadow-md">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-gray-700 font-medium">{column.title}</p>
-                          <p className="text-2xl font-bold text-black dark:text-white">{stats.totalTasks}</p>
+                          <p className="text-sm text-gray-700 dark:text-slate-300 font-medium">{column.title}</p>
+                          <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalTasks}</p>
                         </div>
                         <div className="text-right">
                           {stats.criticalTasks > 0 && (
-                            <Badge className="bg-red-500/20 text-red-400 text-xs mb-1">
+                            <Badge className="bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/30 text-xs mb-1">
                               {stats.criticalTasks} Critical
                             </Badge>
                           )}
                           {stats.blockedTasks > 0 && (
-                            <Badge className="bg-orange-500/20 text-orange-400 text-xs">
+                            <Badge className="bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/30 text-xs">
                               {stats.blockedTasks} Blocked
                             </Badge>
                           )}
@@ -699,14 +699,14 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
         
         {/* Gradient fade effect to indicate more content */}
         {columns.length > 4 && (
-          <div className="absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-slate-900 to-transparent pointer-events-none" />
+          <div className="absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-white dark:from-slate-900 to-transparent pointer-events-none" />
         )}
         
         {/* Scroll Indicator */}
         {columns.length > 4 && (
-          <div className="absolute bottom-4 right-4 bg-slate-800/80 backdrop-blur-sm rounded-lg px-3 py-2 border border-slate-600/50">
-            <div className="flex items-center gap-2 text-xs text-gray-700">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+          <div className="absolute bottom-4 right-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 border border-gray-200/50 dark:border-slate-600/50 shadow-md">
+            <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-slate-300">
+              <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse" />
               <span>Scroll horizontally to see more columns</span>
             </div>
           </div>
@@ -726,7 +726,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                 <Input
                   value={editingTask.title}
                   onChange={(e) => setEditingTask({ ...editingTask, title: e.target.value })}
-                  className="bg-slate-700 border-slate-600 text-white"
+                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
               <div>
@@ -734,7 +734,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                 <Textarea
                   value={editingTask.description || ""}
                   onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
-                  className="bg-slate-700 border-slate-600 text-white"
+                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                   rows={3}
                 />
               </div>
@@ -774,7 +774,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                     type="date"
                     value={editingTask.deadline}
                     onChange={(e) => setEditingTask({ ...editingTask, deadline: e.target.value })}
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                   />
                 </div>
                 <div>
@@ -783,7 +783,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                     value={editingTask.blocker || ""}
                     onChange={(e) => setEditingTask({ ...editingTask, blocker: e.target.value })}
                     placeholder="What's blocking this task?"
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                   />
                 </div>
               </div>
@@ -803,9 +803,9 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
       )}
 
       {/* Board Summary */}
-      <Card className="bg-white border-gray-200 shadow-md dark:bg-slate-800/60 dark:border-slate-700/50">
+      <Card className="bg-white/80 border-gray-200/50 shadow-md dark:bg-slate-800/60 dark:border-slate-700/50">
         <CardHeader>
-          <CardTitle className="text-black dark:text-white">Board Summary</CardTitle>
+          <CardTitle className="text-gray-900 dark:text-white">Board Summary</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-4 gap-6">
@@ -819,7 +819,7 @@ export function StrategyKanban({ nodes }: StrategyKanbanProps) {
                       column.id === "blocked" ? "Blocked" : "Done")}
                   </div>
                   <p className="text-lg font-semibold text-gray-800 dark:text-slate-200">{column.title}</p>
-                  <p className="text-2xl font-bold text-black dark:text-white">{stats.totalTasks}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalTasks}</p>
                   <p className="text-sm text-gray-600 dark:text-slate-400">tasks</p>
                 </div>
               )

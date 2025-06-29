@@ -26,7 +26,6 @@ import {
   Pause,
   MessageSquare,
   BarChart3,
-  Calendar,
   GitBranch,
   Zap,
   Shield,
@@ -40,7 +39,6 @@ import { TaskBoard } from "@/components/strategy/task-board"
 import { StrategyMetrics } from "@/components/strategy/strategy-metrics"
 import { ExecutionFlowMap } from "@/components/strategy/execution-flow-map"
 import { StrategyKanban } from "@/components/strategy/strategy-kanban"
-import { NodeGanttTimeline } from "@/components/strategy/node-gantt-timeline"
 import { ExecutionAssistantAgent } from "@/components/strategy/execution-assistant-agent"
 import { DependencyGraphModal } from "@/components/strategy/dependency-graph-modal"
 import { LiveExecutionStats } from "@/components/strategy/live-execution-stats"
@@ -456,13 +454,6 @@ export default function StrategyPage() {
             <div className="border-b border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm px-6 py-4">
               <TabsList className="bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 p-1">
                 <TabsTrigger
-                  value="execution"
-                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
-                >
-                  <Zap className="w-4 h-4 mr-2" />
-                  Execution
-                </TabsTrigger>
-                <TabsTrigger
                   value="overview"
                   className="data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
                 >
@@ -475,13 +466,6 @@ export default function StrategyPage() {
                 >
                   <GitBranch className="w-4 h-4 mr-2" />
                   Kanban
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="timeline" 
-                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
-                >
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Timeline
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -580,20 +564,6 @@ export default function StrategyPage() {
                 </div>
               </div>
 
-              <TabsContent value="execution" className="h-full m-0">
-                <div className="p-6 space-y-8">
-                  {/* Interactive Node Execution Map */}
-                  <div className="animate-fade-in-up">
-                    <ExecutionFlowMap nodes={selectedStrategy.nodes || []} />
-                  </div>
-
-                  {/* Node Breakdown Accordion */}
-                  <div className="animate-fade-in-up animation-delay-200">
-                    <NodeBreakdown nodes={selectedStrategy.nodes || []} />
-                  </div>
-                </div>
-              </TabsContent>
-
               <TabsContent value="overview" className="h-full m-0">
                 <div className="p-6 space-y-8">
                   <StrategyOverview strategy={selectedStrategy} />
@@ -608,12 +578,6 @@ export default function StrategyPage() {
               <TabsContent value="kanban" className="h-full m-0">
                 <div className="p-6">
                   <StrategyKanban nodes={selectedStrategy.nodes || []} />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="timeline" className="h-full m-0">
-                <div className="p-6">
-                  <NodeGanttTimeline nodes={selectedStrategy.nodes || []} />
                 </div>
               </TabsContent>
                 </>
