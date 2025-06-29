@@ -7,7 +7,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { Toaster } from "@/components/ui/toaster"
 import AIChatOverlay from "@/components/ui/ai-chat-overlay"
 import { supabaseClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 
 export default function MainLayout({
@@ -16,41 +16,58 @@ export default function MainLayout({
   children: React.ReactNode
 }>) {
   const router = useRouter()
+  const pathname = usePathname()
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        console.log('🔐 Checking authentication...')
+        
         // Check if user is authenticated
         const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
         
         if (authError || !user) {
+          console.log('❌ Authentication failed, redirecting to signin')
           router.push('/signin')
           return
         }
 
+        console.log('✅ User authenticated:', user.email)
         setIsAuthenticated(true)
 
-        // Check if user has all required profile fields
+        // Check if user has critical required profile fields
         const { data: userData, error } = await supabaseClient
           .from('users')
           .select('*')
           .eq('email', user.email)
           .single()
 
-        if (userData && (
-          !userData.organisation_name || userData.organisation_name.trim() === '' ||
-          !userData.location || userData.location.trim() === '' ||
-          !userData.industry || userData.industry.trim() === '' ||
-          !userData.sub_industry || userData.sub_industry.trim() === '' ||
-          !userData.description || userData.description.trim() === ''
+        if (error) {
+          console.log('⚠️ Error fetching user data:', error)
+        }
+
+        // Only redirect if critical fields are completely missing
+        // Skip profile check for strategy pages and main dashboard during development
+        const skipProfileCheck = pathname.includes('/strategy') || 
+                                pathname.includes('/dashboard') || 
+                                pathname.includes('/digital-twin') ||
+                                pathname.includes('/simulation') ||
+                                pathname.includes('/orchestrator')
+        
+        if (userData && !skipProfileCheck && (
+          !userData.organisation_name || userData.organisation_name.trim() === ''
         )) {
+          console.log('⚠️ Missing organization name, redirecting to profile')
           router.push('/profile?show_popup=true')
           return
         }
 
+        console.log('✅ Profile check passed, proceeding to main app')
+
       } catch (error) {
+        console.error('❌ Auth check error:', error)
         router.push('/signin')
       } finally {
         setIsLoading(false)
