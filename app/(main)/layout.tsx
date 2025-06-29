@@ -88,7 +88,6 @@ export default function MainLayout({
     return null // Will redirect to signin
   }
   return (
-    <CopilotProvider>
       <div className={`h-full w-full`}>
         <SidebarProvider>
           <div className="flex h-screen w-full overflow-hidden">
@@ -107,7 +106,6 @@ export default function MainLayout({
         {/* Add ISCA Chat Assistant */}
         <ISCAChat />
       </div>
-    </CopilotProvider>
   )
 }
 
