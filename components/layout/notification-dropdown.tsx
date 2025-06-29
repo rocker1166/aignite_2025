@@ -357,7 +357,7 @@ export function NotificationDropdown() {
                     <span className="sr-only">Notifications</span>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[32rem]" asChild>
+            <DropdownMenuContent align="end" className="w-[32rem] bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800" asChild>
                 <motion.div
                     variants={dropdownContent}
                     initial="hidden"
@@ -365,7 +365,7 @@ export function NotificationDropdown() {
                     exit="exit"
                 >
                     <div className="flex items-center justify-between px-4 py-2">
-                        <DropdownMenuLabel className="text-sm font-semibold p-0">Notifications</DropdownMenuLabel>
+                        <DropdownMenuLabel className="text-sm font-semibold p-0 text-slate-900 dark:text-slate-100">Notifications</DropdownMenuLabel>
                         {unreadCount > 0 && (
                             <Button
                                 variant="ghost"
