@@ -413,7 +413,7 @@ export default function Home() {
           </div>
           
           <div className="container mx-auto px-4 max-w-6xl relative">
-            <div className="bg-[#5B21FF] rounded-3xl shadow-2xl p-8 md:p-12 relative overflow-hidden">
+            <div className="bg-[#5B21FF] rounded-3xl shadow-2xl p-6 md:p-12 relative overflow-hidden">
               {/* Gradient Overlay */}
               <div className="absolute inset-0 bg-gradient-to-br from-purple-600/50 via-[#5B21FF] to-indigo-600/50"></div>
               {/* Dots Pattern */}
@@ -421,23 +421,30 @@ export default function Home() {
                 backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.15) 1px, transparent 0)`,
                 backgroundSize: '20px 20px'
               }}></div>
+              
               {/* Content */}
-              <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                <div>
-                  <Badge variant="outline" className="mb-3 bg-white/10 text-white border-white/20 uppercase tracking-wide">
+              <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center">
+                <motion.div
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  viewport={{ once: true }}
+                >
+                  <Badge variant="outline" className="mb-4 bg-white/10 text-white border-white/20 uppercase tracking-wide text-xs font-medium">
                     Start Today
                   </Badge>
-                  <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-6 text-white leading-tight">
                     Ready to Transform Your Supply Chain?
                   </h2>
-                  <p className="text-gray-200 mb-8 text-lg leading-relaxed">
+                  <p className="text-gray-200 mb-8 text-base md:text-lg leading-relaxed">
                     Experience the power of AI-driven supply chain resilience. Join industry leaders already using our platform to navigate disruptions with confidence.
                   </p>
-                  <div className="flex flex-wrap gap-4">
-                  <div className="flex flex-wrap gap-6">
+                  
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-4">
                     <GlowyButton 
                       href="/signin" 
-                      className="bg-white hover:bg-gray-50 text-[#5B21FF] shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+                      className="bg-white hover:bg-gray-50 text-[#5B21FF] shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group justify-center"
                     >
                       <span className="font-medium">Get Started</span>
                       <IconArrowRight className="h-4 w-4 transform transition-transform duration-300 group-hover:translate-x-1" />
@@ -445,34 +452,118 @@ export default function Home() {
                     
                     <GlowyButton 
                       href="#features" 
-                      className="bg-white hover:bg-gray-50 text-[#5B21FF] shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 rounded-full px-8 hover:bg-gradient-to-r hover:from-white hover:to-[#5B21FF]/5"
+                      className="bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 justify-center"
                     >
-                      Learn More
+                      <span className="font-medium">Learn More</span>
                     </GlowyButton>
                   </div>
-                </div>
+                </motion.div>
                 
-                <div className="relative">
-                  <div className="aspect-square max-w-md mx-auto relative">
-                    <div className="absolute inset-0 bg-white/5 rounded-3xl"></div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-4/5 h-4/5 rounded-2xl overflow-hidden bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center">
+                {/* Visual Element */}
+                <motion.div 
+                  className="relative order-first md:order-last"
+                  initial={{ opacity: 0, x: 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                  viewport={{ once: true }}
+                >
+                  <div className="aspect-square max-w-sm mx-auto relative">
+                    {/* Animated Background Ring */}
+                    <motion.div 
+                      className="absolute inset-0 bg-white/5 rounded-3xl"
+                      animate={{ 
+                        scale: [1, 1.05, 1],
+                        opacity: [0.5, 0.8, 0.5]
+                      }}
+                      transition={{ 
+                        duration: 4, 
+                        repeat: Infinity, 
+                        ease: "easeInOut" 
+                      }}
+                    />
+                    
+                    {/* Main Content Card */}
+                    <div className="absolute inset-4 flex items-center justify-center">
+                      <motion.div 
+                        className="w-full h-full rounded-2xl overflow-hidden bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center"
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ duration: 0.3 }}
+                      >
                         <div className="text-center p-6">
-                          <div className="relative">
-                            <div className="absolute -inset-3 bg-white/10 rounded-full blur-lg"></div>
-                            <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center relative">
+                          <motion.div 
+                            className="relative mb-6"
+                            animate={{ 
+                              y: [0, -5, 0],
+                            }}
+                            transition={{ 
+                              duration: 3, 
+                              repeat: Infinity, 
+                              ease: "easeInOut" 
+                            }}
+                          >
+                            <div className="absolute -inset-4 bg-white/10 rounded-full blur-xl"></div>
+                            <div className="h-16 w-16 mx-auto rounded-full bg-white/10 flex items-center justify-center relative backdrop-blur-sm border border-white/20">
                               <IconWorkflow className="h-8 w-8 text-white" />
                             </div>
+                            
+                            {/* Floating Icons */}
+                            <motion.div 
+                              className="absolute -top-2 -right-2 w-6 h-6 bg-green-400/80 rounded-full flex items-center justify-center"
+                              animate={{ 
+                                scale: [1, 1.2, 1],
+                                opacity: [0.7, 1, 0.7]
+                              }}
+                              transition={{ 
+                                duration: 2, 
+                                repeat: Infinity, 
+                                ease: "easeInOut",
+                                delay: 0.5
+                              }}
+                            >
+                              <div className="w-2 h-2 bg-white rounded-full" />
+                            </motion.div>
+                            
+                            <motion.div 
+                              className="absolute -bottom-1 -left-1 w-4 h-4 bg-blue-400/80 rounded-full flex items-center justify-center"
+                              animate={{ 
+                                scale: [1, 1.3, 1],
+                                opacity: [0.6, 1, 0.6]
+                              }}
+                              transition={{ 
+                                duration: 2.5, 
+                                repeat: Infinity, 
+                                ease: "easeInOut",
+                                delay: 1
+                              }}
+                            >
+                              <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                            </motion.div>
+                          </motion.div>
+                          
+                          <h3 className="text-lg md:text-xl font-semibold text-white mb-2">
+                            Resilient Supply Chains
+                          </h3>
+                          <p className="text-gray-200 text-sm leading-relaxed">
+                            AI-powered optimization and predictive risk management
+                          </p>
+                          
+                          {/* Stats */}
+                          <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-white/20">
+                            <div className="text-center">
+                              <div className="text-lg font-bold text-white">99.9%</div>
+                              <div className="text-xs text-gray-300">Uptime</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-lg font-bold text-white">24/7</div>
+                              <div className="text-xs text-gray-300">Support</div>
+                            </div>
                           </div>
-                          <h3 className="text-xl font-semibold text-white mb-2">Resilient Supply Chains</h3>
-                          <p className="text-gray-200 text-sm">Intelligent optimization and risk management</p>
                         </div>
-                      </div>
+                      </motion.div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
-            </div>
             </div>
           </div>
         </motion.section>
