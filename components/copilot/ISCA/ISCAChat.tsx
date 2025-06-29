@@ -62,6 +62,7 @@ export function ISCAChat() {
   const [loadingSupplyChains, setLoadingSupplyChains] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
+  const [navigationStarted, setNavigationStarted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Check if CopilotKit is enabled
@@ -108,7 +109,11 @@ export function ISCAChat() {
     appendMessage,
   } = useCopilotChat();
 
-  const messages = visibleMessages;
+  // Filter out empty or blank messages - check for both content and text properties
+  const messages = visibleMessages.filter(message => {
+    const content = (message as any).content || (message as any).text || '';
+    return content && typeof content === 'string' && content.trim().length > 0;
+  });
 
   // Fetch supply chains when user data is available
   useEffect(() => {
@@ -221,18 +226,44 @@ export function ISCAChat() {
     ],
     handler: ({ pagePath }) => {
       try {
+        // Check if navigation is already in progress
+        if (navigationStarted) {
+          return `Navigation is already in progress. Please wait.`;
+        }
+
         const validPage = navigationPages.find(page => 
           page.path === pagePath || page.name.toLowerCase() === pagePath.toLowerCase()
         );
 
+        const targetPath = validPage ? validPage.path : pagePath;
+        
+        // Check if already on the target page
+        if (pathname === targetPath) {
+          return `You are already on the ${validPage ? validPage.name : targetPath} page.`;
+        }
+
         if (validPage) {
+          setNavigationStarted(true);
           router.push(validPage.path);
           toast.success(`Navigating to ${validPage.name}`);
+          
+          // Reset navigation state after a short delay
+          setTimeout(() => {
+            setNavigationStarted(false);
+          }, 2000);
+          
           return `Successfully navigating to ${validPage.name} (${validPage.path})`;
         } else {
           if (pagePath.startsWith('/')) {
+            setNavigationStarted(true);
             router.push(pagePath);
             toast.success(`Navigating to ${pagePath}`);
+            
+            // Reset navigation state after a short delay
+            setTimeout(() => {
+              setNavigationStarted(false);
+            }, 2000);
+            
             return `Successfully navigating to ${pagePath}`;
           } else {
             toast.error(`Invalid page path: ${pagePath}`);
@@ -242,6 +273,7 @@ export function ISCAChat() {
       } catch (error) {
         console.error('Navigation error:', error);
         toast.error('Navigation failed');
+        setNavigationStarted(false); // Reset on error
         return `Error: Failed to navigate to ${pagePath}`;
       }
     }
@@ -250,56 +282,52 @@ export function ISCAChat() {
   // Supply chain navigation action
   useCopilotAction({
     name: "openSupplyChain",
-    description: "Open a specific supply chain for editing or viewing.",
+    description: "Open a specific supply chain for viewing. Navigates directly to the supply chain view page.",
     parameters: [
       {
         name: "supplyChainId",
         type: "string", 
         description: "The ID of the supply chain to open",
-        required: false
-      },
-      {
-        name: "supplyChainName",
-        type: "string",
-        description: "The name of the supply chain to open (alternative to ID)",
-        required: false
-      },
-      {
-        name: "viewMode",
-        type: "string",
-        description: "Open in 'edit' mode (default) or 'view' mode (read-only)",
-        required: false
+        required: true
       }
     ],
-    handler: ({ supplyChainId, supplyChainName, viewMode = 'edit' }) => {
+    handler: ({ supplyChainId }) => {
       try {
-        let targetChain = null;
-
-        if (supplyChainId) {
-          targetChain = supplyChains.find(sc => sc.supply_chain_id === supplyChainId);
-        } else if (supplyChainName) {
-          targetChain = supplyChains.find(sc => 
-            sc.name.toLowerCase().includes(supplyChainName.toLowerCase())
-          );
+        // Check if navigation is already in progress
+        if (navigationStarted) {
+          return `Navigation is already in progress. Please wait.`;
         }
 
-        if (targetChain) {
-          const basePath = viewMode === 'view' ? '/digital-twin/view' : '/digital-twin';
-          const fullPath = viewMode === 'view' 
-            ? `${basePath}/${targetChain.supply_chain_id}`
-            : `${basePath}?twinId=${targetChain.supply_chain_id}`;
-          
-          router.push(fullPath);
-          toast.success(`Opening ${targetChain.name} in ${viewMode} mode`);
-          return `Successfully opening supply chain "${targetChain.name}" in ${viewMode} mode`;
-        } else {
-          const availableChains = supplyChains.map(sc => `"${sc.name}" (ID: ${sc.supply_chain_id})`).join(', ');
-          return `Error: Supply chain not found. Available supply chains: ${availableChains || 'None'}`;
+        // Validate ID is provided
+        if (!supplyChainId || supplyChainId.trim().length === 0) {
+          return `Error: Please provide a valid supply chain ID.`;
         }
+
+        // Construct the view URL directly with the ID
+        const targetPath = `/digital-twin/view/${supplyChainId.trim()}`;
+        
+        // Check if already on the target page
+        if (pathname === targetPath) {
+          return `You are already viewing supply chain with ID "${supplyChainId}".`;
+        }
+        
+        // Navigate to the supply chain view page
+        setNavigationStarted(true);
+        router.push(targetPath);
+        toast.success(`Opening supply chain`);
+        
+        // Reset navigation state after a short delay
+        setTimeout(() => {
+          setNavigationStarted(false);
+        }, 2000);
+        
+        return `Successfully opening supply chain with ID "${supplyChainId}"`;
+        
       } catch (error) {
         console.error('Error opening supply chain:', error);
         toast.error('Failed to open supply chain');
-        return `Error: Failed to open supply chain`;
+        setNavigationStarted(false); // Reset on error
+        return `Error: Failed to open supply chain with ID "${supplyChainId}"`;
       }
     }
   });
@@ -339,9 +367,14 @@ export function ISCAChat() {
   });
 
   const handleSendMessage = async () => {
-    if (!input.trim() || isChatLoading) return;
+    const trimmedInput = input.trim();
+    
+    // Prevent sending blank or empty messages
+    if (!trimmedInput || trimmedInput.length === 0 || isChatLoading) {
+      return;
+    }
 
-    const userMessage = input.trim();
+    const userMessage = trimmedInput;
     setInput('');
 
     await appendMessage(new TextMessage({
@@ -353,10 +386,18 @@ export function ISCAChat() {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      // Only send if there's actual content
+      if (input.trim().length > 0) {
+        handleSendMessage();
+      }
     }
   };
 
+  // Don't show chat on Digital Twin pages
+  if (pathname.startsWith('/digital-twin/view')) {
+    return null;
+  }
+  
   return (
     <>
       <ISCAChatToggle 
