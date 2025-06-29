@@ -1,21 +1,19 @@
 "use client"
 
-import { useState } from "react"
-import Link from "next/link"
+import { useState, useEffect } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { SidebarTrigger } from "@/components/ui/sidebar"
 import { 
   Clock, 
   Play, 
   Filter, 
   Search, 
   ArrowLeft, 
-  Home,
   FileText, 
   Download, 
   MapPin, 
@@ -32,7 +30,9 @@ import {
   GitBranch,
   Zap,
   Shield,
-  DollarSign
+  DollarSign,
+  Loader2,
+  RefreshCw
 } from "lucide-react"
 import { StrategyOverview } from "@/components/strategy/strategy-overview"
 import { NodeBreakdown } from "@/components/strategy/node-breakdown"
@@ -44,218 +44,7 @@ import { NodeGanttTimeline } from "@/components/strategy/node-gantt-timeline"
 import { ExecutionAssistantAgent } from "@/components/strategy/execution-assistant-agent"
 import { DependencyGraphModal } from "@/components/strategy/dependency-graph-modal"
 import { LiveExecutionStats } from "@/components/strategy/live-execution-stats"
-
-// Enhanced strategy data with execution details
-const strategies = [
-  {
-    id: 1,
-    name: "Logistics Disruption Recovery",
-    type: "Dual Sourcing",
-    status: "active",
-    priority: "high",
-    progress: 65,
-    estimatedCompletion: "14 days",
-    cost: "$2.4M",
-    roi: "+18%",
-    confidence: 0.82,
-    riskReduction: "45%",
-    affectedNodes: 8,
-    totalTasks: 24,
-    completedTasks: 16,
-    description: "Comprehensive recovery strategy for logistics disruption affecting raw material delivery to Secure Assembly.",
-    lastUpdated: "2 hours ago",
-    assignedTeam: "Supply Chain Alpha",
-    teamLead: "Sarah Chen",
-    riskLevel: "medium",
-    scenarioSource: "Port Congestion Simulation",
-    dateFinalized: "2024-01-15",
-    nodes: [
-      {
-        id: 1,
-        name: "Port of Los Angeles",
-        riskLevel: "HIGH",
-        confidence: 0.85,
-        status: "In Progress",
-        assignedTeam: "Logistics West",
-        tasks: [
-          { 
-            id: 1, 
-            title: "Secure alternate port clearance", 
-            status: "To Do", 
-            deadline: "3 days", 
-            priority: "high", 
-            assignee: "Mike Johnson",
-            startDate: "2024-01-16",
-            duration: 3,
-            nodeName: "Port of Los Angeles",
-            createdAt: "2024-01-15T10:00:00Z",
-            updatedAt: "2024-01-15T10:00:00Z"
-          },
-          { 
-            id: 2, 
-            title: "Contract rerouting partner", 
-            status: "Blocked", 
-            deadline: "5 days", 
-            priority: "critical", 
-            assignee: "Lisa Wang", 
-            blocker: "Awaiting budget approval",
-            startDate: "2024-01-18",
-            duration: 5,
-            nodeName: "Port of Los Angeles",
-            createdAt: "2024-01-15T11:00:00Z",
-            updatedAt: "2024-01-16T16:00:00Z"
-          },
-          { 
-            id: 3, 
-            title: "Update customs declaration", 
-            status: "Done", 
-            deadline: "1 day", 
-            priority: "medium", 
-            assignee: "Alex Chen",
-            startDate: "2024-01-15",
-            duration: 1,
-            nodeName: "Port of Los Angeles",
-            createdAt: "2024-01-15T08:00:00Z",
-            updatedAt: "2024-01-15T17:00:00Z"
-          }
-        ]
-      },
-      {
-        id: 2,
-        name: "TSMC Fab 21",
-        riskLevel: "MEDIUM",
-        confidence: 0.78,
-        status: "Planning",
-        assignedTeam: "Semiconductor Ops",
-        tasks: [
-          { 
-            id: 4, 
-            title: "Reallocate chip buffer stock", 
-            status: "In Progress", 
-            deadline: "2 days", 
-            priority: "high", 
-            assignee: "David Kim",
-            startDate: "2024-01-17",
-            duration: 2,
-            nodeName: "TSMC Fab 21",
-            createdAt: "2024-01-14T09:00:00Z",
-            updatedAt: "2024-01-16T14:30:00Z"
-          },
-          { 
-            id: 5, 
-            title: "Accelerate dual-sourcing order", 
-            status: "To Do", 
-            deadline: "4 days", 
-            priority: "critical", 
-            assignee: "Emma Rodriguez",
-            startDate: "2024-01-19",
-            duration: 4,
-            nodeName: "TSMC Fab 21",
-            createdAt: "2024-01-14T15:00:00Z",
-            updatedAt: "2024-01-14T15:00:00Z"
-          }
-        ]
-      },
-      {
-        id: 3,
-        name: "FedEx Hub Memphis",
-        riskLevel: "LOW",
-        confidence: 0.92,
-        status: "Completed",
-        assignedTeam: "Express Logistics",
-        tasks: [
-          { 
-            id: 6, 
-            title: "Implement priority routing", 
-            status: "Done", 
-            deadline: "1 day", 
-            priority: "medium", 
-            assignee: "Tom Wilson",
-            startDate: "2024-01-15",
-            duration: 1,
-            nodeName: "FedEx Hub Memphis",
-            createdAt: "2024-01-12T08:00:00Z",
-            updatedAt: "2024-01-15T17:00:00Z"
-          },
-          { 
-            id: 7, 
-            title: "Update tracking systems", 
-            status: "Done", 
-            deadline: "1 day", 
-            priority: "low", 
-            assignee: "Rachel Green",
-            startDate: "2024-01-15",
-            duration: 1,
-            nodeName: "FedEx Hub Memphis",
-            createdAt: "2024-01-12T10:00:00Z",
-            updatedAt: "2024-01-15T16:00:00Z"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: "Manufacturing Slowdown Mitigation",
-    type: "Capacity Optimization",
-    status: "planning",
-    priority: "critical",
-    progress: 25,
-    estimatedCompletion: "21 days",
-    cost: "$3.8M",
-    roi: "+24%",
-    confidence: 0.76,
-    riskReduction: "38%",
-    affectedNodes: 12,
-    totalTasks: 36,
-    completedTasks: 9,
-    description: "Strategic response to manufacturing capacity reduction at primary production facilities.",
-    lastUpdated: "1 day ago",
-    assignedTeam: "Operations Beta",
-    teamLead: "James Miller",
-    riskLevel: "high",
-    scenarioSource: "Equipment Failure Analysis",
-    dateFinalized: "2024-01-14",
-    nodes: [
-      {
-        id: 4,
-        name: "Assembly Line A",
-        riskLevel: "CRITICAL",
-        confidence: 0.65,
-        status: "Planning",
-        assignedTeam: "Production Alpha",
-        tasks: [
-          { 
-            id: 8, 
-            title: "Install backup equipment", 
-            status: "To Do", 
-            deadline: "7 days", 
-            priority: "critical", 
-            assignee: "Carlos Mendez",
-            startDate: "2024-01-20",
-            duration: 7,
-            nodeName: "Assembly Line A",
-            createdAt: "2024-01-13T11:00:00Z",
-            updatedAt: "2024-01-13T11:00:00Z"
-          },
-          { 
-            id: 9, 
-            title: "Train operators on new system", 
-            status: "To Do", 
-            deadline: "10 days", 
-            priority: "high", 
-            assignee: "Jennifer Lee",
-            startDate: "2024-01-23",
-            duration: 10,
-            nodeName: "Assembly Line A",
-            createdAt: "2024-01-13T14:00:00Z",
-            updatedAt: "2024-01-13T14:00:00Z"
-          }
-        ]
-      }
-    ]
-  }
-]
+import { useToast } from "@/hooks/use-toast"
 
 // Kanban board data
 const kanbanColumns = [
@@ -265,76 +54,275 @@ const kanbanColumns = [
   { id: "done", title: "Done", color: "bg-green-600" }
 ]
 
+// Default fallback data structure
+const defaultStrategy = {
+  id: 1,
+  name: "Loading Strategy...",
+  type: "Loading",
+  status: "active" as const,
+  priority: "medium" as const,
+  progress: 0,
+  estimatedCompletion: "Calculating...",
+  cost: "$0",
+  roi: "0%",
+  confidence: 0,
+  riskReduction: "0%",
+  affectedNodes: 0,
+  totalTasks: 0,
+  completedTasks: 0,
+  description: "Loading strategy details...",
+  lastUpdated: "Loading...",
+  assignedTeam: "TBD",
+  teamLead: "TBD",
+  riskLevel: "medium" as const,
+  scenarioSource: "Loading...",
+  dateFinalized: new Date().toISOString().split('T')[0],
+  nodes: []
+}
+
 export default function StrategyPage() {
-  const [selectedStrategy, setSelectedStrategy] = useState(strategies[0])
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const { toast } = useToast()
+  
+  const [strategies, setStrategies] = useState([defaultStrategy])
+  const [selectedStrategy, setSelectedStrategy] = useState(defaultStrategy)
   const [activeTab, setActiveTab] = useState("execution")
   const [showAIAssistant, setShowAIAssistant] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [generating, setGenerating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Get strategy ID from URL params
+  const strategyId = searchParams.get('strategyId')
+
+  // Fetch strategies list
+  const fetchStrategiesList = async () => {
+    try {
+      console.log('🔍 Fetching strategies list...')
+      const response = await fetch('/api/strategy/list')
+      const result = await response.json()
+      
+      console.log('📊 Strategy list result:', result)
+      
+      if (result.success && result.data?.length > 0) {
+        console.log(`✅ Found ${result.data.length} strategies`)
+        setStrategies(result.data)
+        
+        // If strategyId in URL, find and select that strategy
+        if (strategyId) {
+          const strategy = result.data.find((s: any) => s.id === strategyId)
+          if (strategy) {
+            console.log('🎯 Selected strategy from URL:', strategy.name)
+            setSelectedStrategy(strategy)
+          }
+        } else {
+          console.log('🎯 Selected first strategy:', result.data[0].name)
+          setSelectedStrategy(result.data[0])
+        }
+      } else {
+        console.log('⚠️ No strategies found')
+        setStrategies([])
+        setSelectedStrategy(defaultStrategy)
+      }
+    } catch (error) {
+      console.error('❌ Error fetching strategies:', error)
+      setError('Failed to load strategies')
+    }
+  }
+
+  // Fetch or generate strategy execution data
+  const fetchStrategyExecutionData = async (id: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      // First try to get existing execution data
+      const existingResponse = await fetch(`/api/strategy/execution?strategyId=${id}`)
+      const existingResult = await existingResponse.json()
+
+      if (existingResult.success && existingResult.data) {
+        setSelectedStrategy(existingResult.data)
+        return
+      }
+
+      // If no existing data, generate new execution data using AI
+      setGenerating(true)
+      toast({
+        title: "🤖 AI Agent Working",
+        description: "Generating dynamic strategy execution plan...",
+      })
+
+      const generateResponse = await fetch('/api/agent/strategy-execution', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          strategyId: id,
+          supplyChainContext: {
+            supplyChainId: searchParams.get('supplyChainId'),
+            organizationName: searchParams.get('organizationName')
+          },
+          scenarioType: searchParams.get('scenarioType') || 'Supply Chain Disruption',
+          organizationInfo: {
+            industry: searchParams.get('industry'),
+            employeeCount: searchParams.get('employeeCount'),
+            location: searchParams.get('location')
+          }
+        })
+      })
+
+      const generateResult = await generateResponse.json()
+
+      if (generateResult.success) {
+        setSelectedStrategy(generateResult.data)
+        
+        // Save the generated data to database
+        await fetch('/api/strategy/execution', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            strategyId: id,
+            ...generateResult.data
+          })
+        })
+
+        toast({
+          title: "✅ Strategy Generated",
+          description: `Generated execution plan with ${generateResult.data.totalTasks} tasks across ${generateResult.data.affectedNodes} nodes`,
+        })
+      } else {
+        throw new Error(generateResult.error || 'Failed to generate strategy')
+      }
+
+    } catch (error) {
+      console.error('Error fetching strategy execution data:', error)
+      setError('Failed to load strategy execution data')
+      toast({
+        title: "❌ Error",
+        description: "Failed to generate strategy execution data",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+      setGenerating(false)
+    }
+  }
+
+  // Regenerate strategy data
+  const regenerateStrategy = async () => {
+    if (!strategyId) return
+    await fetchStrategyExecutionData(strategyId)
+  }
+
+  useEffect(() => {
+    const loadStrategies = async () => {
+      setLoading(true)
+      await fetchStrategiesList()
+      setLoading(false)
+    }
+    loadStrategies()
+  }, [])
+
+  useEffect(() => {
+    if (strategyId) {
+      fetchStrategyExecutionData(strategyId)
+    }
+  }, [strategyId])
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "critical":
-        return "bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/30"
+        return "bg-red-500/20 text-red-400 border-red-500/30"
       case "high":
-        return "bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/30"
+        return "bg-orange-500/20 text-orange-400 border-orange-500/30"
       case "medium":
-        return "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border-yellow-500/30"
+        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
       default:
-        return "bg-muted text-muted-foreground border-border"
+        return "bg-gray-500/20 text-gray-400 border-gray-500/30"
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30"
+        return "bg-blue-500/20 text-blue-400 border-blue-500/30"
       case "planning":
-        return "bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30"
+        return "bg-purple-500/20 text-purple-400 border-purple-500/30"
       case "completed":
-        return "bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30"
+        return "bg-green-500/20 text-green-400 border-green-500/30"
       default:
-        return "bg-muted text-muted-foreground border-border"
+        return "bg-gray-500/20 text-gray-400 border-gray-500/30"
     }
   }
 
   const getTaskStatusIcon = (status: string) => {
     switch (status) {
       case "Done":
-        return <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+        return <CheckCircle className="w-4 h-4 text-green-400" />
       case "In Progress":
-        return <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+        return <Clock className="w-4 h-4 text-blue-400" />
       case "Blocked":
-        return <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+        return <XCircle className="w-4 h-4 text-red-400" />
       default:
-        return <Pause className="w-4 h-4 text-muted-foreground" />
+        return <Pause className="w-4 h-4 text-slate-400" />
     }
   }
 
   const getRiskLevelColor = (riskLevel: string) => {
     switch (riskLevel) {
       case "CRITICAL":
-        return "bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/30"
+        return "bg-red-500/20 text-red-400 border-red-500/30"
       case "HIGH":
-        return "bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/30"
+        return "bg-orange-500/20 text-orange-400 border-orange-500/30"
       case "MEDIUM":
-        return "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border-yellow-500/30"
+        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
       case "LOW":
-        return "bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30"
+        return "bg-green-500/20 text-green-400 border-green-500/30"
       default:
-        return "bg-muted text-muted-foreground border-border"
+        return "bg-gray-500/20 text-gray-400 border-gray-500/30"
     }
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex items-center justify-center">
+        <Card className="bg-slate-800/60 border-slate-700/50 p-8 text-center">
+          <CardContent>
+            <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Error Loading Strategy</h3>
+            <p className="text-slate-400 mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()} className="bg-blue-600 hover:bg-blue-700">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background text-foreground">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
       {/* Sticky Header Bar */}
-      <div className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl shadow-lg">
+      <div className="sticky top-0 z-50 border-b border-slate-700/50 bg-slate-900/90 backdrop-blur-xl shadow-lg">
         <div className="flex items-center justify-between p-6">
           <div className="flex items-center gap-4">
-            <SidebarTrigger />
-            <div className="h-6 w-px bg-border" />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => router.back()}
+              className="text-slate-400 hover:text-white transition-colors duration-200 hover:bg-slate-800/50"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Scenario
+            </Button>
+            <div className="h-6 w-px bg-slate-600" />
             <div className="animate-fade-in">
-              <h1 className="text-xl font-bold text-foreground mb-1">{selectedStrategy.name}</h1>
-              <p className="text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-white mb-1">{selectedStrategy.name}</h1>
+                {generating && <Loader2 className="w-4 h-4 animate-spin text-blue-400" />}
+              </div>
+              <p className="text-sm text-slate-400">
                 {selectedStrategy.scenarioSource} • Finalized {selectedStrategy.dateFinalized}
               </p>
             </div>
@@ -343,7 +331,17 @@ export default function StrategyPage() {
             <Button 
               variant="outline" 
               size="sm" 
-              className="border-border text-muted-foreground hover:bg-muted hover:border-border/60 bg-transparent transition-all duration-200"
+              onClick={regenerateStrategy}
+              disabled={loading || !strategyId}
+              className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:border-slate-500 bg-transparent transition-all duration-200"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${generating ? 'animate-spin' : ''}`} />
+              Regenerate
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:border-slate-500 bg-transparent transition-all duration-200"
             >
               <FileText className="w-4 h-4 mr-2" />
               View Reports
@@ -351,77 +349,121 @@ export default function StrategyPage() {
             <Button 
               variant="outline" 
               size="sm" 
-              className="border-border text-muted-foreground hover:bg-muted hover:border-border/60 bg-transparent transition-all duration-200"
+              className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:border-slate-500 bg-transparent transition-all duration-200"
             >
               <Download className="w-4 h-4 mr-2" />
               Export PDF
             </Button>
-            <DependencyGraphModal nodes={selectedStrategy.nodes} />
-            {/* <Button 
+            <DependencyGraphModal nodes={selectedStrategy.nodes || []} />
+            <Button 
               onClick={() => setShowAIAssistant(!showAIAssistant)}
-              className="bg-blue-600 hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-blue-500/25 text-white"
+              className="bg-blue-600 hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
             >
               <MessageSquare className="w-4 h-4 mr-2" />
               AI Assistant
-            </Button> */}
+            </Button>
           </div>
         </div>
       </div>
 
       <div className="flex h-[calc(100vh-120px)]">
         {/* Strategy List Sidebar */}
-        <div className="w-80 border-r border-border bg-card/50 backdrop-blur-sm overflow-y-auto">
+        <div className="w-80 border-r border-slate-700/50 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
           <div className="p-6">
-            <h3 className="text-lg font-semibold mb-6 text-foreground">Active Strategies</h3>
-            <div className="space-y-4">
-              {strategies.map((strategy, index) => (
-                <Card
-                  key={strategy.id}
-                  className={`cursor-pointer transition-all duration-300 border-border hover:border-border/60 hover:shadow-lg hover:shadow-muted/10 transform hover:-translate-y-1 ${
-                    selectedStrategy.id === strategy.id
-                      ? "bg-card/80 border-blue-500/50 shadow-xl shadow-blue-500/20 ring-2 ring-blue-500/20"
-                      : "bg-card/40 hover:bg-card/60"
-                  }`}
-                  onClick={() => setSelectedStrategy(strategy)}
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <h4 className="font-medium text-foreground text-sm leading-tight">{strategy.name}</h4>
-                      <div className="flex gap-1">
-                        <Badge className={`text-xs px-2 py-1 ${getPriorityColor(strategy.priority)}`}>
-                          {strategy.priority}
-                        </Badge>
+            <h3 className="text-lg font-semibold mb-6 text-white">Active Strategies</h3>
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i} className="bg-slate-800/40 border-slate-700/50 animate-pulse">
+                    <CardContent className="p-4">
+                      <div className="h-4 bg-slate-700 rounded mb-2"></div>
+                      <div className="h-3 bg-slate-700 rounded mb-3"></div>
+                      <div className="h-2 bg-slate-700 rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : strategies.length === 0 ? (
+              <Card className="bg-slate-800/40 border-slate-700/50">
+                <CardContent className="p-8 text-center">
+                  <Target className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-slate-300 mb-2">No Strategies Onboarded</h3>
+                  <p className="text-slate-400 mb-4">
+                    No finalized strategies found. Create and finalize strategies through the Simulation and Orchestrator workflows to see them here.
+                  </p>
+                  <div className="space-y-2">
+                    <Button 
+                      onClick={() => router.push('/simulation')} 
+                      className="bg-blue-600 hover:bg-blue-700 w-full"
+                    >
+                      Start Simulation
+                    </Button>
+                    <Button 
+                      onClick={() => router.push('/orchestrator')} 
+                      variant="outline"
+                      className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:border-slate-500 bg-transparent w-full"
+                    >
+                      Go to Orchestrator
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {strategies.map((strategy, index) => (
+                  <Card
+                    key={strategy.id}
+                    className={`cursor-pointer transition-all duration-300 border-slate-700/50 hover:border-slate-600 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1 ${
+                      selectedStrategy.id === strategy.id
+                        ? "bg-slate-800/80 border-blue-500/50 shadow-xl shadow-blue-500/20 ring-2 ring-blue-500/20"
+                        : "bg-slate-800/40 hover:bg-slate-800/60"
+                    }`}
+                    onClick={() => {
+                      setSelectedStrategy(strategy)
+                      if (String(strategy.id) !== strategyId) {
+                        router.push(`/strategy?strategyId=${strategy.id}`)
+                      }
+                    }}
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <h4 className="font-medium text-white text-sm leading-tight">{strategy.name}</h4>
+                        <div className="flex gap-1">
+                          <Badge className={`text-xs px-2 py-1 ${getPriorityColor(strategy.priority)}`}>
+                            {strategy.priority}
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Progress</span>
-                        <span className="text-foreground font-medium">{strategy.progress}%</span>
-                      </div>
-                      <Progress value={strategy.progress} className="h-2 bg-muted" />
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-400">Progress</span>
+                          <span className="text-white font-medium">{strategy.progress}%</span>
+                        </div>
+                        <Progress value={strategy.progress} className="h-2 bg-slate-700" />
 
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {strategy.estimatedCompletion}
-                        </span>
-                        <Badge className={`text-xs ${getStatusColor(strategy.status)}`}>{strategy.status}</Badge>
+                        <div className="flex items-center justify-between text-xs text-slate-400">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {strategy.estimatedCompletion}
+                          </span>
+                          <Badge className={`text-xs ${getStatusColor(strategy.status)}`}>{strategy.status}</Badge>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Main Content */}
         <div className="flex-1 min-w-0 overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-            <div className="border-b border-border bg-card/50 backdrop-blur-sm px-6 py-4">
-              <TabsList className="bg-muted/50 border border-border p-1">
+            <div className="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur-sm px-6 py-4">
+              <TabsList className="bg-slate-800/50 border border-slate-700/50 p-1">
                 <TabsTrigger
                   value="execution"
                   className="data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
@@ -454,60 +496,92 @@ export default function StrategyPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto">
+              {strategies.length === 0 ? (
+                // Empty state for main content
+                <div className="flex items-center justify-center h-full">
+                  <Card className="bg-slate-800/60 border-slate-700/50 p-12 text-center max-w-md">
+                    <CardContent>
+                      <Target className="w-16 h-16 text-slate-400 mx-auto mb-6" />
+                      <h2 className="text-2xl font-bold text-white mb-4">No Strategies Available</h2>
+                      <p className="text-slate-400 mb-6 leading-relaxed">
+                        Start your supply chain resilience journey by creating and finalizing strategies through our simulation and orchestration workflows.
+                      </p>
+                      <div className="space-y-3">
+                        <Button 
+                          onClick={() => router.push('/simulation')} 
+                          className="bg-blue-600 hover:bg-blue-700 w-full"
+                        >
+                          <Play className="w-4 h-4 mr-2" />
+                          Run Simulation
+                        </Button>
+                        <Button 
+                          onClick={() => router.push('/orchestrator')} 
+                          variant="outline"
+                          className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:border-slate-500 bg-transparent w-full"
+                        >
+                          <Zap className="w-4 h-4 mr-2" />
+                          AI Orchestrator
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                <>
               {/* Strategy Summary Panel */}
-              <div className="p-6 border-b border-border bg-gradient-to-r from-muted/50 to-background/50">
+              <div className="p-6 border-b border-slate-700/50 bg-gradient-to-r from-slate-800/30 to-slate-900/30">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <Card className="bg-card border-border hover:bg-card/90 transition-all duration-300 hover:shadow-lg hover:shadow-muted/10 transform hover:-translate-y-1">
+                  <Card className="bg-slate-800/60 border-slate-700/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1">
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4">
                         <div className="p-3 bg-blue-500/20 rounded-xl">
-                          <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                          <Target className="w-6 h-6 text-blue-400" />
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground font-medium">Strategy Type</p>
-                          <p className="text-lg font-bold text-foreground">{selectedStrategy.type}</p>
+                          <p className="text-sm text-slate-400 font-medium">Strategy Type</p>
+                          <p className="text-lg font-bold text-white">{selectedStrategy.type}</p>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-card border-border hover:bg-card/90 transition-all duration-300 hover:shadow-lg hover:shadow-muted/10 transform hover:-translate-y-1">
+                  <Card className="bg-slate-800/60 border-slate-700/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1">
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4">
                         <div className="p-3 bg-green-500/20 rounded-xl">
-                          <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+                          <TrendingUp className="w-6 h-6 text-green-400" />
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground font-medium">Projected ROI</p>
-                          <p className="text-lg font-bold text-foreground">{selectedStrategy.roi}</p>
+                          <p className="text-sm text-slate-400 font-medium">Expected ROI</p>
+                          <p className="text-lg font-bold text-white">{selectedStrategy.roi}</p>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-card border-border hover:bg-card/90 transition-all duration-300 hover:shadow-lg hover:shadow-muted/10 transform hover:-translate-y-1">
+                  <Card className="bg-slate-800/60 border-slate-700/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1">
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4">
                         <div className="p-3 bg-yellow-500/20 rounded-xl">
-                          <Shield className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                          <Shield className="w-6 h-6 text-yellow-400" />
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground font-medium">Risk Reduction</p>
-                          <p className="text-lg font-bold text-foreground">{selectedStrategy.riskReduction}</p>
+                          <p className="text-sm text-slate-400 font-medium">Risk Reduction</p>
+                          <p className="text-lg font-bold text-white">{selectedStrategy.riskReduction}</p>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-card border-border hover:bg-card/90 transition-all duration-300 hover:shadow-lg hover:shadow-muted/10 transform hover:-translate-y-1">
+                  <Card className="bg-slate-800/60 border-slate-700/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1">
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4">
                         <div className="p-3 bg-purple-500/20 rounded-xl">
-                          <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                          <DollarSign className="w-6 h-6 text-purple-400" />
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground font-medium">Team Lead</p>
-                          <p className="text-lg font-bold text-foreground">{selectedStrategy.teamLead}</p>
+                          <p className="text-sm text-slate-400 font-medium">Total Cost</p>
+                          <p className="text-lg font-bold text-white">{selectedStrategy.cost}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -519,97 +593,53 @@ export default function StrategyPage() {
                 <div className="p-6 space-y-8">
                   {/* Interactive Node Execution Map */}
                   <div className="animate-fade-in-up">
-                    <ExecutionFlowMap nodes={selectedStrategy.nodes} />
+                    <ExecutionFlowMap nodes={selectedStrategy.nodes || []} />
                   </div>
 
                   {/* Node Breakdown Accordion */}
-                  <div className="animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-                    <Accordion type="single" collapsible className="space-y-4">
-                      {selectedStrategy.nodes.map((node, index) => (
-                        <AccordionItem 
-                          key={node.id} 
-                          value={`node-${node.id}`} 
-                          className="border-border bg-card/60 rounded-xl hover:bg-card/80 transition-all duration-300 hover:shadow-lg"
-                          style={{ animationDelay: `${index * 100}ms` }}
-                        >
-                          <AccordionTrigger className="px-6 py-5 hover:bg-muted/30 rounded-xl transition-all duration-200">
-                            <div className="flex items-center justify-between w-full pr-4">
-                              <div className="flex items-center gap-4">
-                                <h3 className="font-semibold text-foreground text-lg">{node.name}</h3>
-                                <Badge className={getRiskLevelColor(node.riskLevel)}>{node.riskLevel}</Badge>
-                                <Badge className="bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30">
-                                  Confidence: {Math.round(node.confidence * 100)}%
-                                </Badge>
-                              </div>
-                              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                                <span className="font-medium">{node.status}</span>
-                                <span>•</span>
-                                <span>{node.assignedTeam}</span>
-                              </div>
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent className="px-6 pb-6">
-                            <div className="space-y-4">
-                              {node.tasks.map((task, taskIndex) => (
-                                <div 
-                                  key={task.id} 
-                                  className="flex items-center justify-between p-4 bg-muted/40 rounded-lg hover:bg-muted/60 transition-all duration-200 transform hover:scale-[1.02]"
-                                  style={{ animationDelay: `${taskIndex * 50}ms` }}
-                                >
-                                  <div className="flex items-center gap-4">
-                                    {getTaskStatusIcon(task.status)}
-                                    <div>
-                                      <p className="font-medium text-foreground">{task.title}</p>
-                                      <p className="text-sm text-muted-foreground">Assigned to {task.assignee}</p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-3">
-                                    <Badge className={getPriorityColor(task.priority)}>{task.priority}</Badge>
-                                    <span className="text-sm text-muted-foreground font-medium">{task.deadline}</span>
-                                    {task.blocker && (
-                                      <Badge className="bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/30">
-                                        {task.blocker}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
+                  <div className="animate-fade-in-up animation-delay-200">
+                    <NodeBreakdown nodes={selectedStrategy.nodes || []} />
                   </div>
                 </div>
               </TabsContent>
 
               <TabsContent value="overview" className="h-full m-0">
-                <div className="p-6">
-                  <LiveExecutionStats nodes={selectedStrategy.nodes} strategy={selectedStrategy} />
+                <div className="p-6 space-y-8">
+                  <StrategyOverview strategy={selectedStrategy} />
+                  <StrategyMetrics strategy={selectedStrategy} />
+                  <LiveExecutionStats 
+                    strategy={selectedStrategy} 
+                    nodes={selectedStrategy.nodes || []}
+                  />
                 </div>
               </TabsContent>
 
               <TabsContent value="kanban" className="h-full m-0">
                 <div className="p-6">
-                  <StrategyKanban nodes={selectedStrategy.nodes} />
+                  <StrategyKanban nodes={selectedStrategy.nodes || []} />
                 </div>
               </TabsContent>
 
               <TabsContent value="timeline" className="h-full m-0">
                 <div className="p-6">
-                  <NodeGanttTimeline nodes={selectedStrategy.nodes} />
+                  <NodeGanttTimeline nodes={selectedStrategy.nodes || []} />
                 </div>
               </TabsContent>
+                </>
+              )}
             </div>
           </Tabs>
         </div>
 
         {/* AI Assistant Sidebar */}
-        {/* {showAIAssistant && (
-          <div className="w-80 h-[calc(100vh-120px)] border-l border-border bg-card/50 backdrop-blur-sm animate-slide-in-right overflow-y-auto">
-            <ExecutionAssistantAgent strategy={selectedStrategy} />
+        {showAIAssistant && (
+          <div className="w-96 border-l border-slate-700/50 bg-slate-900/50 backdrop-blur-sm animate-slide-in-right">
+            <ExecutionAssistantAgent 
+              strategy={selectedStrategy}
+              onClose={() => setShowAIAssistant(false)}
+            />
           </div>
-        )} */}
+        )}
       </div>
 
       <style jsx>{`
@@ -645,6 +675,10 @@ export default function StrategyPage() {
         .animate-fade-in-up {
           animation: fade-in-up 0.6s ease-out forwards;
           opacity: 0;
+        }
+        
+        .animation-delay-200 {
+          animation-delay: 200ms;
         }
         
         .animate-slide-in-right {

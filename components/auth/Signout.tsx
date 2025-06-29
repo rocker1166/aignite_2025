@@ -1,14 +1,14 @@
 "use client"
 import React from 'react'
 import { logout } from '@/lib/functions/signout';
-import { Button } from '../ui/button';
+import { Link } from 'lucide-react';
 const SignoutButton = () => {
 
   return (
     <div>
-        <Button onClick={logout} className="bg-red-700 hover:bg-red-800">
+        <Link href="/" onClick={logout} className="bg-red-700 hover:bg-red-800">
         Sign Out
-        </Button>
+        </Link>
     </div>
   )
 }

@@ -3,6 +3,7 @@ packages:
 
 onlyBuiltDependencies:
   - '@scarf/scarf'
+  - '@vercel/speed-insights'
   - protobufjs
   - sharp
   - sqlite3

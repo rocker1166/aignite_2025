@@ -1,14 +1,8 @@
 "use client"
 
-import { AlertTriangle, ArrowRight, Clock, Gauge, TrendingUp, Play, LightbulbIcon } from "lucide-react"
+import { AlertTriangle, Clock, Gauge, TrendingUp } from "lucide-react"
 import Link from "next/link"
-import { motion, AnimatePresence } from "framer-motion"
-import { useState } from "react"
-
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { RecentActivityList } from "@/components/dashboard/recent-activity-list"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { NotificationFeed } from "@/components/dashboard/notification-feed"
 
 export default function DashboardPage() {
@@ -32,39 +26,35 @@ export default function DashboardPage() {
           <div className="grid flex-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             <GlassmorphicKpiCard
               title="Risk Score"
-              value="68%"
-              trend="-12%"
+              value="0%"
+              trend="0%"
               trendDirection="down"
               icon={<Gauge className="h-5 w-5" />}
               description="Overall supply chain risk"
-              href="/analytics"
-            />
+                          />
             <GlassmorphicKpiCard
               title="Recovery Time"
-              value="4.2 days"
-              trend="+0.8"
-              trendDirection="up"
+              value="0 days"
+              trend="0"
+              trendDirection="down"
               icon={<Clock className="h-5 w-5" />}
               description="Average time to recover"
-              href="/analytics"
             />
             <GlassmorphicKpiCard
               title="Active Disruptions"
-              value="3"
-              trend="+1"
-              trendDirection="up"
+              value="0"
+              trend="0"
+              trendDirection="down"
               icon={<AlertTriangle className="h-5 w-5" />}
               description="Current disruptions"
-              href="/simulation"
             />
             <GlassmorphicKpiCard
               title="ROI Estimate"
-              value="$1.2M"
-              trend="+8%"
-              trendDirection="up"
+              value="$0"
+              trend="0%"
+              trendDirection="down"
               icon={<TrendingUp className="h-5 w-5" />}
               description="Estimated annual savings"
-              href="/strategy"
             />
           </div>
         </div>
@@ -93,17 +83,16 @@ function GlassmorphicCard({ children, className = "", ...props }: { children: Re
 }
 
 // Glassmorphic KPI Card Component
-function GlassmorphicKpiCard({ title, value, trend, trendDirection, icon, description, href }: {
+  function GlassmorphicKpiCard({ title, value, trend, trendDirection, icon, description }: {
   title: string;
   value: string;
   trend: string;
   trendDirection: "up" | "down";
   icon: React.ReactNode;
   description: string;
-  href: string;
 }) {
   return (
-    <Link href={href} className="block group">
+      <div className="block group">
       <GlassmorphicCard className="h-full overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:bg-white/80 dark:hover:bg-slate-900/10 border-gradient-to-r from-purple-200/50 to-blue-200/50">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
@@ -121,7 +110,7 @@ function GlassmorphicKpiCard({ title, value, trend, trendDirection, icon, descri
           </div>
         </CardContent>
       </GlassmorphicCard>
-    </Link>
+    </div>
   )
 }
 

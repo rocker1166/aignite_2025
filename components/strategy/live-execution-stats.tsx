@@ -77,15 +77,22 @@ export function LiveExecutionStats({ nodes, strategy, compact }: LiveExecutionSt
   }, [])
 
   const getOverallProgress = () => {
-    const totalTasks = nodes.reduce((sum, node) => sum + node.tasks.length, 0)
+    if (!nodes || nodes.length === 0) return 0
+    
+    const totalTasks = nodes.reduce((sum, node) => sum + (node.tasks?.length || 0), 0)
     const completedTasks = nodes.reduce((sum, node) => 
-      sum + node.tasks.filter(task => task.status === "Done").length, 0
+      sum + (node.tasks?.filter(task => task.status === "Done").length || 0), 0
     )
+    
+    if (totalTasks === 0) return 0
     return Math.round((completedTasks / totalTasks) * 100)
   }
 
   const getBottleneckNodes = () => {
+    if (!nodes || nodes.length === 0) return []
+    
     return nodes.filter(node => {
+      if (!node.tasks || node.tasks.length === 0) return false
       const blockedTasks = node.tasks.filter(task => task.status === "Blocked").length
       const totalTasks = node.tasks.length
       return (blockedTasks / totalTasks) > 0.3 // More than 30% blocked
@@ -93,23 +100,33 @@ export function LiveExecutionStats({ nodes, strategy, compact }: LiveExecutionSt
   }
 
   const getCriticalTasks = () => {
+    if (!nodes || nodes.length === 0) return []
+    
     return nodes.flatMap(node => 
-      node.tasks.filter(task => task.priority === "critical")
+      node.tasks?.filter(task => task.priority === "critical") || []
     )
   }
 
   const getTeamWorkload = () => {
+    if (!nodes || nodes.length === 0) return {}
+    
     const teamWorkload: { [key: string]: number } = {}
     nodes.forEach(node => {
-      teamWorkload[node.assignedTeam] = (teamWorkload[node.assignedTeam] || 0) + node.tasks.length
+      if (node.assignedTeam && node.tasks) {
+        teamWorkload[node.assignedTeam] = (teamWorkload[node.assignedTeam] || 0) + node.tasks.length
+      }
     })
     return teamWorkload
   }
 
   const getRiskDistribution = () => {
+    if (!nodes || nodes.length === 0) return { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 }
+    
     const distribution = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 }
     nodes.forEach(node => {
-      distribution[node.riskLevel as keyof typeof distribution]++
+      if (node.riskLevel && node.riskLevel in distribution) {
+        distribution[node.riskLevel as keyof typeof distribution]++
+      }
     })
     return distribution
   }
@@ -184,16 +201,21 @@ export function LiveExecutionStats({ nodes, strategy, compact }: LiveExecutionSt
               <div className={`bg-green-500/20 rounded-xl ${compact ? 'mb-1 p-2 self-center' : 'p-3'}`}> 
                 <CheckCircle className={`${compact ? 'w-5 h-5' : 'w-6 h-6'} text-green-400`} />
               </div>
-              <div className={`${compact ? 'flex flex-col items-center' : ''} min-w-0`}>
-                <p className={`font-medium text-gray-700 dark:text-slate-300 ${compact ? 'text-xs' : 'text-sm'} text-center truncate`}>Completed Tasks</p>
-                <p className={`font-bold text-black dark:text-white ${compact ? 'text-base' : 'text-2xl'} text-center truncate`}>{strategy.completedTasks}</p>
-                <div className={`flex items-center gap-1 mt-1 ${compact ? 'justify-center' : ''}`}>
-                  <TrendingUp className={`${compact ? 'w-3 h-3' : 'w-3 h-3'} text-green-400`} />
-                  <span className={`text-green-400 ${compact ? 'text-xs' : 'text-xs'}`}>+3 today</span>
+
+              <div>
+                <p className="text-sm text-slate-400 font-medium">Completed Tasks</p>
+                <p className="text-2xl font-bold text-white">{strategy?.completedTasks || 0}</p>
+                <div className="flex items-center gap-1 mt-1">
+                  <TrendingUp className="w-3 h-3 text-green-400" />
+                  <span className="text-xs text-green-400">+3 today</span>
                 </div>
               </div>
             </div>
-            <div className={`mt-4 text-gray-600 dark:text-slate-400 ${compact ? 'text-xs text-center truncate' : 'text-xs'}`}>{Math.round((strategy.completedTasks / strategy.totalTasks) * 100)}% of total</div>
+            <div className="mt-4 text-xs text-slate-400">
+              {strategy?.totalTasks && strategy.totalTasks > 0 ? 
+                Math.round(((strategy.completedTasks || 0) / strategy.totalTasks) * 100) : 0}% of total
+            </div>
+
           </CardContent>
         </Card>
         {/* Bottlenecks */}
@@ -267,7 +289,11 @@ export function LiveExecutionStats({ nodes, strategy, compact }: LiveExecutionSt
                     <div 
                       className="h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-1000 ease-out"
                       style={{ 
-                        width: `${(workload / Math.max(...Object.values(getTeamWorkload()))) * 100}%`,
+                        width: `${(() => {
+                          const workloadValues = Object.values(getTeamWorkload())
+                          const maxWorkload = workloadValues.length > 0 ? Math.max(...workloadValues) : 1
+                          return (workload / maxWorkload) * 100
+                        })()}%`,
                         animationDelay: `${index * 100}ms`
                       }}
                     />
@@ -312,7 +338,7 @@ export function LiveExecutionStats({ nodes, strategy, compact }: LiveExecutionSt
                       risk === "HIGH" ? "bg-orange-500/20 text-orange-400" :
                       risk === "MEDIUM" ? "bg-yellow-500/20 text-yellow-400" : "bg-green-500/20 text-green-400"
                     }`}>
-                      {Math.round((count / nodes.length) * 100)}%
+                      {nodes && nodes.length > 0 ? Math.round((count / nodes.length) * 100) : 0}%
                     </Badge>
                   </div>
                 </div>
@@ -332,27 +358,32 @@ export function LiveExecutionStats({ nodes, strategy, compact }: LiveExecutionSt
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-gray-200 dark:bg-slate-700/30 rounded-xl">
-              <div className="text-3xl font-bold text-gray-700 dark:text-slate-300 mb-2">{strategy.roi}</div>
-              <div className="text-sm text-gray-600 dark:text-slate-400 font-medium">Projected ROI</div>
+
+            <div className="text-center p-4 bg-slate-700/30 rounded-xl">
+              <div className="text-3xl font-bold text-white mb-2">{strategy?.roi || "N/A"}</div>
+              <div className="text-sm text-slate-400 font-medium">Projected ROI</div>
               <div className="flex items-center justify-center gap-1 mt-2">
                 <TrendingUp className="w-4 h-4 text-green-400" />
                 <span className="text-xs text-green-400">+2.1% vs target</span>
               </div>
             </div>
             
-            <div className="text-center p-4 bg-gray-200 dark:bg-slate-700/30 rounded-xl">
-              <div className="text-3xl font-bold text-gray-700 dark:text-slate-300 mb-2">{strategy.riskReduction}</div>
-              <div className="text-sm text-gray-600 dark:text-slate-400 font-medium">Risk Reduction</div>
+
+            <div className="text-center p-4 bg-slate-700/30 rounded-xl">
+              <div className="text-3xl font-bold text-white mb-2">{strategy?.riskReduction || "N/A"}</div>
+              <div className="text-sm text-slate-400 font-medium">Risk Reduction</div>
+
               <div className="flex items-center justify-center gap-1 mt-2">
                 <Shield className="w-4 h-4 text-blue-400" />
                 <span className="text-xs text-blue-400">On track</span>
               </div>
             </div>
             
-            <div className="text-center p-4 bg-gray-200 dark:bg-slate-700/30 rounded-xl">
-              <div className="text-3xl font-bold text-gray-700 dark:text-slate-300 mb-2">{strategy.cost}</div>
-              <div className="text-sm text-gray-600 dark:text-slate-400 font-medium">Total Cost</div>
+
+            <div className="text-center p-4 bg-slate-700/30 rounded-xl">
+              <div className="text-3xl font-bold text-white mb-2">{strategy?.cost || "N/A"}</div>
+              <div className="text-sm text-slate-400 font-medium">Total Cost</div>
+
               <div className="flex items-center justify-center gap-1 mt-2">
                 <DollarSign className="w-4 h-4 text-yellow-400" />
                 <span className="text-xs text-yellow-400">-5% under budget</span>

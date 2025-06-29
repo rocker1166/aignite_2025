@@ -37,7 +37,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body className="min-h-screen flex flex-col">
         <NuqsAdapter>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <CopilotProvider> 
             {children}
             </CopilotProvider>

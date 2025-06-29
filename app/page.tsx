@@ -1,10 +1,7 @@
 "use client"
 
 import { TimelineSteps, LandingHeader, Footer } from "@/components/home-page"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { RouteAnimation } from "@/components/ui/route-animation"
-import { BentoCard } from "@/components/ui/bento-card"
 import { Badge } from "@/components/ui/badge"
 import { 
   IconWorkflow,
@@ -204,9 +201,11 @@ export default function Home() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
                 viewport={{ once: true }}
-                className="inline-block mb-3 px-4 py-1.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-medium uppercase tracking-wide"
+                className="inline-block mb-3"
               >
-                Advanced Analytics
+                <Badge variant="blue" className="uppercase tracking-wide">
+                  Advanced Analytics
+                </Badge>
               </motion.div>
               <motion.h2 
                 initial={{ opacity: 0, y: 20 }}
@@ -243,7 +242,7 @@ export default function Home() {
                   className="relative pl-8 md:pl-0 md:pr-[calc(50%+2rem)] mb-16"
                 >
                   <div className="absolute left-0 md:left-[calc(50%-1.5rem)] top-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 border-2 border-blue-500 dark:border-blue-400" />
-                  <Card className="relative">
+                  <Card className="relative dark:bg-slate-950 shadow-md">
                     <CardHeader className="pb-4">
                       <CardTitle className="flex items-center gap-2 text-lg text-blue-600 dark:text-blue-400">
                         <IconBarChart2 className="h-5 w-5" />
@@ -296,7 +295,7 @@ export default function Home() {
                   className="relative pl-8 md:pl-[calc(50%+2rem)] mb-16"
                 >
                   <div className="absolute left-0 md:left-[calc(50%-1.5rem)] top-0 w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/30 border-2 border-purple-500 dark:border-purple-400" />
-                  <Card className="relative">
+                  <Card className="relative dark:bg-slate-950 shadow-md">
                     <CardHeader className="pb-4">
                       <CardTitle className="flex items-center gap-2 text-lg text-purple-600 dark:text-purple-400">
                         <IconActivity className="h-5 w-5" />
@@ -345,7 +344,7 @@ export default function Home() {
                   className="relative pl-8 md:pl-0 md:pr-[calc(50%+2rem)]"
                 >
                   <div className="absolute left-0 md:left-[calc(50%-1.5rem)] top-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/30 border-2 border-green-500 dark:border-green-400" />
-                  <Card className="relative">
+                  <Card className="relative dark:bg-slate-950 shadow-md">
                     <CardHeader className="pb-4">
                       <CardTitle className="flex items-center gap-2 text-lg text-green-600 dark:text-green-400">
                         <IconWorkflow className="h-5 w-5" />
@@ -425,9 +424,9 @@ export default function Home() {
               {/* Content */}
               <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                 <div>
-                  <div className="inline-block mb-3 px-4 py-1.5 rounded-full bg-white/10 text-white text-xs font-medium uppercase tracking-wide">
+                  <Badge variant="outline" className="mb-3 bg-white/10 text-white border-white/20 uppercase tracking-wide">
                     Start Today
-                  </div>
+                  </Badge>
                   <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
                     Ready to Transform Your Supply Chain?
                   </h2>
@@ -446,10 +445,9 @@ export default function Home() {
                     
                     <GlowyButton 
                       href="#features" 
-                      className="bg-white hover:bg-gray-50 text-[#5B21FF] shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 rounded-full px-8 relative overflow-hidden"
+                      className="bg-white hover:bg-gray-50 text-[#5B21FF] shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 rounded-full px-8 hover:bg-gradient-to-r hover:from-white hover:to-[#5B21FF]/5"
                     >
-                      <span className="relative z-10">Learn More</span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#5B21FF]/10 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                      Learn More
                     </GlowyButton>
                   </div>
                 </div>
