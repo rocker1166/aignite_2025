@@ -175,65 +175,7 @@ export function StrategyMetrics({ strategy }: StrategyMetricsProps) {
       </div>
 
       {/* Timeline Performance */}
-      <Card className="bg-slate-800/40 border-slate-700/50">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Clock className="w-5 h-5 text-purple-400" />
-            Timeline Performance Analysis
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-4 gap-6">
-            {timelineData.map((phase, index) => (
-              <div key={index} className="text-center">
-                <div className="mb-4">
-                  <h4 className="text-white font-medium mb-2">{phase.phase}</h4>
-                  <div className="relative">
-                    <div className="w-20 h-20 mx-auto rounded-full bg-slate-700/50 flex items-center justify-center border-4 border-slate-600">
-                      <span className="text-white font-bold">{phase.actual}%</span>
-                    </div>
-                    <div
-                      className={`absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                        phase.efficiency >= 100
-                          ? "bg-green-500 text-white"
-                          : phase.efficiency >= 90
-                            ? "bg-yellow-500 text-black"
-                            : "bg-red-500 text-white"
-                      }`}
-                    >
-                      {phase.efficiency}
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Planned:</span>
-                    <span className="text-white">{phase.planned}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Actual:</span>
-                    <span className="text-white">{phase.actual}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Efficiency:</span>
-                    <span
-                      className={`font-medium ${
-                        phase.efficiency >= 100
-                          ? "text-green-400"
-                          : phase.efficiency >= 90
-                            ? "text-yellow-400"
-                            : "text-red-400"
-                      }`}
-                    >
-                      {phase.efficiency}%
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+   
 
       {/* Real-time Alerts */}
       <Card className="bg-slate-800/40 border-slate-700/50">
