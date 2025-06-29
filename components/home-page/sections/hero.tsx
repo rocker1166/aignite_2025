@@ -126,7 +126,7 @@ const FUIHeroWithGridSimple = () => {
               <div className="relative">
                 <VideoPlayer className="aspect-video w-full max-w-3xl mx-auto lg:mx-0">
                   <VideoPlayerContent
-                    src="https://stream.mux.com/DS00Spx1CV902MCtPj5WknGlR102V5HFkDe/high.mp4"
+                    src="/demo-video.webm"
                     slot="media"
                     muted
                     preload="auto"
