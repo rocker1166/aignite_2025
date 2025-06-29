@@ -525,7 +525,7 @@ export function ISCAChat() {
   };
 
   // Don't show chat on Digital Twin pages
-  if (pathname.startsWith('/digital-twin/view')) {
+  if (pathname.startsWith('/digital-twin')) {
     return null;
   }
   
