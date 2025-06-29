@@ -307,15 +307,7 @@ export default function StrategyPage() {
       <div className="sticky top-0 z-50 border-b border-slate-700/50 bg-slate-900/90 backdrop-blur-xl shadow-lg">
         <div className="flex items-center justify-between p-6">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => router.back()}
-              className="text-slate-400 hover:text-white transition-colors duration-200 hover:bg-slate-800/50"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Scenario
-            </Button>
+           
             <div className="h-6 w-px bg-slate-600" />
             <div className="animate-fade-in">
               <div className="flex items-center gap-2">

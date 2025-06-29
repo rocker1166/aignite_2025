@@ -367,25 +367,27 @@ export function AIScenarioSuggestions({ open, onOpenChange, onSelectScenario }: 
               </Button>
             </div>
           </div>
-          <SheetDescription>
-            Choose from AI-generated scenarios based on your supply chain data and real-world intelligence, or create custom scenarios.
+          <SheetDescription className="space-y-2">
+            <span className="block">
+              Choose from AI-generated scenarios based on your supply chain data and real-world intelligence, or create custom scenarios.
+            </span>
             {selectedSupplyChainId && (
-              <div className="text-xs text-muted-foreground mt-1">
+              <span className="text-xs text-muted-foreground block">
                 Supply Chain: {selectedSupplyChainId.substring(0, 8)}...
-              </div>
+              </span>
             )}
           </SheetDescription>
         </SheetHeader>
 
         {/* Custom Scenario Generator Section */}
-        <div className="mt-6 p-4 border rounded-lg bg-slate-50 dark:bg-slate-900">
-          <div className="flex items-center mb-3">
-            <Wand2 className="h-4 w-4 mr-2 text-purple-500" />
-            <h3 className="font-semibold">Generate Custom Scenario</h3>
+        <div className="mt-8 p-6 border rounded-lg bg-slate-50 dark:bg-slate-900/50 space-y-4">
+          <div className="flex items-center gap-2">
+            <Wand2 className="h-5 w-5 text-purple-500" />
+            <h3 className="font-semibold text-lg">Generate Custom Scenario</h3>
           </div>
           
-          <div className="space-y-3">
-            <div>
+          <div className="space-y-4">
+            <div className="space-y-2">
               <Label htmlFor="custom-prompt" className="text-sm font-medium">
                 Describe your scenario
               </Label>
@@ -394,20 +396,20 @@ export function AIScenarioSuggestions({ open, onOpenChange, onSelectScenario }: 
                 placeholder="E.g., 'A major earthquake hits our main supplier region in Japan, affecting automotive parts production for 2 weeks...'"
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
-                className="mt-1 min-h-[80px]"
+                className="min-h-[80px] resize-none"
                 disabled={isGeneratingCustom}
               />
             </div>
             
-            <div className="grid grid-cols-2 gap-3">
-              <div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <Label htmlFor="scenario-count" className="text-sm font-medium">
                   Number of scenarios
                 </Label>
                 <Input
                   id="scenario-count"
                   type="number"
-                  min="1"
+                  min="3"
                   max="5"
                   value={scenarioCount}
                   onChange={(e) => setScenarioCount(Number(e.target.value))}
@@ -440,11 +442,15 @@ export function AIScenarioSuggestions({ open, onOpenChange, onSelectScenario }: 
           </div>
         </div>
 
-        <Separator className="my-6" />
+        <Separator className="my-8" />
 
         {/* Search Bar for Scenarios */}
         {scenarios.length > 0 && (
-          <div className="mb-6">
+          <div className="mb-8 space-y-3">
+            <div className="flex items-center gap-2">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Search Scenarios</span>
+            </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
