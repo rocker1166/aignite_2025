@@ -78,6 +78,11 @@ const defaultStrategy = {
   nodes: []
 }
 
+/**
+ * Displays the main supply chain strategy management page, handling user authentication, strategy selection, data fetching, and rendering interactive UI components for strategy overview and execution.
+ *
+ * This component manages the lifecycle of strategy data, including loading strategies for the authenticated user, generating or retrieving execution plans, and presenting detailed summaries and Kanban views. It provides error handling, loading states, and navigation to related workflows.
+ */
 export default function StrategyPage() {
   const searchParams = useSearchParams()
   const router = useRouter()

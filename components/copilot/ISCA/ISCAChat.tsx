@@ -55,6 +55,13 @@ interface NavigationPage {
   description: string;
 }
 
+/**
+ * Renders the ISCA chat interface integrated with CopilotKit for supply chain management, providing chat-based navigation, supply chain insights, and user context.
+ *
+ * The component manages chat state, user and supply chain data, navigation actions, and message handling. It conditionally renders based on environment settings and current route, and exposes CopilotKit actions for navigation and insights retrieval.
+ *
+ * Does not render on supply chain view pages or when CopilotKit is disabled.
+ */
 export function ISCAChat() {
   const router = useRouter();
   const pathname = usePathname();
