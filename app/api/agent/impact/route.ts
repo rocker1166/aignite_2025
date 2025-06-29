@@ -36,12 +36,16 @@ const MEM0_CONFIG = {
   run_id: `impact-run-${Date.now()}` // Generate a unique run ID
 };
 
-// Enhanced Impact Assessment Schema with Advanced Analytics
+// Enhanced Impact Assessment Schema with Standardized Response Formats
 const ImpactMetricsSchema = z.object({
-  totalCostImpact: z.string().describe('Total financial impact with currency symbol and confidence interval'),
-  averageDelay: z.string().describe('Average delay time with statistical variance'),
-  inventoryReduction: z.string().describe('Inventory reduction percentage with recovery trajectory'),
-  recoveryTime: z.string().describe('Time needed for full recovery with 95% confidence'),
+  totalCostImpact: z.string()
+    .describe('Total financial impact in format: "$XXXk - $XXXk" (e.g., "$500K - $750K") with confidence interval'),
+  averageDelay: z.string()
+    .describe('Average delay time in format: "XX-XX days" (e.g., "30-45 days") with statistical variance'),
+  inventoryReduction: z.string()
+    .describe('Inventory reduction in format: "XX-XX%" (e.g., "20-30%") showing impact range'),
+  recoveryTime: z.string()
+    .describe('Recovery time in format: "XX-XX days" (e.g., "60-90 days") for full operational recovery'),
   affectedNodes: z.number().describe('Number of nodes directly or indirectly affected'),
   criticalPath: z.string().describe('Most critical disrupted path with bottleneck analysis'),
   networkResilience: z.number().min(0).max(100).describe('Overall network resilience score'),
@@ -55,7 +59,7 @@ const CascadingEffectSchema = z.object({
   timeline: z.string().describe('When this impact will manifest'),
   propagationPath: z.array(z.string()).describe('Path of impact propagation through network'),
   probability: z.number().min(0).max(1).describe('Probability of this cascading effect occurring'),
-  financialImpact: z.number().describe('Financial impact in USD'),
+  financialImpact: z.string().describe('Financial impact in format "$XXXk - $XXXk" (e.g., "$100K - $200K")'),
   mitigationComplexity: z.enum(['LOW', 'MEDIUM', 'HIGH']).describe('Complexity of mitigating this effect')
 })
 
@@ -1026,6 +1030,19 @@ ${memoryContext}
 
 IMPACT PROPAGATION DATA:
 ${JSON.stringify(impactPropagation, null, 2)}
+
+CRITICAL FORMATTING REQUIREMENTS:
+You MUST format ALL key metrics in the following standardized, human-friendly format:
+
+- totalCostImpact: Use format "$XXXk - $XXXk" (e.g., "$500K - $750K", "$1.2M - $1.8M")
+- averageDelay: Use format "XX-XX days" (e.g., "30-45 days", "60-90 days")
+- inventoryReduction: Use format "XX-XX%" (e.g., "20-30%", "15-25%")
+- recoveryTime: Use format "XX-XX days" (e.g., "60-90 days", "45-75 days")
+- estimatedCost (in mitigation strategies): Use format "$XXXk - $XXXk" with confidence ranges
+- timeToImplement (in mitigation strategies): Use format "XX-XX days" or "XX-XX weeks"
+- riskReduction (in mitigation strategies): Use format "XX-XX%" showing effectiveness range
+
+NEVER use raw numbers or single values. Always provide ranges that reflect confidence intervals and realistic variance.
 
 Please provide a comprehensive impact assessment following the structured format required.
       `

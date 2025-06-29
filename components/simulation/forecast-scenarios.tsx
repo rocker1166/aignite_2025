@@ -352,11 +352,11 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
                 </CardContent>
 
                 <CardFooter className="pt-0">
-                  <Button 
-                    className="w-full group-hover:bg-purple-600 group-hover:border-purple-600 transition-colors"
+                  <Button
+                    className="w-full bg-purple-50 dark:bg-purple-900/30 border-purple-100 dark:border-purple-800 group-hover:bg-purple-100 dark:group-hover:bg-purple-800 group-hover:border-purple-300 dark:group-hover:border-purple-600 transition-colors"
                     variant="outline"
                   >
-                    <Sparkles className="w-4 h-4 mr-2" />
+                    <Sparkles className="w-4 h-4 mr-2 text-purple-500 dark:text-purple-300" />
                     Use This Scenario
                   </Button>
                 </CardFooter>

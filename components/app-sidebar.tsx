@@ -13,6 +13,7 @@ import {
   Truck,
   User,
   Sparkles,
+  BarChart2,
 } from "lucide-react"
 
 import {
@@ -62,7 +63,6 @@ export function AppSidebar() {
     { href: "/dashboard", icon: Home, label: "Dashboard", isActive: pathname === "/dashboard" },
     { href: "/digital-twin", icon: Network, label: "Digital Twin", isActive: pathname === "/digital-twin" },
     { href: "/simulation", icon: LineChart, label: "Simulation", isActive: pathname === "/simulation" },
-    { href: "/orchestrator", icon: BarChart3, label: "orchestrato", isActive: pathname === "/orchestrator" },
 
     { href: "/strategy", icon: Settings, label: "Strategy", isActive: pathname === "/strategy" },
   ]
