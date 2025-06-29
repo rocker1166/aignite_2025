@@ -1,9 +1,10 @@
 "use client"
 
-import { createContext, useContext, useState, ReactNode, useCallback, useMemo } from "react"
+import { createContext, useContext, useState, ReactNode, useCallback, useMemo, useEffect } from "react"
 import { formatISO } from "date-fns"
-import type { SupplyChain } from "@/lib/types/database"
+import type { SupplyChain, Node } from "@/lib/types/database"
 import { useUser } from "../stores/user"
+import { getNodes } from "@/lib/api/supply-chain"
 
 // Define the scenario data types
 export type ScenarioData = {
@@ -34,6 +35,7 @@ type ScenarioContextType = {
   setSupplyChains: (chains: SupplyChain[]) => void
   selectedSupplyChainId: string
   setSelectedSupplyChainId: (id: string) => void
+  nodes: Node[]
 }
 
 // Default values - all empty for placeholder-only approach
@@ -63,6 +65,7 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
   const [scenarioData, setScenarioData] = useState<ScenarioData>(defaultScenarioData)
   const [supplyChains, setSupplyChains] = useState<SupplyChain[]>([])
   const [selectedSupplyChainId, setSelectedSupplyChainId] = useState("")
+  const [nodes, setNodes] = useState<Node[]>([])
   const { userData } = useUser()
   
 
@@ -70,14 +73,32 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
     setScenarioData(prev => ({ ...prev, ...data }))
   }, [])
 
+  useEffect(() => {
+    if (selectedSupplyChainId) {
+      const fetchNodes = async () => {
+        try {
+          const fetchedNodes = await getNodes(selectedSupplyChainId);
+          setNodes(fetchedNodes);
+        } catch (error) {
+          console.error("Error fetching nodes for supply chain:", error);
+          setNodes([]);
+        }
+      };
+      fetchNodes();
+    } else {
+      setNodes([]);
+    }
+  }, [selectedSupplyChainId]);
+
   const contextValue = useMemo(() => ({
     scenarioData,
     updateScenarioData,
     supplyChains,
     setSupplyChains,
     selectedSupplyChainId,
-    setSelectedSupplyChainId
-  }), [scenarioData, updateScenarioData, supplyChains, selectedSupplyChainId])
+    setSelectedSupplyChainId,
+    nodes
+  }), [scenarioData, updateScenarioData, supplyChains, selectedSupplyChainId, nodes])
 
   return (
     <ScenarioContext.Provider value={contextValue}>

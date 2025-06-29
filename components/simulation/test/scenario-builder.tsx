@@ -16,7 +16,7 @@ import { SelectItem } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { AdvancedSettings } from "./advanced-settings"
 import { useScenario } from "@/lib/context/scenario-context"
-import type { SupplyChain } from "@/lib/types/database"
+import type { SupplyChain, Node } from "@/lib/types/database"
 
 type Props = {
   scenarioName: string
@@ -34,6 +34,7 @@ type Props = {
   setAffectedNode: (val: string) => void
   description: string
   setDescription: (val: string) => void
+  nodes: Node[]
 
   // advanced props passed to AdvancedSettings
   advancedProps: any
@@ -88,13 +89,20 @@ export function ScenarioBuilder(props: Props) {
         <Slider value={[props.disruptionDuration]} max={30} step={1} onValueChange={(v) => props.setDisruptionDuration(v[0])} />
 
         <Label>Affected Node</Label>
-        <Select value={props.affectedNode} onValueChange={props.setAffectedNode}>
-          <SelectTrigger><SelectValue placeholder="Select node" /></SelectTrigger>
+        <Select
+          value={props.affectedNode}
+          onValueChange={props.setAffectedNode}
+          disabled={!props.selectedSupplyChainId || props.nodes.length === 0}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select node" />
+          </SelectTrigger>
           <SelectContent>
-            <SelectItem value="supplier-a">Supplier A</SelectItem>
-            <SelectItem value="warehouse-b">Warehouse B</SelectItem>
-            <SelectItem value="factory-c">Factory C</SelectItem>
-            <SelectItem value="distribution-d">Distribution D</SelectItem>
+            {props.nodes.map(node => (
+              <SelectItem key={node.node_id} value={node.node_id}>
+                {node.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
@@ -115,7 +123,8 @@ export function ScenarioBuilderWithContext() {
     updateScenarioData, 
     supplyChains, 
     selectedSupplyChainId, 
-    setSelectedSupplyChainId 
+    setSelectedSupplyChainId,
+    nodes 
   } = useScenario();
 
   // Handler for updating individual scenario fields
@@ -140,6 +149,7 @@ export function ScenarioBuilderWithContext() {
     setAffectedNode: (val) => handleScenarioUpdate('affectedNode', val),
     description: scenarioData.description,
     setDescription: (val) => handleScenarioUpdate('description', val),
+    nodes,
     advancedProps: {
       startDate: scenarioData.startDate,
       setStartDate: (val: string) => handleScenarioUpdate('startDate', val),
