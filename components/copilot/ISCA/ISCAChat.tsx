@@ -5,7 +5,8 @@ import { useCopilotChat, useCopilotReadable, useCopilotAction } from "@copilotki
 import { TextMessage, Role } from "@copilotkit/runtime-client-gql";
 import { useRouter, usePathname } from "next/navigation";
 import { useUser } from "@/lib/stores/user";
-import { getUserSupplyChains } from "@/lib/api/supply-chain";
+import { getUserSupplyChains, getNewsRoomInfo } from "@/lib/api/supply-chain";
+import { getNotifications } from "@/lib/api/notifications";
 import { toast } from "sonner";
 import { ISCAChatWindow } from '@/components/copilot/ISCA/ISCAChatWindow';
 import { ISCAChatToggle } from '@/components/copilot/ISCA/ISCAChatToggle';
@@ -60,6 +61,10 @@ export function ISCAChat() {
   const { userData, userLoading } = useUser();
   const [supplyChains, setSupplyChains] = useState<SupplyChainSummary[]>([]);
   const [loadingSupplyChains, setLoadingSupplyChains] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const [newsRoomData, setNewsRoomData] = useState<any>(null);
+  const [loadingNewsRoom, setLoadingNewsRoom] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [navigationStarted, setNavigationStarted] = useState(false);
@@ -94,6 +99,11 @@ export function ISCAChat() {
       name: "Simulation",
       path: "/simulation",
       description: "Run supply chain simulations and scenarios"
+    },
+    {
+      name: "News Room",
+      path: "/news-room",
+      description: "Latest news and updates related to supply chain"
     },
     {
       name: "Profile",
@@ -148,7 +158,37 @@ export function ISCAChat() {
       }
     };
 
+    const fetchNotifications = async () => {
+      if (!userData?.id || userLoading) return;
+
+      setLoadingNotifications(true);
+      try {
+        const response = await getNotifications(userData.id);
+        setNotifications(response || []);
+      } catch (error) {
+        console.error('Error fetching notifications for assistant:', error);
+      } finally {
+        setLoadingNotifications(false);
+      }
+    };
+
+    const fetchNewsRoomData = async () => {
+      if (!userData?.id || userLoading) return;
+
+      setLoadingNewsRoom(true);
+      try {
+        const response = await getNewsRoomInfo(userData.id);
+        setNewsRoomData(response || null);
+      } catch (error) {
+        console.error('Error fetching news room data for assistant:', error);
+      } finally {
+        setLoadingNewsRoom(false);
+      }
+    };
+
     fetchSupplyChains();
+    fetchNotifications();
+    fetchNewsRoomData();
   }, [userData, userLoading]);
 
   // Scroll to bottom when messages change
@@ -199,6 +239,27 @@ export function ISCAChat() {
         ? supplyChains.reduce((sum, sc) => sum + sc.avgRiskScore, 0) / supplyChains.length
         : 0,
       loading: loadingSupplyChains
+    }
+  });
+
+  // Provide notifications context
+  useCopilotReadable({
+    description: "User's notifications and alerts from the system",
+    value: {
+      notifications: notifications,
+      totalNotifications: notifications.length,
+      unreadNotifications: notifications.filter((n: any) => !n.read).length,
+      loading: loadingNotifications
+    }
+  });
+
+  // Provide news room context
+  useCopilotReadable({
+    description: "News room data with supply chain timeline events and critical alerts",
+    value: {
+      newsRoomData: newsRoomData,
+      hasNewsData: !!newsRoomData,
+      loading: loadingNewsRoom
     }
   });
 
@@ -328,6 +389,76 @@ export function ISCAChat() {
         toast.error('Failed to open supply chain');
         setNavigationStarted(false); // Reset on error
         return `Error: Failed to open supply chain with ID "${supplyChainId}"`;
+      }
+    }
+  });
+
+  // Get notifications action
+  useCopilotAction({
+    name: "getNotifications",
+    description: "Fetch and display user notifications and alerts",
+    parameters: [],
+    handler: async () => {
+      try {
+        if (!userData?.id) {
+          return "Error: User not authenticated";
+        }
+
+        setLoadingNotifications(true);
+        const response = await getNotifications(userData.id);
+        setNotifications(response || []);
+        
+        const unreadCount = (response || []).filter((n: any) => !n.read).length;
+        
+        return `Successfully fetched ${response?.length || 0} notifications. ${unreadCount} unread notifications.`;
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+        return "Error: Failed to fetch notifications";
+      } finally {
+        setLoadingNotifications(false);
+      }
+    }
+  });
+
+  // Get news room info action
+  useCopilotAction({
+    name: "getNewsRoomInfo",
+    description: "Fetch news room data with supply chain timeline events and critical alerts",
+    parameters: [],
+    handler: async () => {
+      try {
+        if (!userData?.id) {
+          return "Error: User not authenticated";
+        }
+
+        setLoadingNewsRoom(true);
+        const response = await getNewsRoomInfo(userData.id);
+        setNewsRoomData(response || null);
+        
+        // Count total events across all supply chains
+        let totalEvents = 0;
+        if (response) {
+          Object.values(response).forEach((chainArray: any) => {
+            if (Array.isArray(chainArray)) {
+              chainArray.forEach((batch: any) => {
+                if (batch.nodes) {
+                  batch.nodes.forEach((node: any) => {
+                    if (node.criticalEvents) {
+                      totalEvents += node.criticalEvents.length;
+                    }
+                  });
+                }
+              });
+            }
+          });
+        }
+        
+        return `Successfully fetched news room data. Found ${totalEvents} critical events across ${Object.keys(response || {}).length} supply chains.`;
+      } catch (error) {
+        console.error('Error fetching news room data:', error);
+        return "Error: Failed to fetch news room data";
+      } finally {
+        setLoadingNewsRoom(false);
       }
     }
   });
