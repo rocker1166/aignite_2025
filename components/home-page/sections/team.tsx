@@ -122,8 +122,7 @@ export function TeamSection() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-xl text-muted-foreground max-w-3xl mx-auto"
           >
-            Our diverse team of experts combines decades of experience in supply chain management, 
-            artificial intelligence, and enterprise software to revolutionize how businesses manage risk.
+            Our diverse team of whose dedicated work and expertise drive the success of IntelliSupply.
           </motion.p>
         </motion.div>
 
