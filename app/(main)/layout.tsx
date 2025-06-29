@@ -2,10 +2,13 @@
 
 import type React from "react"
 import "../globals.css"
+import "@copilotkit/react-ui/styles.css"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { Toaster } from "@/components/ui/toaster"
 import AIChatOverlay from "@/components/ui/ai-chat-overlay"
+import { ISCAChat } from "@/components/copilot/ISCA/ISCAChat"
+import { CopilotProvider } from "@/components/copilot/copilot-provider"
 import { supabaseClient } from "@/lib/supabase/client"
 import { useRouter, usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -102,21 +105,24 @@ export default function MainLayout({
     return null // Will redirect to signin
   }
   return (
-    <div className={`h-full w-full`}>
-      <SidebarProvider>
-        <div className="flex h-screen w-full overflow-hidden">
-          <AppSidebar />
-          <main className="flex-1 min-h-0 flex flex-col overflow-auto bg-background">
-            {children}
-          </main>
-        </div>
+      <div className={`h-full w-full`}>
+        <SidebarProvider>
+          <div className="flex h-screen w-full overflow-hidden">
+            <AppSidebar />
+            <main className="flex-1 min-h-0 flex flex-col overflow-auto bg-background">
+              {children}
+            </main>
+          </div>
 
-        <Toaster />
-      </SidebarProvider>
+          <Toaster />
+        </SidebarProvider>
 
-      {/* Add AI Chat Overlay */}
-      {/* <AIChatOverlay /> */}
-    </div>
+        {/* Add AI Chat Overlay */}
+        {/* <AIChatOverlay /> */}
+        
+        {/* Add ISCA Chat Assistant */}
+        <ISCAChat />
+      </div>
   )
 }
 
