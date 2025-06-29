@@ -177,7 +177,7 @@ export function TaskBoard({ strategy }: TaskBoardProps) {
   }
 
   return (
-    <div className="p-6 h-full bg-white">
+    <div className="p-6 h-full bg-white dark:bg-slate-900">
       {/* Header */}
       <div className="flex flex-row items-center mb-6">
         <div className="flex-1 min-w-0">
@@ -188,7 +188,7 @@ export function TaskBoard({ strategy }: TaskBoardProps) {
           <Button
             variant="outline"
             size="sm"
-            className="flex items-center border-slate-300 text-slate-500 hover:bg-slate-100 bg-white"
+            className="flex items-center border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 bg-white dark:bg-slate-800"
           >
             <Filter className="w-4 h-4 mr-1" />
             <span>Filter</span>
@@ -196,7 +196,7 @@ export function TaskBoard({ strategy }: TaskBoardProps) {
           <Button
             variant="outline"
             size="sm"
-            className="flex items-center border-slate-300 text-slate-400 bg-white cursor-not-allowed"
+            className="flex items-center border-slate-300 dark:border-slate-600 text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-800 cursor-not-allowed"
             disabled
           >
             <Plus className="w-4 h-4 mr-1" />
@@ -214,19 +214,19 @@ export function TaskBoard({ strategy }: TaskBoardProps) {
         {taskColumns.map((column) => (
           <div key={column.id} className="flex flex-col">
             {/* Column Header */}
-            <div className="flex items-center justify-between mb-4 p-3 rounded-lg bg-white border border-gray-200 shadow-md shadow-lg dark:bg-slate-800/50 dark:border-slate-700/50">
+            <div className="flex items-center justify-between mb-4 p-3 rounded-lg bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 shadow-md dark:shadow-lg">
               <div className="flex items-center gap-3">
                 <div className={`w-3 h-3 rounded-full ${column.color}`} />
-                <span style={{ color: '#000', fontWeight: 700 }}>{column.title}</span>
+                <span className="text-gray-900 dark:text-white font-bold">{column.title}</span>
               </div>
               <Badge className={
                 column.id === "todo"
-                  ? "bg-gray-200 text-black border-gray-300 dark:bg-slate-600 dark:text-white dark:border-slate-600"
+                  ? "bg-gray-200 dark:bg-slate-600 text-black dark:text-white border-gray-300 dark:border-slate-600"
                   : column.id === "in-progress"
-                  ? "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-600 dark:text-white dark:border-blue-600"
+                  ? "bg-blue-100 dark:bg-blue-600 text-blue-800 dark:text-white border-blue-200 dark:border-blue-600"
                   : column.id === "blocked"
-                  ? "bg-red-100 text-red-800 border-red-200 dark:bg-red-600 dark:text-white dark:border-red-600"
-                  : "bg-gray-200 text-black border-gray-300 dark:bg-slate-700/50 dark:text-white dark:border-slate-600"
+                  ? "bg-red-100 dark:bg-red-600 text-red-800 dark:text-white border-red-200 dark:border-red-600"
+                  : "bg-gray-200 dark:bg-slate-700/50 text-black dark:text-white border-gray-300 dark:border-slate-600"
               }>{column.count}</Badge>
             </div>
 
@@ -235,16 +235,16 @@ export function TaskBoard({ strategy }: TaskBoardProps) {
               {getTasksByStatus(column.id).map((task) => (
                 <Card
                   key={task.id}
-                  className="bg-slate-800/60 border-slate-700/50 hover:bg-slate-800/80 transition-colors cursor-pointer"
+                  className="bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors cursor-pointer"
                 >
                   <CardContent className="p-4">
                     {/* Task Header */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <h4 className="font-medium text-white text-sm leading-tight mb-1">{task.title}</h4>
-                        <p className="text-slate-400 text-xs leading-relaxed">{task.description}</p>
+                        <h4 className="font-medium text-gray-900 dark:text-white text-sm leading-tight mb-1">{task.title}</h4>
+                        <p className="text-gray-600 dark:text-slate-400 text-xs leading-relaxed">{task.description}</p>
                       </div>
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-slate-400 hover:text-white">
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white">
                         <MoreHorizontal className="w-4 h-4" />
                       </Button>
                     </div>
@@ -263,10 +263,10 @@ export function TaskBoard({ strategy }: TaskBoardProps) {
                       {task.status === "in-progress" && (
                         <div className="space-y-1">
                           <div className="flex justify-between text-xs">
-                            <span className="text-slate-400">Progress</span>
-                            <span className="text-white">{task.progress}%</span>
+                            <span className="text-gray-600 dark:text-slate-400">Progress</span>
+                            <span className="text-gray-900 dark:text-white">{task.progress}%</span>
                           </div>
-                          <div className="w-full bg-slate-700 rounded-full h-1.5">
+                          <div className="w-full bg-gray-300 dark:bg-slate-700 rounded-full h-1.5">
                             <div
                               className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
                               style={{ width: `${task.progress}%` }}
@@ -278,21 +278,21 @@ export function TaskBoard({ strategy }: TaskBoardProps) {
                       {/* Due Date */}
                       <div className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-slate-400" />
-                          <span className={`${isOverdue(task.dueDate) ? "text-red-400" : "text-slate-400"}`}>
+                          <Calendar className="w-3 h-3 text-gray-500 dark:text-slate-400" />
+                          <span className={`${isOverdue(task.dueDate) ? "text-red-500 dark:text-red-400" : "text-gray-500 dark:text-slate-400"}`}>
                             {new Date(task.dueDate).toLocaleDateString()}
                           </span>
-                          {isOverdue(task.dueDate) && <AlertTriangle className="w-3 h-3 text-red-400" />}
+                          {isOverdue(task.dueDate) && <AlertTriangle className="w-3 h-3 text-red-500 dark:text-red-400" />}
                         </div>
                         <Avatar className="h-6 w-6">
-                          <AvatarFallback className="text-xs bg-slate-700 text-slate-300">
+                          <AvatarFallback className="text-xs bg-gray-300 dark:bg-slate-700 text-gray-700 dark:text-slate-300">
                             {task.assignee}
                           </AvatarFallback>
                         </Avatar>
                       </div>
 
                       {/* Task Stats */}
-                      <div className="flex items-center justify-between text-xs text-slate-400">
+                      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400">
                         <div className="flex items-center gap-3">
                           {task.comments > 0 && (
                             <div className="flex items-center gap-1">
@@ -307,7 +307,7 @@ export function TaskBoard({ strategy }: TaskBoardProps) {
                             </div>
                           )}
                         </div>
-                        {task.status === "completed" && <CheckCircle className="w-4 h-4 text-green-400" />}
+                        {task.status === "completed" && <CheckCircle className="w-4 h-4 text-green-500 dark:text-green-400" />}
                       </div>
 
                       {/* Tags */}
@@ -316,7 +316,7 @@ export function TaskBoard({ strategy }: TaskBoardProps) {
                           {task.tags.map((tag, index) => (
                             <Badge
                               key={index}
-                              className="bg-slate-700/30 text-slate-400 border-slate-600/30 text-xs px-2 py-0.5"
+                              className="bg-gray-200/50 dark:bg-slate-700/30 text-gray-600 dark:text-slate-400 border-gray-300/50 dark:border-slate-600/30 text-xs px-2 py-0.5"
                             >
                               {tag}
                             </Badge>
@@ -331,7 +331,7 @@ export function TaskBoard({ strategy }: TaskBoardProps) {
               {/* Add Task Button */}
               <Button
                 variant="outline"
-                className="w-full border-dashed border-slate-600 text-slate-400 hover:text-white hover:border-slate-500 bg-transparent"
+                className="w-full border-dashed border-gray-300 dark:border-slate-600 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:border-gray-400 dark:hover:border-slate-500 bg-transparent"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Task

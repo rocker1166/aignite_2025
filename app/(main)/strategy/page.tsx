@@ -48,10 +48,10 @@ import { useToast } from "@/hooks/use-toast"
 
 // Kanban board data
 const kanbanColumns = [
-  { id: "todo", title: "To Do", color: "bg-slate-700" },
-  { id: "in-progress", title: "In Progress", color: "bg-blue-600" },
-  { id: "blocked", title: "Blocked", color: "bg-red-600" },
-  { id: "done", title: "Done", color: "bg-green-600" }
+  { id: "todo", title: "To Do", color: "bg-slate-500 dark:bg-slate-700" },
+  { id: "in-progress", title: "In Progress", color: "bg-blue-500 dark:bg-blue-600" },
+  { id: "blocked", title: "Blocked", color: "bg-red-500 dark:bg-red-600" },
+  { id: "done", title: "Done", color: "bg-green-500 dark:bg-green-600" }
 ]
 
 // Default fallback data structure
@@ -285,13 +285,13 @@ export default function StrategyPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex items-center justify-center">
-        <Card className="bg-slate-800/60 border-slate-700/50 p-8 text-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-slate-900 dark:text-white flex items-center justify-center">
+        <Card className="bg-white/80 dark:bg-slate-800/60 border-slate-200/50 dark:border-slate-700/50 p-8 text-center backdrop-blur-sm">
           <CardContent>
-            <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Error Loading Strategy</h3>
-            <p className="text-slate-400 mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()} className="bg-blue-600 hover:bg-blue-700">
+            <AlertTriangle className="w-12 h-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2 text-slate-900 dark:text-white">Error Loading Strategy</h3>
+            <p className="text-slate-600 dark:text-slate-400 mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()} className="bg-blue-600 hover:bg-blue-700 text-white">
               <RefreshCw className="w-4 h-4 mr-2" />
               Retry
             </Button>
@@ -302,27 +302,18 @@ export default function StrategyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-slate-900 dark:text-white">
       {/* Sticky Header Bar */}
-      <div className="sticky top-0 z-50 border-b border-slate-700/50 bg-slate-900/90 backdrop-blur-xl shadow-lg">
+      <div className="sticky top-0 z-50 border-b border-slate-200/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-lg">
         <div className="flex items-center justify-between p-6">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => router.back()}
-              className="text-slate-400 hover:text-white transition-colors duration-200 hover:bg-slate-800/50"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Scenario
-            </Button>
-            <div className="h-6 w-px bg-slate-600" />
+            <div className="h-6 w-px bg-slate-300 dark:bg-slate-600" />
             <div className="animate-fade-in">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-white mb-1">{selectedStrategy.name}</h1>
-                {generating && <Loader2 className="w-4 h-4 animate-spin text-blue-400" />}
+                <h1 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{selectedStrategy.name}</h1>
+                {generating && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
               </div>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
                 {selectedStrategy.scenarioSource} • Finalized {selectedStrategy.dateFinalized}
               </p>
             </div>
@@ -333,7 +324,7 @@ export default function StrategyPage() {
               size="sm" 
               onClick={regenerateStrategy}
               disabled={loading || !strategyId}
-              className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:border-slate-500 bg-transparent transition-all duration-200"
+              className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-500 bg-white/50 dark:bg-transparent transition-all duration-200"
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${generating ? 'animate-spin' : ''}`} />
               Regenerate
@@ -341,7 +332,7 @@ export default function StrategyPage() {
             <Button 
               variant="outline" 
               size="sm" 
-              className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:border-slate-500 bg-transparent transition-all duration-200"
+              className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-500 bg-white/50 dark:bg-transparent transition-all duration-200"
             >
               <FileText className="w-4 h-4 mr-2" />
               View Reports
@@ -349,7 +340,7 @@ export default function StrategyPage() {
             <Button 
               variant="outline" 
               size="sm" 
-              className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:border-slate-500 bg-transparent transition-all duration-200"
+              className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-500 bg-white/50 dark:bg-transparent transition-all duration-200"
             >
               <Download className="w-4 h-4 mr-2" />
               Export PDF
@@ -357,7 +348,7 @@ export default function StrategyPage() {
             <DependencyGraphModal nodes={selectedStrategy.nodes || []} />
             <Button 
               onClick={() => setShowAIAssistant(!showAIAssistant)}
-              className="bg-blue-600 hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
+              className="bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
             >
               <MessageSquare className="w-4 h-4 mr-2" />
               AI Assistant
@@ -368,40 +359,40 @@ export default function StrategyPage() {
 
       <div className="flex h-[calc(100vh-120px)]">
         {/* Strategy List Sidebar */}
-        <div className="w-80 border-r border-slate-700/50 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
+        <div className="w-80 border-r border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
           <div className="p-6">
-            <h3 className="text-lg font-semibold mb-6 text-white">Active Strategies</h3>
+            <h3 className="text-lg font-semibold mb-6 text-slate-900 dark:text-white">Active Strategies</h3>
             {loading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <Card key={i} className="bg-slate-800/40 border-slate-700/50 animate-pulse">
+                  <Card key={i} className="bg-white/60 dark:bg-slate-800/40 border-slate-200/50 dark:border-slate-700/50 animate-pulse">
                     <CardContent className="p-4">
-                      <div className="h-4 bg-slate-700 rounded mb-2"></div>
-                      <div className="h-3 bg-slate-700 rounded mb-3"></div>
-                      <div className="h-2 bg-slate-700 rounded"></div>
+                      <div className="h-4 bg-slate-300 dark:bg-slate-700 rounded mb-2"></div>
+                      <div className="h-3 bg-slate-300 dark:bg-slate-700 rounded mb-3"></div>
+                      <div className="h-2 bg-slate-300 dark:bg-slate-700 rounded"></div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
             ) : strategies.length === 0 ? (
-              <Card className="bg-slate-800/40 border-slate-700/50">
+              <Card className="bg-white/60 dark:bg-slate-800/40 border-slate-200/50 dark:border-slate-700/50">
                 <CardContent className="p-8 text-center">
-                  <Target className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-slate-300 mb-2">No Strategies Onboarded</h3>
-                  <p className="text-slate-400 mb-4">
+                  <Target className="w-12 h-12 text-slate-400 dark:text-slate-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">No Strategies Onboarded</h3>
+                  <p className="text-slate-600 dark:text-slate-400 mb-4">
                     No finalized strategies found. Create and finalize strategies through the Simulation and Orchestrator workflows to see them here.
                   </p>
                   <div className="space-y-2">
                     <Button 
                       onClick={() => router.push('/simulation')} 
-                      className="bg-blue-600 hover:bg-blue-700 w-full"
+                      className="bg-blue-600 hover:bg-blue-700 text-white w-full"
                     >
                       Start Simulation
                     </Button>
                     <Button 
                       onClick={() => router.push('/orchestrator')} 
                       variant="outline"
-                      className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:border-slate-500 bg-transparent w-full"
+                      className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-500 bg-white/50 dark:bg-transparent w-full"
                     >
                       Go to Orchestrator
                     </Button>
@@ -413,10 +404,10 @@ export default function StrategyPage() {
                 {strategies.map((strategy, index) => (
                   <Card
                     key={strategy.id}
-                    className={`cursor-pointer transition-all duration-300 border-slate-700/50 hover:border-slate-600 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1 ${
+                    className={`cursor-pointer transition-all duration-300 border-slate-200 dark:border-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-lg hover:shadow-slate-200/20 dark:hover:shadow-slate-500/10 transform hover:-translate-y-1 ${
                       selectedStrategy.id === strategy.id
-                        ? "bg-slate-800/80 border-blue-500/50 shadow-xl shadow-blue-500/20 ring-2 ring-blue-500/20"
-                        : "bg-slate-800/40 hover:bg-slate-800/60"
+                        ? "bg-blue-50 dark:bg-slate-800/80 border-blue-300 dark:border-blue-500/50 shadow-xl shadow-blue-200/20 dark:shadow-blue-500/20 ring-2 ring-blue-300/20 dark:ring-blue-500/20"
+                        : "bg-white/60 dark:bg-slate-800/40 hover:bg-white/80 dark:hover:bg-slate-800/60"
                     }`}
                     onClick={() => {
                       setSelectedStrategy(strategy)
@@ -428,7 +419,7 @@ export default function StrategyPage() {
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
-                        <h4 className="font-medium text-white text-sm leading-tight">{strategy.name}</h4>
+                        <h4 className="font-medium text-slate-900 dark:text-white text-sm leading-tight">{strategy.name}</h4>
                         <div className="flex gap-1">
                           <Badge className={`text-xs px-2 py-1 ${getPriorityColor(strategy.priority)}`}>
                             {strategy.priority}
@@ -438,12 +429,12 @@ export default function StrategyPage() {
 
                       <div className="space-y-3">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-slate-400">Progress</span>
-                          <span className="text-white font-medium">{strategy.progress}%</span>
+                          <span className="text-slate-500 dark:text-slate-400">Progress</span>
+                          <span className="text-slate-900 dark:text-white font-medium">{strategy.progress}%</span>
                         </div>
-                        <Progress value={strategy.progress} className="h-2 bg-slate-700" />
+                        <Progress value={strategy.progress} className="h-2 bg-slate-200 dark:bg-slate-700" />
 
-                        <div className="flex items-center justify-between text-xs text-slate-400">
+                        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {strategy.estimatedCompletion}
@@ -462,8 +453,8 @@ export default function StrategyPage() {
         {/* Main Content */}
         <div className="flex-1 min-w-0 overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-            <div className="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur-sm px-6 py-4">
-              <TabsList className="bg-slate-800/50 border border-slate-700/50 p-1">
+            <div className="border-b border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm px-6 py-4">
+              <TabsList className="bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 p-1">
                 <TabsTrigger
                   value="execution"
                   className="data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
@@ -499,11 +490,11 @@ export default function StrategyPage() {
               {strategies.length === 0 ? (
                 // Empty state for main content
                 <div className="flex items-center justify-center h-full">
-                  <Card className="bg-slate-800/60 border-slate-700/50 p-12 text-center max-w-md">
+                  <Card className="bg-white/80 dark:bg-slate-800/60 border-slate-200/50 dark:border-slate-700/50 p-12 text-center max-w-md">
                     <CardContent>
-                      <Target className="w-16 h-16 text-slate-400 mx-auto mb-6" />
-                      <h2 className="text-2xl font-bold text-white mb-4">No Strategies Available</h2>
-                      <p className="text-slate-400 mb-6 leading-relaxed">
+                      <Target className="w-16 h-16 text-slate-400 dark:text-slate-400 mx-auto mb-6" />
+                      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">No Strategies Available</h2>
+                      <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
                         Start your supply chain resilience journey by creating and finalizing strategies through our simulation and orchestration workflows.
                       </p>
                       <div className="space-y-3">
@@ -517,7 +508,7 @@ export default function StrategyPage() {
                         <Button 
                           onClick={() => router.push('/orchestrator')} 
                           variant="outline"
-                          className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:border-slate-500 bg-transparent w-full"
+                          className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-500 bg-white/50 dark:bg-transparent w-full"
                         >
                           <Zap className="w-4 h-4 mr-2" />
                           AI Orchestrator
@@ -529,59 +520,59 @@ export default function StrategyPage() {
               ) : (
                 <>
               {/* Strategy Summary Panel */}
-              <div className="p-6 border-b border-slate-700/50 bg-gradient-to-r from-slate-800/30 to-slate-900/30">
+              <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-slate-100/30 to-slate-200/30 dark:from-slate-800/30 dark:to-slate-900/30">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <Card className="bg-slate-800/60 border-slate-700/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1">
+                  <Card className="bg-white/80 dark:bg-slate-800/60 border-slate-200/50 dark:border-slate-700/50 hover:bg-white/90 dark:hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-200/20 dark:hover:shadow-slate-500/10 transform hover:-translate-y-1">
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4">
                         <div className="p-3 bg-blue-500/20 rounded-xl">
-                          <Target className="w-6 h-6 text-blue-400" />
+                          <Target className="w-6 h-6 text-blue-500 dark:text-blue-400" />
                         </div>
                         <div>
-                          <p className="text-sm text-slate-400 font-medium">Strategy Type</p>
-                          <p className="text-lg font-bold text-white">{selectedStrategy.type}</p>
+                          <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">Strategy Type</p>
+                          <p className="text-lg font-bold text-slate-900 dark:text-white">{selectedStrategy.type}</p>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-slate-800/60 border-slate-700/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1">
+                  <Card className="bg-white/80 dark:bg-slate-800/60 border-slate-200/50 dark:border-slate-700/50 hover:bg-white/90 dark:hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-200/20 dark:hover:shadow-slate-500/10 transform hover:-translate-y-1">
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4">
                         <div className="p-3 bg-green-500/20 rounded-xl">
-                          <TrendingUp className="w-6 h-6 text-green-400" />
+                          <TrendingUp className="w-6 h-6 text-green-500 dark:text-green-400" />
                         </div>
                         <div>
-                          <p className="text-sm text-slate-400 font-medium">Expected ROI</p>
-                          <p className="text-lg font-bold text-white">{selectedStrategy.roi}</p>
+                          <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">Expected ROI</p>
+                          <p className="text-lg font-bold text-slate-900 dark:text-white">{selectedStrategy.roi}</p>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-slate-800/60 border-slate-700/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1">
+                  <Card className="bg-white/80 dark:bg-slate-800/60 border-slate-200/50 dark:border-slate-700/50 hover:bg-white/90 dark:hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-200/20 dark:hover:shadow-slate-500/10 transform hover:-translate-y-1">
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4">
                         <div className="p-3 bg-yellow-500/20 rounded-xl">
-                          <Shield className="w-6 h-6 text-yellow-400" />
+                          <Shield className="w-6 h-6 text-yellow-500 dark:text-yellow-400" />
                         </div>
                         <div>
-                          <p className="text-sm text-slate-400 font-medium">Risk Reduction</p>
-                          <p className="text-lg font-bold text-white">{selectedStrategy.riskReduction}</p>
+                          <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">Risk Reduction</p>
+                          <p className="text-lg font-bold text-slate-900 dark:text-white">{selectedStrategy.riskReduction}</p>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-slate-800/60 border-slate-700/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1">
+                  <Card className="bg-white/80 dark:bg-slate-800/60 border-slate-200/50 dark:border-slate-700/50 hover:bg-white/90 dark:hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-200/20 dark:hover:shadow-slate-500/10 transform hover:-translate-y-1">
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4">
                         <div className="p-3 bg-purple-500/20 rounded-xl">
-                          <DollarSign className="w-6 h-6 text-purple-400" />
+                          <DollarSign className="w-6 h-6 text-purple-500 dark:text-purple-400" />
                         </div>
                         <div>
-                          <p className="text-sm text-slate-400 font-medium">Total Cost</p>
-                          <p className="text-lg font-bold text-white">{selectedStrategy.cost}</p>
+                          <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">Total Cost</p>
+                          <p className="text-lg font-bold text-slate-900 dark:text-white">{selectedStrategy.cost}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -633,7 +624,7 @@ export default function StrategyPage() {
 
         {/* AI Assistant Sidebar */}
         {showAIAssistant && (
-          <div className="w-96 border-l border-slate-700/50 bg-slate-900/50 backdrop-blur-sm animate-slide-in-right">
+          <div className="w-96 border-l border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm animate-slide-in-right">
             <ExecutionAssistantAgent 
               strategy={selectedStrategy}
               onClose={() => setShowAIAssistant(false)}
