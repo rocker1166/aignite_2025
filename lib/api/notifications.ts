@@ -1,7 +1,7 @@
 import { supabaseClient } from "@/lib/supabase/client"
-import type { Notification } from "@/lib/types/database"
+import type { Tables } from "@/lib/types/database"
 
-export async function getNotifications(userId: string): Promise<Notification[]> {
+export async function getNotifications(userId: string): Promise<Tables<"notifications">[]> {
   const { data, error } = await supabaseClient
     .from("notifications")
     .select("*")
@@ -12,20 +12,10 @@ export async function getNotifications(userId: string): Promise<Notification[]> 
     console.error("Error fetching notifications:", error)
     throw error
   }
-
+  console.log("notifications data", data)
   return data || []
 }
 
-export async function createNotification(notification: Partial<Notification>): Promise<Notification> {
-  const { data, error } = await supabaseClient.from("notifications").insert(notification).select().single()
-
-  if (error) {
-    console.error("Error creating notification:", error)
-    throw error
-  }
-
-  return data
-}
 
 export async function markNotificationAsRead(notificationId: string): Promise<void> {
   const { error } = await supabaseClient

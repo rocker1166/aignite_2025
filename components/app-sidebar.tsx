@@ -4,19 +4,12 @@ import { useEffect } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import {
-  BarChart3,
-  Box,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Cog,
-  Factory,
   Home,
   LineChart,
-  Network,
-  PanelLeft,
+  Network, 
   Settings,
   ShieldAlert,
+  Target,
   Truck,
   User,
   Sparkles,
@@ -70,6 +63,7 @@ export function AppSidebar() {
     { href: "/digital-twin", icon: Network, label: "Digital Twin", isActive: pathname === "/digital-twin" },
     { href: "/simulation", icon: LineChart, label: "Simulation", isActive: pathname === "/simulation" },
     { href: "/orchestrator", icon: BarChart3, label: "orchestrato", isActive: pathname === "/orchestrator" },
+
     { href: "/strategy", icon: Settings, label: "Strategy", isActive: pathname === "/strategy" },
   ]
 

@@ -1,13 +1,13 @@
 "use client"
 import { useState, ChangeEvent, FormEvent } from "react"
-import { Button } from "../ui/button"
-import { Input } from "../ui/input"
-import { Textarea } from "../ui/textarea"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Label } from "../ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog"
-import { X } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { useUser } from "@/lib/stores/user"
+import { X } from "lucide-react"
 
 // Define TypeScript interfaces
 interface IndustrySubcategory {
@@ -32,6 +32,7 @@ interface UpdateProfileFormProps {
   isOpen: boolean;
   onClose: () => void;
   currentProfile?: OrganizationProfile;
+  mandatory?: boolean; // Add mandatory prop
 }
 
 // Industry categories with subcategories
@@ -58,7 +59,7 @@ const industryCategories: IndustryCategories = {
   }
 }
 
-export function UpdateProfileForm({ isOpen, onClose, currentProfile = {} }: UpdateProfileFormProps) {
+export function UpdateProfileForm({ isOpen, onClose, currentProfile = {}, mandatory = false }: UpdateProfileFormProps) {
   const [category, setCategory] = useState<string>(currentProfile.industry_category || "")
   const [formData, setFormData] = useState<OrganizationProfile>({
     organization_name: currentProfile.organization_name || "",
@@ -110,7 +111,13 @@ export function UpdateProfileForm({ isOpen, onClose, currentProfile = {} }: Upda
 
       console.log("Submitting organization profile:", updatedData);
       await updateUserData(updatedData);
-      onClose();
+      
+      // If mandatory, redirect to clean URL after successful update
+      if (mandatory) {
+        window.location.href = '/profile';
+      } else {
+        onClose();
+      }
     } catch (error) {
       console.error("Error updating profile:", error);
       // Handle error (you might want to show an error message to the user)
@@ -119,18 +126,33 @@ export function UpdateProfileForm({ isOpen, onClose, currentProfile = {} }: Upda
     }
   }
 
+  const handleClose = () => {
+    if (!mandatory) {
+      onClose();
+    }
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={mandatory ? undefined : onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-bold">Update Organization Profile</DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
-              <X className="h-4 w-4" />
-            </Button>
+            <DialogTitle className="text-xl font-bold">
+              {mandatory ? "Complete Your Profile" : "Update Organization Profile"}
+            </DialogTitle>
+            {!mandatory && (
+              <Button variant="ghost" size="sm" onClick={handleClose} className="h-8 w-8 p-0">
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
+          {mandatory && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Please complete your organization profile to continue using the platform.
+            </p>
+          )}
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6 py-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
@@ -141,10 +163,11 @@ export function UpdateProfileForm({ isOpen, onClose, currentProfile = {} }: Upda
                 value={formData.organization_name}
                 onChange={handleChange}
                 placeholder="ACME Corporation"
+                className="shadow-md"
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="location">Location</Label>
               <Input
@@ -153,10 +176,11 @@ export function UpdateProfileForm({ isOpen, onClose, currentProfile = {} }: Upda
                 value={formData.location}
                 onChange={handleChange}
                 placeholder="City, Country"
+                className="shadow-md"
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="employee_count">Employee Count</Label>
               <Input
@@ -166,17 +190,18 @@ export function UpdateProfileForm({ isOpen, onClose, currentProfile = {} }: Upda
                 value={formData.employee_count}
                 onChange={handleChange}
                 placeholder="100"
+                className="shadow-md"
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="industry_category">Industry Category</Label>
-              <Select 
-                value={formData.industry_category?.toString()} 
+              <Select
+                value={formData.industry_category?.toString()}
                 onValueChange={handleCategoryChange}
               >
-                <SelectTrigger id="industry_category">
+                <SelectTrigger id="industry_category" className="shadow-md">
                   <SelectValue placeholder="Select Category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -188,15 +213,15 @@ export function UpdateProfileForm({ isOpen, onClose, currentProfile = {} }: Upda
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="industry_subcategory">Industry Subcategory</Label>
-              <Select 
-                value={formData.industry_subcategory?.toString()} 
+              <Select
+                value={formData.industry_subcategory?.toString()}
                 onValueChange={handleSubcategoryChange}
                 disabled={!category}
               >
-                <SelectTrigger id="industry_subcategory">
+                <SelectTrigger id="industry_subcategory" className="shadow-md">
                   <SelectValue placeholder="Select Subcategory" />
                 </SelectTrigger>
                 <SelectContent>
@@ -209,7 +234,7 @@ export function UpdateProfileForm({ isOpen, onClose, currentProfile = {} }: Upda
               </Select>
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="description">Company Description</Label>
             <Textarea
@@ -218,20 +243,20 @@ export function UpdateProfileForm({ isOpen, onClose, currentProfile = {} }: Upda
               value={formData.description}
               onChange={handleChange}
               placeholder="Brief description of your organization"
-              className="h-32"
+              className="h-32 shadow-md"
             />
           </div>
-          
+
           <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={onClose}
               disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               type="submit"
               disabled={isSubmitting}
             >

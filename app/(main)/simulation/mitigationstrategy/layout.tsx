@@ -1,4 +1,4 @@
-import { Header } from "@/components/header"
+import { AppHeader } from "@/components/layout/app-header"
 
 export default function MitigationStrategyLayout({
   children,
@@ -7,7 +7,7 @@ export default function MitigationStrategyLayout({
 }) {
   return (
     <>
-      <Header title="Mitigation Strategy" />
+      <AppHeader title="Mitigation Strategy" />
       <main className="flex-1 overflow-auto">
         {children}
       </main>

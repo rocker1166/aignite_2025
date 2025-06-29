@@ -308,22 +308,26 @@ export function NodeBreakdown({ nodes }: NodeBreakdownProps) {
           {nodes.map((node) => (
             <Card
               key={node.id}
+
               className={`cursor-pointer transition-all duration-200 border-slate-700/50 hover:border-slate-600 ${
                 selectedNode?.id === node.id
                   ? "bg-slate-800/80 border-blue-500/50 shadow-lg shadow-blue-500/10"
                   : "bg-slate-800/40 hover:bg-slate-800/60"
+
               }`}
               onClick={() => setSelectedNode(node)}
             >
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
+
                   <div className="p-2 rounded-lg bg-slate-700/50">
                     <Factory className="w-5 h-5 text-blue-400" />
+
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-white text-sm truncate">{node.name}</h4>
-                      <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                      <h4 className="font-bold text-gray-800 dark:text-white text-sm truncate">{node.name}</h4>
+                      <ChevronRight className="w-4 h-4 text-gray-400 dark:text-slate-400 flex-shrink-0" />
                     </div>
 
                     <div className="flex items-center gap-2 mb-3">
@@ -333,12 +337,14 @@ export function NodeBreakdown({ nodes }: NodeBreakdownProps) {
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs">
+
                         <span className="text-slate-400">Confidence</span>
                         <span className="text-white">{Math.round((node.confidence || 0) * 100)}%</span>
                       </div>
                       <Progress value={(node.confidence || 0) * 100} className="h-1.5 bg-slate-700" />
 
-                      <div className="flex justify-between text-xs text-slate-400">
+
+                      <div className="flex justify-between text-xs text-gray-600 dark:text-slate-400">
                         <span>
                           {node.tasks?.filter(t => t.status === 'Done').length || 0}/{node.tasks?.length || 0} tasks
                         </span>
