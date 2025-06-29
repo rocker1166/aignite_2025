@@ -41,6 +41,7 @@ import { ExecutionFlowMap } from "@/components/strategy/execution-flow-map"
 import { StrategyKanban } from "@/components/strategy/strategy-kanban"
 import { ExecutionAssistantAgent } from "@/components/strategy/execution-assistant-agent"
 import { DependencyGraphModal } from "@/components/strategy/dependency-graph-modal"
+import { supabaseClient } from "@/lib/supabase/client"
 import { LiveExecutionStats } from "@/components/strategy/live-execution-stats"
 import { useToast } from "@/hooks/use-toast"
 
@@ -90,15 +91,56 @@ export default function StrategyPage() {
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   // Get strategy ID from URL params
   const strategyId = searchParams.get('strategyId')
+
+  // Get current user ID
+  const getCurrentUser = async () => {
+    try {
+      const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+      
+      if (authError || !user) {
+        console.error('❌ Authentication failed:', authError)
+        router.push('/signin')
+        return null
+      }
+
+      // Get user ID from users table using email
+      const { data: userData, error } = await supabaseClient
+        .from('users')
+        .select('id')
+        .eq('email', user.email)
+        .single()
+
+      if (error || !userData) {
+        console.error('❌ Error fetching user data:', error)
+        return null
+      }
+
+      console.log('✅ Current user ID:', userData.id)
+      setCurrentUserId(userData.id)
+      return userData.id
+    } catch (error) {
+      console.error('❌ Error getting current user:', error)
+      return null
+    }
+  }
 
   // Fetch strategies list
   const fetchStrategiesList = async () => {
     try {
       console.log('🔍 Fetching strategies list...')
-      const response = await fetch('/api/strategy/list')
+      
+      // Ensure we have the current user ID
+      const userId = currentUserId || await getCurrentUser()
+      if (!userId) {
+        setError('Unable to identify current user')
+        return
+      }
+
+      const response = await fetch(`/api/strategy/list?userId=${userId}`)
       const result = await response.json()
       
       console.log('📊 Strategy list result:', result)
@@ -215,8 +257,18 @@ export default function StrategyPage() {
   useEffect(() => {
     const loadStrategies = async () => {
       setLoading(true)
-      await fetchStrategiesList()
-      setLoading(false)
+      try {
+        // First get the current user, then fetch strategies
+        const userId = await getCurrentUser()
+        if (userId) {
+          await fetchStrategiesList()
+        }
+      } catch (error) {
+        console.error('❌ Error loading strategies:', error)
+        setError('Failed to load strategies')
+      } finally {
+        setLoading(false)
+      }
     }
     loadStrategies()
   }, [])
