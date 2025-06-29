@@ -345,38 +345,43 @@ export function ProfessionalTemplateSelection({
                          template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          template.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
     
-    const matchesCategory = selectedCategory === "all" || template.category === selectedCategory
+    // Risk-based filtering logic
+    let matchesCategory = true
+    if (selectedCategory === "high-risk") {
+      matchesCategory = template.severity === 'high' || template.severity === 'critical'
+    } else if (selectedCategory === "moderate-risk") {
+      matchesCategory = template.severity === 'medium'
+    } else if (selectedCategory === "low-risk") {
+      matchesCategory = template.severity === 'low'
+    } else if (selectedCategory === "operational") {
+      matchesCategory = template.tags.some(tag => 
+        ['operational', 'supply shortage', 'demand surge', 'logistics'].includes(tag.toLowerCase())
+      )
+    } else if (selectedCategory === "external") {
+      matchesCategory = template.tags.some(tag => 
+        ['natural disaster', 'geopolitical', 'regulatory', 'economic'].includes(tag.toLowerCase())
+      )
+    }
+    // "all" category shows everything
     
     return matchesSearch && matchesCategory
   })
 
   const groupedTemplates = {
     recommended: filteredTemplates.filter(t => t.isRecommended),
-    popular: filteredTemplates.filter(t => t.category === 'popular' && !t.isRecommended),
-    industry: filteredTemplates.filter(t => t.category === 'industry'),
-    advanced: filteredTemplates.filter(t => t.category === 'advanced')
+    highRisk: filteredTemplates.filter(t => (t.severity === 'high' || t.severity === 'critical') && !t.isRecommended),
+    moderateRisk: filteredTemplates.filter(t => t.severity === 'medium'),
+    operational: filteredTemplates.filter(t => t.tags.some(tag => 
+      ['operational', 'supply shortage', 'demand surge', 'logistics'].includes(tag.toLowerCase())
+    ))
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header Section */}
-      {/* <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 text-sm font-medium">
-          <Layers className="w-4 h-4" />
-          Choose Your Starting Point
-        </div>
-        <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-          Scenario Templates
-        </h1>
-        <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-          Select from pre-built scenarios tailored for common supply chain risks, or start fresh with your own custom configuration.
-        </p>
-      </div> */}
-
+    <div className="space-y-12">
       {/* Action Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
         <GlassmorphicCard 
-          className="group"
+          className="group hover:scale-105 transition-all duration-300"
           onClick={() => {
             const templateSection = document.getElementById('template-section')
             if (templateSection) {
@@ -384,77 +389,59 @@ export function ProfessionalTemplateSelection({
             }
           }}
         >
-          <CardHeader className="text-center pb-4">
-            <div className="mx-auto w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-              <FileText className="w-6 h-6 text-white" />
+          <CardHeader className="text-center pb-6">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg">
+              <FileText className="w-8 h-8 text-white" />
             </div>
-            <CardTitle className="text-lg">Template Gallery</CardTitle>
-            <CardDescription>Browse curated scenarios</CardDescription>
+            <CardTitle className="text-xl font-semibold">Template Gallery</CardTitle>
+            <CardDescription className="text-base">Browse curated scenarios</CardDescription>
           </CardHeader>
         </GlassmorphicCard>
 
-        <GlassmorphicCard className="group" onClick={onAIScenarios}>
-          <CardHeader className="text-center pb-4">
-            <div className="mx-auto w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-              <Sparkles className="w-6 h-6 text-white" />
+        <GlassmorphicCard className="group hover:scale-105 transition-all duration-300" onClick={onAIScenarios}>
+          <CardHeader className="text-center pb-6">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg">
+              <Sparkles className="w-8 h-8 text-white" />
             </div>
-            <CardTitle className="text-lg">AI Scenarios</CardTitle>
-            <CardDescription>Get intelligent suggestions</CardDescription>
+            <CardTitle className="text-xl font-semibold">AI Scenarios</CardTitle>
+            <CardDescription className="text-base">Get intelligent suggestions</CardDescription>
           </CardHeader>
         </GlassmorphicCard>
 
-        <GlassmorphicCard className="group" onClick={onStartFromScratch}>
-          <CardHeader className="text-center pb-4">
-            <div className="mx-auto w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-              <Plus className="w-6 h-6 text-white" />
+        <GlassmorphicCard className="group hover:scale-105 transition-all duration-300" onClick={onStartFromScratch}>
+          <CardHeader className="text-center pb-6">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg">
+              <Plus className="w-8 h-8 text-white" />
             </div>
-            <CardTitle className="text-lg">Start from Scratch</CardTitle>
-            <CardDescription>Build a custom scenario</CardDescription>
+            <CardTitle className="text-xl font-semibold">Start from Scratch</CardTitle>
+            <CardDescription className="text-base">Build a custom scenario</CardDescription>
           </CardHeader>
         </GlassmorphicCard>
-      </div>
-
-      {/* Search and Filter */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search scenarios by name, description, or tags..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-white/30 dark:border-slate-700/30"
-          />
-        </div>
-        
-        <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full sm:w-auto">
-          <TabsList className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-white/30 dark:border-slate-700/30">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="popular">Popular</TabsTrigger>
-            <TabsTrigger value="industry">Industry</TabsTrigger>
-            <TabsTrigger value="advanced">Advanced</TabsTrigger>
-          </TabsList>
-        </Tabs>
       </div>
 
       {/* Forecast Scenarios Section */}
-      <div className="space-y-6">
+      <div className="space-y-8">
         <ForecastScenarios onSelectScenario={onSelectScenario} />
       </div>
 
       {/* Recommended Templates */}
       {groupedTemplates.recommended.length > 0 && (
-        <div className="space-y-4 pb-8">
-          <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-amber-600" />
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
-              Recommended for You
-            </h2>
-            <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
-              Most Popular
-            </Badge>
+        <div className="space-y-6 py-8">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center">
+              <Shield className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                Recommended for You
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Most popular scenarios based on your profile
+              </p>
+            </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {groupedTemplates.recommended.map((template) => (
               <TemplateCard
                 key={template.id}
@@ -469,28 +456,81 @@ export function ProfessionalTemplateSelection({
         </div>
       )}
 
+      {/* Search and Filter */}
+      <div className="space-y-6 py-8">
+        <div className="flex items-center gap-3">
+          <Search className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            Find Your Scenario
+          </h3>
+        </div>
+        
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              placeholder="Search scenarios by name, description, or tags..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12 pr-4 py-3 text-base bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm border-white/40 dark:border-slate-700/40 rounded-xl focus:ring-2 focus:ring-blue-500/20"
+            />
+          </div>
+          
+          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full lg:w-auto">
+            <TabsList className="grid grid-cols-2 lg:grid-cols-5 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm border-white/40 dark:border-slate-700/40 p-1 rounded-xl">
+              <TabsTrigger value="all" className="rounded-lg text-sm font-medium">
+                All
+              </TabsTrigger>
+              <TabsTrigger value="high-risk" className="rounded-lg text-sm font-medium">
+                High Risk
+              </TabsTrigger>
+              <TabsTrigger value="moderate-risk" className="rounded-lg text-sm font-medium">
+                Moderate
+              </TabsTrigger>
+              <TabsTrigger value="low-risk" className="rounded-lg text-sm font-medium">
+                Low Risk
+              </TabsTrigger>
+              <TabsTrigger value="operational" className="rounded-lg text-sm font-medium">
+                Operational
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      </div>
+
       {/* All Templates */}
-      <div className="space-y-4" id="template-section">
-        <div className="flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-blue-600" />
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
-            All Scenario Templates
-          </h2>
-          <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+      <div className="space-y-8" id="template-section">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                All Scenario Templates
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Professional scenarios designed by supply chain experts
+              </p>
+            </div>
+          </div>
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-4 py-2 text-sm font-medium">
             {filteredTemplates.length} available
           </Badge>
         </div>
 
         {filteredTemplates.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-              <Search className="w-8 h-8 text-gray-400" />
+          <div className="text-center py-16">
+            <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center">
+              <Search className="w-12 h-12 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No scenarios found</h3>
-            <p className="text-gray-500 dark:text-gray-400">Try adjusting your search terms or filters</p>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">No scenarios found</h3>
+            <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto leading-relaxed">
+              Try adjusting your search terms or selecting a different risk category to find relevant scenarios.
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredTemplates.map((template) => (
               <TemplateCard
                 key={template.id}

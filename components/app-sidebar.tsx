@@ -63,7 +63,6 @@ export function AppSidebar() {
     { href: "/dashboard", icon: Home, label: "Dashboard", isActive: pathname === "/dashboard" },
     { href: "/digital-twin", icon: Network, label: "Digital Twin", isActive: pathname === "/digital-twin" },
     { href: "/simulation", icon: LineChart, label: "Simulation", isActive: pathname === "/simulation" },
-    { href: "/orchestrator", icon: BarChart2, label: "orchestrato", isActive: pathname === "/orchestrator" },
 
     { href: "/strategy", icon: Settings, label: "Strategy", isActive: pathname === "/strategy" },
   ]
