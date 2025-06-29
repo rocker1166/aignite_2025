@@ -84,8 +84,8 @@ export function DependencyGraphModal({ nodes }: DependencyGraphModalProps) {
     }
   }
 
-  const allTasks = nodes.flatMap(node => 
-    node.tasks.map(task => ({
+  const allTasks = (nodes || []).flatMap(node => 
+    (node.tasks || []).map(task => ({
       ...task,
       nodeName: node.name
     }))

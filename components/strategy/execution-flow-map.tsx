@@ -31,6 +31,19 @@ interface ExecutionFlowMapProps {
 export function ExecutionFlowMap({ nodes }: ExecutionFlowMapProps) {
   const [hoveredNode, setHoveredNode] = useState<Node | null>(null)
 
+  // Handle empty or undefined nodes
+  if (!nodes || nodes.length === 0) {
+    return (
+      <Card className="bg-slate-800/60 border-slate-700/50">
+        <CardContent className="p-8 text-center">
+          <MapPin className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-slate-300 mb-2">No Execution Nodes</h3>
+          <p className="text-slate-400">No strategy execution nodes have been generated yet.</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   const getRiskLevelColor = (riskLevel: string) => {
     switch (riskLevel) {
       case "CRITICAL":

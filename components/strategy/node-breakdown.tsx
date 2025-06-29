@@ -18,8 +18,28 @@ import {
   Zap,
 } from "lucide-react"
 
+interface Task {
+  id: number
+  title: string
+  status: string
+  deadline: string
+  priority: string
+  assignee: string
+  blocker?: string
+}
+
+interface Node {
+  id: number
+  name: string
+  riskLevel: string
+  confidence: number
+  status: string
+  assignedTeam: string
+  tasks: Task[]
+}
+
 interface NodeBreakdownProps {
-  strategy: any
+  nodes: Node[]
 }
 
 const supplyChainNodes = [
@@ -199,8 +219,21 @@ const supplyChainNodes = [
   },
 ]
 
-export function NodeBreakdown({ strategy }: NodeBreakdownProps) {
-  const [selectedNode, setSelectedNode] = useState(supplyChainNodes[0])
+export function NodeBreakdown({ nodes }: NodeBreakdownProps) {
+  const [selectedNode, setSelectedNode] = useState<Node | null>(nodes?.[0] || null)
+
+  // Handle empty or undefined nodes
+  if (!nodes || nodes.length === 0) {
+    return (
+      <Card className="bg-slate-800/60 border-slate-700/50">
+        <CardContent className="p-8 text-center">
+          <Target className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-slate-300 mb-2">No Strategy Nodes</h3>
+          <p className="text-slate-400">No strategy nodes have been generated yet.</p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -237,9 +270,26 @@ export function NodeBreakdown({ strategy }: NodeBreakdownProps) {
   }
 
   const getRiskColor = (risk: string) => {
-    switch (risk) {
-      case "high":
+    switch (risk.toLowerCase()) {
+      case "critical":
         return "bg-red-500/20 text-red-400 border-red-500/30"
+      case "high":
+        return "bg-orange-500/20 text-orange-400 border-orange-500/30"
+      case "medium":
+        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+      case "low":
+        return "bg-green-500/20 text-green-400 border-green-500/30"
+      default:
+        return "bg-gray-500/20 text-gray-400 border-gray-500/30"
+    }
+  }
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority.toLowerCase()) {
+      case "critical":
+        return "bg-red-500/20 text-red-400 border-red-500/30"
+      case "high":
+        return "bg-orange-500/20 text-orange-400 border-orange-500/30"
       case "medium":
         return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
       case "low":
@@ -254,12 +304,12 @@ export function NodeBreakdown({ strategy }: NodeBreakdownProps) {
       <div className="grid grid-cols-3 gap-6 h-[calc(100vh-200px)]">
         {/* Node List */}
         <div className="space-y-3 overflow-y-auto">
-          <h3 className="text-lg font-semibold text-white mb-4">Supply Chain Nodes</h3>
-          {supplyChainNodes.map((node) => (
+          <h3 className="text-lg font-semibold text-white mb-4">Strategy Execution Nodes</h3>
+          {nodes.map((node) => (
             <Card
               key={node.id}
               className={`cursor-pointer transition-all duration-200 border-slate-700/50 hover:border-slate-600 ${
-                selectedNode.id === node.id
+                selectedNode?.id === node.id
                   ? "bg-slate-800/80 border-blue-500/50 shadow-lg shadow-blue-500/10"
                   : "bg-slate-800/40 hover:bg-slate-800/60"
               }`}
@@ -268,7 +318,7 @@ export function NodeBreakdown({ strategy }: NodeBreakdownProps) {
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-lg bg-slate-700/50">
-                    <node.icon className="w-5 h-5 text-blue-400" />
+                    <Factory className="w-5 h-5 text-blue-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
@@ -278,21 +328,21 @@ export function NodeBreakdown({ strategy }: NodeBreakdownProps) {
 
                     <div className="flex items-center gap-2 mb-3">
                       <Badge className={`text-xs ${getStatusColor(node.status)}`}>{node.status}</Badge>
-                      <span className={`text-xs font-medium ${getImpactColor(node.impact)}`}>{node.impact} impact</span>
+                      <Badge className={`text-xs ${getRiskColor(node.riskLevel)}`}>{node.riskLevel} risk</Badge>
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs">
-                        <span className="text-slate-400">Progress</span>
-                        <span className="text-white">{node.progress}%</span>
+                        <span className="text-slate-400">Confidence</span>
+                        <span className="text-white">{Math.round((node.confidence || 0) * 100)}%</span>
                       </div>
-                      <Progress value={node.progress} className="h-1.5 bg-slate-700" />
+                      <Progress value={(node.confidence || 0) * 100} className="h-1.5 bg-slate-700" />
 
                       <div className="flex justify-between text-xs text-slate-400">
                         <span>
-                          {node.completedActions}/{node.actions} actions
+                          {node.tasks?.filter(t => t.status === 'Done').length || 0}/{node.tasks?.length || 0} tasks
                         </span>
-                        <span>{node.estimatedRecovery}</span>
+                        <span>Team: {node.assignedTeam}</span>
                       </div>
                     </div>
                   </div>
@@ -304,137 +354,119 @@ export function NodeBreakdown({ strategy }: NodeBreakdownProps) {
 
         {/* Node Details */}
         <div className="col-span-2 space-y-6 overflow-y-auto">
-          {/* Node Header */}
-          <Card className="bg-gradient-to-r from-slate-800/50 to-slate-700/30 border-slate-700/50">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-slate-700/50">
-                    <selectedNode.icon className="w-8 h-8 text-blue-400" />
+          {selectedNode ? (
+            <>
+              {/* Node Header */}
+              <Card className="bg-gradient-to-r from-slate-800/50 to-slate-700/30 border-slate-700/50">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 rounded-xl bg-slate-700/50">
+                        <Factory className="w-8 h-8 text-blue-400" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-white mb-1">{selectedNode.name}</h2>
+                        <p className="text-slate-300 text-sm">Assigned to: {selectedNode.assignedTeam}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getStatusColor(selectedNode.status)}>{selectedNode.status}</Badge>
+                      <Badge className={getRiskColor(selectedNode.riskLevel)}>{selectedNode.riskLevel} risk</Badge>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-white mb-1">{selectedNode.name}</h2>
-                    <p className="text-slate-300 text-sm">{selectedNode.details.description}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge className={getStatusColor(selectedNode.status)}>{selectedNode.status}</Badge>
-                  <Badge className={getRiskColor(selectedNode.riskLevel)}>{selectedNode.riskLevel} risk</Badge>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-4 gap-4">
-                <div className="bg-slate-800/40 rounded-lg p-3 border border-slate-700/30">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Target className="w-4 h-4 text-blue-400" />
-                    <span className="text-slate-400 text-xs">Progress</span>
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="bg-slate-800/40 rounded-lg p-3 border border-slate-700/30">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Target className="w-4 h-4 text-blue-400" />
+                        <span className="text-slate-400 text-xs">Confidence</span>
+                      </div>
+                      <div className="text-lg font-bold text-white">{Math.round((selectedNode.confidence || 0) * 100)}%</div>
+                    </div>
+                    <div className="bg-slate-800/40 rounded-lg p-3 border border-slate-700/30">
+                      <div className="flex items-center gap-2 mb-1">
+                        <BarChart3 className="w-4 h-4 text-green-400" />
+                        <span className="text-slate-400 text-xs">Total Tasks</span>
+                      </div>
+                      <div className="text-lg font-bold text-white">{selectedNode.tasks?.length || 0}</div>
+                    </div>
+                    <div className="bg-slate-800/40 rounded-lg p-3 border border-slate-700/30">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Clock className="w-4 h-4 text-orange-400" />
+                        <span className="text-slate-400 text-xs">Status</span>
+                      </div>
+                      <div className="text-lg font-bold text-white">{selectedNode.status}</div>
+                    </div>
+                    <div className="bg-slate-800/40 rounded-lg p-3 border border-slate-700/30">
+                      <div className="flex items-center gap-2 mb-1">
+                        <CheckCircle className="w-4 h-4 text-purple-400" />
+                        <span className="text-slate-400 text-xs">Completed</span>
+                      </div>
+                      <div className="text-lg font-bold text-white">
+                        {selectedNode.tasks?.filter(t => t.status === 'Done').length || 0}/{selectedNode.tasks?.length || 0}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-lg font-bold text-white">{selectedNode.progress}%</div>
-                </div>
-                <div className="bg-slate-800/40 rounded-lg p-3 border border-slate-700/30">
-                  <div className="flex items-center gap-2 mb-1">
-                    <BarChart3 className="w-4 h-4 text-green-400" />
-                    <span className="text-slate-400 text-xs">Capacity</span>
-                  </div>
-                  <div className="text-lg font-bold text-white">{selectedNode.currentCapacity}%</div>
-                </div>
-                <div className="bg-slate-800/40 rounded-lg p-3 border border-slate-700/30">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Clock className="w-4 h-4 text-orange-400" />
-                    <span className="text-slate-400 text-xs">Recovery</span>
-                  </div>
-                  <div className="text-lg font-bold text-white">{selectedNode.estimatedRecovery}</div>
-                </div>
-                <div className="bg-slate-800/40 rounded-lg p-3 border border-slate-700/30">
-                  <div className="flex items-center gap-2 mb-1">
-                    <CheckCircle className="w-4 h-4 text-purple-400" />
-                    <span className="text-slate-400 text-xs">Actions</span>
-                  </div>
-                  <div className="text-lg font-bold text-white">
-                    {selectedNode.completedActions}/{selectedNode.actions}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
 
-          {/* Capacity Recovery Chart */}
-          <Card className="bg-slate-800/40 border-slate-700/50">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-green-400" />
-                Capacity Recovery
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Current Capacity</span>
-                  <span className="text-white font-medium">{selectedNode.currentCapacity}%</span>
-                </div>
-                <Progress value={selectedNode.currentCapacity} className="h-3 bg-slate-700" />
-
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Target Capacity</span>
-                  <span className="text-white font-medium">{selectedNode.targetCapacity}%</span>
-                </div>
-                <Progress value={selectedNode.targetCapacity} className="h-2 bg-slate-700" />
+              {/* Task List */}
+              <Card className="bg-slate-800/40 border-slate-700/50">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-blue-400" />
+                    Node Tasks ({selectedNode.tasks?.length || 0})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {selectedNode.tasks && selectedNode.tasks.length > 0 ? (
+                    <div className="space-y-4">
+                      {selectedNode.tasks.map((task, index) => (
+                        <Card key={task.id || index} className="bg-slate-800/60 border-slate-700/50">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h4 className="font-medium text-white mb-1">{task.title}</h4>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Badge className={`text-xs ${getStatusColor(task.status)}`}>{task.status}</Badge>
+                                  <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>{task.priority}</Badge>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 text-sm text-slate-400">
+                                  <div>
+                                    <span className="font-medium">Assignee:</span> {task.assignee}
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Deadline:</span> {task.deadline}
+                                  </div>
+                                  {task.blocker && (
+                                    <div className="col-span-2">
+                                      <span className="font-medium text-red-400">Blocker:</span> {task.blocker}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-slate-400">
+                      <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>No tasks available for this node</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center text-slate-400">
+                <Factory className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>Select a node to view details</p>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Key Actions */}
-          <Card className="bg-slate-800/40 border-slate-700/50">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Zap className="w-5 h-5 text-yellow-400" />
-                Key Recovery Actions
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {selectedNode.details.keyActions.map((action, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-slate-700/30 border border-slate-600/30"
-                  >
-                    <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
-                    <span className="text-white">{action}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Impact Metrics */}
-          <Card className="bg-slate-800/40 border-slate-700/50">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-blue-400" />
-                Impact Metrics
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 rounded-lg bg-slate-700/30 border border-slate-600/30">
-                  <div className="text-2xl font-bold text-red-400 mb-1">{selectedNode.details.metrics.downtime}</div>
-                  <div className="text-slate-400 text-sm">Total Downtime</div>
-                </div>
-                <div className="text-center p-4 rounded-lg bg-slate-700/30 border border-slate-600/30">
-                  <div className="text-2xl font-bold text-orange-400 mb-1">
-                    {selectedNode.details.metrics.costImpact}
-                  </div>
-                  <div className="text-slate-400 text-sm">Cost Impact</div>
-                </div>
-                <div className="text-center p-4 rounded-lg bg-slate-700/30 border border-slate-600/30">
-                  <div className="text-2xl font-bold text-blue-400 mb-1">
-                    {selectedNode.details.metrics.recoveryTime}
-                  </div>
-                  <div className="text-slate-400 text-sm">Recovery Time</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          )}
         </div>
       </div>
     </div>
