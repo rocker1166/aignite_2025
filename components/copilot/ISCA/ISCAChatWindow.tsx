@@ -21,6 +21,13 @@ interface ISCAChatWindowProps {
   userName: string;
 }
 
+/**
+ * Renders the ISCA chat window interface for interacting with the Intelligent Supply Chain Assistant.
+ *
+ * Displays a chat UI with message history, input field, and controls for sending messages and closing the window. Filters out empty or whitespace-only messages from the display. Shows a welcome message when there are no messages and a loading indicator when a response is being generated.
+ *
+ * @returns The chat window React element, or `null` if the window is closed.
+ */
 export function ISCAChatWindow({
   isOpen,
   onClose,
