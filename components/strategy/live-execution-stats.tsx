@@ -393,38 +393,7 @@ export function LiveExecutionStats({ nodes, strategy, compact }: LiveExecutionSt
         </CardContent>
       </Card>
 
-      {/* Recent Activity */}
-      <Card className="bg-white border-gray-200 shadow-md dark:bg-slate-800/60 dark:border-slate-700/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-black dark:text-white">
-            <GitBranch className="w-5 h-5 text-purple-400" />
-            Recent Activity
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[
-              { action: "Task completed", details: "Secure alternate port clearance", time: "2 min ago", status: "success" },
-              { action: "Bottleneck resolved", details: "Budget approval received for TSMC", time: "15 min ago", status: "warning" },
-              { action: "New task added", details: "Emergency supplier evaluation", time: "1 hour ago", status: "info" },
-              { action: "Risk level updated", details: "Port of LA risk reduced to MEDIUM", time: "2 hours ago", status: "success" }
-            ].map((activity, index) => (
-              <div key={index} className="flex items-center gap-4 p-3 bg-gray-200 dark:bg-slate-700/30 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600/30 transition-colors duration-200">
-                <div className={`w-2 h-2 rounded-full ${
-                  activity.status === "success" ? "bg-green-400" :
-                  activity.status === "warning" ? "bg-yellow-400" :
-                  activity.status === "info" ? "bg-blue-400" : "bg-gray-400"
-                }`} />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-700 dark:text-slate-300">{activity.action}</p>
-                  <p className="text-xs text-gray-600 dark:text-slate-400">{activity.details}</p>
-                </div>
-                <span className="text-xs text-gray-500 dark:text-slate-500">{activity.time}</span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+
     </div>
   )
 }

@@ -1,18 +1,8 @@
-let userConfig = undefined
-try {
-  // try to import ESM first
-  userConfig = await import('./v0-user-next.config.mjs')
-} catch (e) {
-  try {
-    // fallback to CJS import
-    userConfig = await import("./v0-user-next.config");
-  } catch (innerError) {
-    // ignore error
-  }
-}
+import {withSentryConfig} from '@sentry/nextjs';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  devIndicators: false,
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -22,30 +12,32 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  experimental: {
-    webpackBuildWorker: true,
-    parallelServerBuildTraces: true,
-    parallelServerCompiles: true,
-  },
-}
+  serverExternalPackages: ['@sentry/node', '@opentelemetry/instrumentation'],
+  turbopack: {},
+};
 
-if (userConfig) {
-  // ESM imports will have a "default" property
-  const config = userConfig.default || userConfig
+export default withSentryConfig(nextConfig, {
+// For all available options, see:
+// https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
-  for (const key in config) {
-    if (
-      typeof nextConfig[key] === 'object' &&
-      !Array.isArray(nextConfig[key])
-    ) {
-      nextConfig[key] = {
-        ...nextConfig[key],
-        ...config[key],
-      }
-    } else {
-      nextConfig[key] = config[key]
-    }
-  }
-}
+org: process.env.SENTRY_ORG,
+project:process.env.SENTRY_PROJECT,
 
-export default nextConfig
+// Only print logs for uploading source maps in CI
+silent: !process.env.CI,
+
+// For all available options, see:
+// https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+
+// Upload a larger set of source maps for prettier stack traces (increases build time)
+widenClientFileUpload: true,
+
+// Uncomment to route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
+// This can increase your server load as well as your hosting bill.
+// Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
+// side errors will fail.
+// tunnelRoute: "/monitoring",
+
+// Automatically tree-shake Sentry logger statements to reduce bundle size
+disableLogger: true,
+});

@@ -26,7 +26,6 @@ import {
   Pause,
   MessageSquare,
   BarChart3,
-  Calendar,
   GitBranch,
   Zap,
   Shield,
@@ -40,9 +39,8 @@ import { TaskBoard } from "@/components/strategy/task-board"
 import { StrategyMetrics } from "@/components/strategy/strategy-metrics"
 import { ExecutionFlowMap } from "@/components/strategy/execution-flow-map"
 import { StrategyKanban } from "@/components/strategy/strategy-kanban"
-import { NodeGanttTimeline } from "@/components/strategy/node-gantt-timeline"
-import { ExecutionAssistantAgent } from "@/components/strategy/execution-assistant-agent"
 import { DependencyGraphModal } from "@/components/strategy/dependency-graph-modal"
+import { supabaseClient } from "@/lib/supabase/client"
 import { LiveExecutionStats } from "@/components/strategy/live-execution-stats"
 import { useToast } from "@/hooks/use-toast"
 
@@ -88,19 +86,59 @@ export default function StrategyPage() {
   const [strategies, setStrategies] = useState([defaultStrategy])
   const [selectedStrategy, setSelectedStrategy] = useState(defaultStrategy)
   const [activeTab, setActiveTab] = useState("execution")
-  const [showAIAssistant, setShowAIAssistant] = useState(false)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   // Get strategy ID from URL params
   const strategyId = searchParams.get('strategyId')
+
+  // Get current user ID
+  const getCurrentUser = async () => {
+    try {
+      const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+      
+      if (authError || !user) {
+        console.error('❌ Authentication failed:', authError)
+        router.push('/signin')
+        return null
+      }
+
+      // Get user ID from users table using email
+      const { data: userData, error } = await supabaseClient
+        .from('users')
+        .select('id')
+        .eq('email', user.email)
+        .single()
+
+      if (error || !userData) {
+        console.error('❌ Error fetching user data:', error)
+        return null
+      }
+
+      console.log('✅ Current user ID:', userData.id)
+      setCurrentUserId(userData.id)
+      return userData.id
+    } catch (error) {
+      console.error('❌ Error getting current user:', error)
+      return null
+    }
+  }
 
   // Fetch strategies list
   const fetchStrategiesList = async () => {
     try {
       console.log('🔍 Fetching strategies list...')
-      const response = await fetch('/api/strategy/list')
+      
+      // Ensure we have the current user ID
+      const userId = currentUserId || await getCurrentUser()
+      if (!userId) {
+        setError('Unable to identify current user')
+        return
+      }
+
+      const response = await fetch(`/api/strategy/list?userId=${userId}`)
       const result = await response.json()
       
       console.log('📊 Strategy list result:', result)
@@ -217,8 +255,18 @@ export default function StrategyPage() {
   useEffect(() => {
     const loadStrategies = async () => {
       setLoading(true)
-      await fetchStrategiesList()
-      setLoading(false)
+      try {
+        // First get the current user, then fetch strategies
+        const userId = await getCurrentUser()
+        if (userId) {
+          await fetchStrategiesList()
+        }
+      } catch (error) {
+        console.error('❌ Error loading strategies:', error)
+        setError('Failed to load strategies')
+      } finally {
+        setLoading(false)
+      }
     }
     loadStrategies()
   }, [])
@@ -346,13 +394,6 @@ export default function StrategyPage() {
               Export PDF
             </Button>
             <DependencyGraphModal nodes={selectedStrategy.nodes || []} />
-            <Button 
-              onClick={() => setShowAIAssistant(!showAIAssistant)}
-              className="bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
-            >
-              <MessageSquare className="w-4 h-4 mr-2" />
-              AI Assistant
-            </Button>
           </div>
         </div>
       </div>
@@ -456,13 +497,6 @@ export default function StrategyPage() {
             <div className="border-b border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm px-6 py-4">
               <TabsList className="bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 p-1">
                 <TabsTrigger
-                  value="execution"
-                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
-                >
-                  <Zap className="w-4 h-4 mr-2" />
-                  Execution
-                </TabsTrigger>
-                <TabsTrigger
                   value="overview"
                   className="data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
                 >
@@ -475,13 +509,6 @@ export default function StrategyPage() {
                 >
                   <GitBranch className="w-4 h-4 mr-2" />
                   Kanban
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="timeline" 
-                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
-                >
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Timeline
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -580,20 +607,6 @@ export default function StrategyPage() {
                 </div>
               </div>
 
-              <TabsContent value="execution" className="h-full m-0">
-                <div className="p-6 space-y-8">
-                  {/* Interactive Node Execution Map */}
-                  <div className="animate-fade-in-up">
-                    <ExecutionFlowMap nodes={selectedStrategy.nodes || []} />
-                  </div>
-
-                  {/* Node Breakdown Accordion */}
-                  <div className="animate-fade-in-up animation-delay-200">
-                    <NodeBreakdown nodes={selectedStrategy.nodes || []} />
-                  </div>
-                </div>
-              </TabsContent>
-
               <TabsContent value="overview" className="h-full m-0">
                 <div className="p-6 space-y-8">
                   <StrategyOverview strategy={selectedStrategy} />
@@ -610,27 +623,11 @@ export default function StrategyPage() {
                   <StrategyKanban nodes={selectedStrategy.nodes || []} />
                 </div>
               </TabsContent>
-
-              <TabsContent value="timeline" className="h-full m-0">
-                <div className="p-6">
-                  <NodeGanttTimeline nodes={selectedStrategy.nodes || []} />
-                </div>
-              </TabsContent>
                 </>
               )}
             </div>
           </Tabs>
         </div>
-
-        {/* AI Assistant Sidebar */}
-        {showAIAssistant && (
-          <div className="w-96 border-l border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm animate-slide-in-right">
-            <ExecutionAssistantAgent 
-              strategy={selectedStrategy}
-              onClose={() => setShowAIAssistant(false)}
-            />
-          </div>
-        )}
       </div>
 
       <style jsx>{`

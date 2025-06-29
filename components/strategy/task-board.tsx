@@ -156,15 +156,15 @@ export function TaskBoard({ strategy }: TaskBoardProps) {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "critical":
-        return "bg-red-500/20 text-red-400 border-red-500/30"
+        return "bg-red-500/20 text-red-600 border-red-500/30 dark:text-red-400"
       case "high":
-        return "bg-orange-500/20 text-orange-400 border-orange-500/30"
+        return "bg-orange-500/20 text-orange-600 border-orange-500/30 dark:text-orange-400"
       case "medium":
-        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+        return "bg-yellow-500/20 text-yellow-600 border-yellow-500/30 dark:text-yellow-400"
       case "low":
-        return "bg-green-500/20 text-green-400 border-green-500/30"
+        return "bg-green-500/20 text-green-600 border-green-500/30 dark:text-green-400"
       default:
-        return "bg-gray-500/20 text-gray-400 border-gray-500/30"
+        return "bg-gray-500/20 text-gray-600 border-gray-500/30 dark:text-gray-400"
     }
   }
 

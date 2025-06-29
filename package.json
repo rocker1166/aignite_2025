@@ -2,11 +2,14 @@
   "name": "IntelliSupply",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbo ",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "sentry:setup": "node scripts/add-sentry-to-apis.mjs",
+    "sentry:check": "node scripts/check-api-routes.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.2.11",
@@ -48,6 +51,7 @@
     "@radix-ui/react-toggle-group": "^1.1.1",
     "@radix-ui/react-tooltip": "^1.2.0",
     "@remixicon/react": "^4.6.0",
+    "@sentry/nextjs": "^9.33.0",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "latest",
     "@tavily/core": "^0.5.7",
@@ -73,6 +77,7 @@
     "embla-carousel-react": "8.5.1",
     "exceljs": "^4.4.0",
     "framer-motion": "^12.7.3",
+    "graphql": "^16.11.0",
     "input-otp": "1.4.1",
     "js-cookie": "^3.0.5",
     "lodash": "^4.17.21",
@@ -82,7 +87,7 @@
     "marked": "^15.0.12",
     "media-chrome": "^4.11.1",
     "mem0ai": "^2.1.31",
-    "next": "15.2.4",
+    "next": "15.3.0",
     "next-themes": "latest",
     "nuqs": "^2.4.3",
     "open-graph-scraper": "^6.10.0",
@@ -104,6 +109,7 @@
     "rehype-raw": "^7.0.0",
     "rehype-sanitize": "^6.0.0",
     "remark-gfm": "^4.0.1",
+    "require-in-the-middle": "^7.5.2",
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.5.5",
     "tailwind-variants": "^1.0.0",

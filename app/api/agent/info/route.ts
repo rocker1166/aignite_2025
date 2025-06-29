@@ -197,11 +197,29 @@ class ProductionIntelligenceAgent {
         const downstreamNodes = nodeConnections.downstream;
         const isCriticalPath = nodeConnections.criticalPath;
         
+        // Enhanced edge risk analysis
+        const allNodeEdges = supplyChainData.edges.filter((edge: any) => 
+          edge.source === node.node_id || edge.target === node.node_id
+        );
+        
+        const highRiskEdges = allNodeEdges.filter((edge: any) => 
+          edge.data?.riskMultiplier > 1.5
+        );
+        
+        const edgeByTransportMode = allNodeEdges.reduce((acc: any, edge: any) => {
+          const mode = edge.data?.transportMode || 'unknown';
+          acc[mode] = (acc[mode] || 0) + 1;
+          return acc;
+        }, {});
+
         networkContext = `
         SUPPLY CHAIN NETWORK CONTEXT:
         - Total Supply Chain Connections: ${totalEdges} edges
         - Node Role: ${isCriticalPath ? 'CRITICAL PATH NODE' : 'Standard Node'}
         - Dependencies Count: ${nodeConnections.dependencies}
+        - Connected Edges: ${allNodeEdges.length}
+        - High-Risk Edges: ${highRiskEdges.length} (risk >1.5x)
+        - Transport Modes: ${Object.entries(edgeByTransportMode).map(([mode, count]) => `${mode}(${count})`).join(', ')}
         
         UPSTREAM SUPPLIERS (${upstreamNodes.length}):
         ${upstreamNodes.slice(0, 5).map((up: any) => 
@@ -213,11 +231,19 @@ class ProductionIntelligenceAgent {
           `  • ${down.nodeName} (${down.nodeType}) - Transport: ${down.transportMode}, Cost: ${down.cost}, Transit: ${down.transitTime}h, Risk: ${down.riskMultiplier}x`
         ).join('\n') || '  • No downstream customers'}
         
+        EDGE-SPECIFIC RISK ANALYSIS:
+        ${highRiskEdges.length > 0 ? 
+          `HIGH-RISK CONNECTIONS:\n${highRiskEdges.slice(0, 3).map((edge: any) => 
+            `  • ${edge.data?.label || 'Edge'} - Risk: ${edge.data?.riskMultiplier}x, Mode: ${edge.data?.transportMode}`
+          ).join('\n')}` : '  • No high-risk edge connections detected'}
+        
         NETWORK RISK FACTORS:
         ${isCriticalPath ? '- HIGH PRIORITY: This node is on the critical path - disruptions here will cascade through the network' : '- Standard network priority'}
         ${nodeConnections.dependencies > 2 ? '- Multiple dependencies - vulnerable to multi-supplier disruptions' : '- Limited dependencies - more resilient to supplier issues'}
         ${upstreamNodes.some((up: any) => up.riskMultiplier > 1.5) ? '- High-risk upstream connections detected' : '- Upstream connections appear stable'}
-        ${downstreamNodes.some((down: any) => down.riskMultiplier > 1.5) ? '- High-risk downstream connections detected' : '- Downstream connections appear stable'}`;
+        ${downstreamNodes.some((down: any) => down.riskMultiplier > 1.5) ? '- High-risk downstream connections detected' : '- Downstream connections appear stable'}
+        ${highRiskEdges.length > 2 ? '- Multiple high-risk edges create cascade failure potential' : ''}
+        ${Object.keys(edgeByTransportMode).length === 1 ? '- Single transport mode dependency - vulnerable to mode-specific disruptions' : '- Diversified transport modes provide resilience'}`;
       } else {
         networkContext = `
         SUPPLY CHAIN NETWORK CONTEXT:
@@ -340,14 +366,17 @@ Historical event pattern suggests ${riskTrend > 10 ? 'significant deterioration'
       
       ${historicalTrends}
       
-      FOCUS AREAS:
-      - Supply chain disruptions affecting ${node.type} operations
-      - Weather events in ${node.address || 'this location'}
-      - Geopolitical events affecting trade routes
-      - Regulatory changes in logistics/shipping
-      - Economic factors affecting supply chains
-      - Port congestions, strikes, closures
-      - Manufacturing shutdowns or capacity changes
+      FOCUS AREAS FOR EDGE-AWARE INTELLIGENCE:
+      - Supply chain disruptions affecting ${node.type} operations and connected transport routes
+      - Transport route disruptions affecting various transport modes
+      - Weather events in ${node.address || 'this location'} affecting logistics corridors
+      - Geopolitical events affecting trade routes and transport networks
+      - Regulatory changes in logistics/shipping affecting edge connections
+      - Economic factors affecting supply chains and transport costs
+      - Port congestions, strikes, closures affecting connected routes
+      - Manufacturing shutdowns or capacity changes in connected supplier/customer nodes
+      - Cross-border trade issues affecting international transport edges
+      - Infrastructure problems affecting transport networks and edge reliability
     `;
   }  public async gatherComprehensiveIntelligence(node: any, supplyChainData?: any): Promise<any> {
     const startTime = Date.now();
@@ -747,13 +776,22 @@ ${JSON.stringify(collectedData.weatherForecast?.forecasts || [], null, 1)}`;
 4. Provide 2-3 specific mitigation strategies
 
 5. RELATIONSHIP MAPPING REQUIREMENTS:
-   Create a comprehensive relationship mapping showing causal links between events and their effects on specific nodes
-   - For each critical event, identify CAUSE → EFFECT relationships 
-   - Example: "Port strike in Shanghai" → "Delay in delivery to Tesla Texas"
-   - Include strength of relationship (0.0-1.0) based on confidence
-   - Include specific entity linking (specific company/location names)
-   - Identify primary and secondary impacts
+   Create a comprehensive relationship mapping showing causal links between events and their effects on specific nodes AND edges
+   - For each critical event, identify CAUSE → EFFECT relationships including edge-specific impacts
+   - Example: "Port strike in Shanghai" → "Delay in delivery to Tesla Texas via sea freight edge"
+   - Include edge-specific disruptions: transport mode failures, route closures, capacity reductions
+   - Map how edge disruptions cascade through the network to affect downstream nodes
+   - Include strength of relationship (0.0-1.0) based on confidence and edge risk multipliers
+   - Identify primary and secondary impacts on both nodes and connecting edges
+   - Consider transport mode vulnerabilities and alternative route availability
    - Populate relationshipMapping array with AT LEAST 3 relationships if any events are detected
+
+6. EDGE-AWARE RISK ASSESSMENT:
+   - Analyze how edge characteristics affect overall node risk
+   - Consider transport mode diversity vs. single-mode dependency
+   - Evaluate high-risk edge connections and their impact on node resilience
+   - Assess critical path dependencies and cascade failure potential
+   - Factor in edge costs, transit times, and risk multipliers for comprehensive risk scoring
 
 6. TREND ANALYSIS REQUIREMENTS:
    ${collectedData.memoryTrends.available ? 

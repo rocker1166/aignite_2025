@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState, useMemo } from "react";
 import { Calculator, AlertTriangle, Zap, Factory, Layers, Workflow, Info } from "lucide-react"
 import { ClockIcon, ShieldCheckIcon, TrendingUpIcon, CalendarDaysIcon, RouteIcon } from "@/components/icons"
 import { CogIcon } from "@/components/icons/cog-icon"
@@ -29,6 +30,9 @@ import { DatePicker } from "@/components/ui/date-picker"
 import { MultiSelect } from "@/components/ui/multiselect"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useScenario } from "@/lib/context/scenario-context"
+import { getNodes } from "@/lib/api/supply-chain";
+import { Node as DbNode } from "@/lib/types/database";
+import { nodeTypeToIcon } from "@/components/digital-twin/utils/icon-mapping";
 
 // Helper component for labels with tooltips
 const LabelWithTooltip = ({ 
@@ -59,16 +63,40 @@ const LabelWithTooltip = ({
 
 export function ScenarioConfigurationForm() {
   const { scenarioData, updateScenarioData, supplyChains, selectedSupplyChainId, setSelectedSupplyChainId } = useScenario()
+  const [nodes, setNodes] = useState<DbNode[]>([]);
+  const [isLoadingNodes, setIsLoadingNodes] = useState(false);
+
+  useEffect(() => {
+    // Clear existing nodes and selection when the supply chain changes
+    setNodes([]);
+    updateScenarioData({ affectedNode: '' });
+
+    if (selectedSupplyChainId) {
+      setIsLoadingNodes(true);
+      getNodes(selectedSupplyChainId)
+        .then(setNodes)
+        .catch(error => {
+          console.error("Failed to fetch nodes:", error);
+          setNodes([]); // Reset on error
+        })
+        .finally(() => {
+          setIsLoadingNodes(false);
+        });
+    }
+  }, [selectedSupplyChainId, updateScenarioData]);
+
 
   // Options for affected nodes multiselect
-  const affectedNodeOptions = [
-    { label: "Supplier A", value: "supplier-a", icon: Factory },
-    { label: "Supplier B", value: "supplier-b", icon: Factory },
-    { label: "Warehouse Central", value: "warehouse-central", icon: Layers },
-    { label: "Factory Main", value: "factory-main", icon: Factory },
-    { label: "Distribution Center", value: "distribution-center", icon: Workflow },
-    { label: "Retail Outlet", value: "retail-outlet", icon: Factory },
-  ]
+  const affectedNodeOptions = useMemo(() => 
+    nodes
+      .filter(node => node.name) // Ensure node.name is not null
+      .map(node => ({
+        label: node.name!, // Non-null assertion as we've filtered
+        value: node.node_id,
+        icon: node.type ? nodeTypeToIcon[node.type] || Factory : Factory,
+      })), [nodes]
+  );
+
 
   return (
     <TooltipProvider>
@@ -159,9 +187,10 @@ export function ScenarioConfigurationForm() {
                     options={affectedNodeOptions}
                     onValueChange={(values) => updateScenarioData({ affectedNode: values.join(',') })}
                     defaultValue={scenarioData.affectedNode ? scenarioData.affectedNode.split(',') : []}
-                    placeholder="Select affected nodes"
+                    placeholder={isLoadingNodes ? "Loading nodes..." : "Select affected nodes"}
                     className="shadow-md h-11 rounded-xl dark:bg-gray-800 dark:border-gray-700"
                     maxCount={3}
+                    disabled={isLoadingNodes || !selectedSupplyChainId}
                   />
                 </div>
               </div>

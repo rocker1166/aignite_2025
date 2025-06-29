@@ -13,12 +13,14 @@ import {
   Globe,
   Shield,
   BarChart3,
-  CheckCircle
+  CheckCircle,
+  Network
 } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { ScenarioData, useScenario } from "@/lib/context/scenario-context"
 import { useUser } from "@/lib/stores/user"
@@ -59,7 +61,7 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
   const [fromCache, setFromCache] = useState(false)
   
   // const { userData } = useUser()
-  const { selectedSupplyChainId } = useScenario()
+  const { selectedSupplyChainId, setSelectedSupplyChainId, supplyChains } = useScenario()
 
   // Map API scenario types to UI scenario types
   const mapScenarioType = (apiType: string): string => {
@@ -195,13 +197,35 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
     return (
       <GlassmorphicCard className="text-center py-8">
         <CardContent>
-          <Brain className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+          <Network className="w-12 h-12 text-slate-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">
             No Supply Chain Selected
           </h3>
-          <p className="text-slate-600 dark:text-slate-400">
-            Please select a supply chain to view AI-generated forecast scenarios.
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            {supplyChains && supplyChains.length > 1 
+              ? `You have ${supplyChains.length} supply chains. Please select one above to view AI-generated forecast scenarios.`
+              : "Please select a supply chain to view AI-generated forecast scenarios."
+            }
           </p>
+          {supplyChains && supplyChains.length > 0 && (
+            <div className="flex justify-center">
+              <Select value="" onValueChange={setSelectedSupplyChainId}>
+                <SelectTrigger className="w-[280px]">
+                  <SelectValue placeholder="Select a supply chain" />
+                </SelectTrigger>
+                <SelectContent>
+                  {supplyChains.map((chain) => (
+                    <SelectItem key={chain.supply_chain_id} value={chain.supply_chain_id}>
+                      <div className="flex items-center gap-2">
+                        <Network className="h-4 w-4 text-slate-500" />
+                        {chain.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </CardContent>
       </GlassmorphicCard>
     )
@@ -209,46 +233,80 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-            <Brain className="w-5 h-5 text-white" />
+      {/* Header with Supply Chain Selector */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+              <Brain className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                AI Forecast Scenarios
+              </h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                High-alert scenarios based on current risk analysis
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
-              AI Forecast Scenarios
-            </h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              High-alert scenarios based on current risk analysis
-            </p>
+          
+          <div className="flex items-center gap-3">
+            {fromCache && (
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                Cached Results
+              </Badge>
+            )}
+            
+            {processingTime && (
+              <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                {processingTime}ms
+              </Badge>
+            )}
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isLoading}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+              Refresh
+            </Button>
           </div>
         </div>
-        
-        <div className="flex items-center gap-3">
-          {fromCache && (
-            <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-              Cached Results
-            </Badge>
-          )}
-          
-          {processingTime && (
-            <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-              {processingTime}ms
-            </Badge>
-          )}
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isLoading}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
-            Refresh
-          </Button>
-        </div>
+
+        {/* Supply Chain Selector - Only show if multiple supply chains */}
+        {supplyChains && supplyChains.length > 1 && (
+          <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
+            <Network className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+            <div className="flex items-center gap-3 flex-1">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Supply Chain:
+              </label>
+              <Select value={selectedSupplyChainId || ''} onValueChange={setSelectedSupplyChainId}>
+                <SelectTrigger className="w-[300px] bg-white dark:bg-slate-800">
+                  <SelectValue placeholder="Select supply chain to view forecast scenarios" />
+                </SelectTrigger>
+                <SelectContent>
+                  {supplyChains.map((chain) => (
+                    <SelectItem key={chain.supply_chain_id} value={chain.supply_chain_id}>
+                      <div className="flex items-center gap-2">
+                        <Network className="h-4 w-4 text-slate-500" />
+                        {chain.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedSupplyChainId && (
+              <Badge variant="outline" className="text-xs">
+                Selected: {supplyChains.find(c => c.supply_chain_id === selectedSupplyChainId)?.name}
+              </Badge>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Loading State */}
