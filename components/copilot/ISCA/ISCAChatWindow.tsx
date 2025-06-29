@@ -85,7 +85,12 @@ export function ISCAChatWindow({
               </p>
             </div>
           ) : (
-            messages.map((message, index) => (
+            messages
+              .filter(message => {
+                const content = (message as any).content || (message as any).text || '';
+                return content && typeof content === 'string' && content.trim().length > 0;
+              })
+              .map((message, index) => (
               <div
                 key={message.id || index}
                 className={cn(
@@ -111,7 +116,7 @@ export function ISCAChatWindow({
                   )}
                 >
                   <div className="whitespace-pre-wrap break-words">
-                    {message.content}
+                    {(message as any).content || (message as any).text || ''}
                   </div>
                 </div>
 
@@ -174,37 +179,6 @@ export function ISCAChatWindow({
               className="h-10 w-10 shrink-0"
             >
               <Send className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {/* Quick actions */}
-          <div className="flex flex-wrap gap-1 mt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs h-6 px-2"
-              onClick={() => setInput("Show me my supply chain portfolio")}
-              disabled={isLoading}
-            >
-              Portfolio
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs h-6 px-2"
-              onClick={() => setInput("Navigate to dashboard")}
-              disabled={isLoading}
-            >
-              Dashboard
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs h-6 px-2"
-              onClick={() => setInput("Run a simulation")}
-              disabled={isLoading}
-            >
-              Simulate
             </Button>
           </div>
         </div>

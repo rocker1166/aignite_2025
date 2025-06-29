@@ -39,7 +39,6 @@ import { TaskBoard } from "@/components/strategy/task-board"
 import { StrategyMetrics } from "@/components/strategy/strategy-metrics"
 import { ExecutionFlowMap } from "@/components/strategy/execution-flow-map"
 import { StrategyKanban } from "@/components/strategy/strategy-kanban"
-import { ExecutionAssistantAgent } from "@/components/strategy/execution-assistant-agent"
 import { DependencyGraphModal } from "@/components/strategy/dependency-graph-modal"
 import { supabaseClient } from "@/lib/supabase/client"
 import { LiveExecutionStats } from "@/components/strategy/live-execution-stats"
@@ -87,7 +86,6 @@ export default function StrategyPage() {
   const [strategies, setStrategies] = useState([defaultStrategy])
   const [selectedStrategy, setSelectedStrategy] = useState(defaultStrategy)
   const [activeTab, setActiveTab] = useState("execution")
-  const [showAIAssistant, setShowAIAssistant] = useState(false)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -396,13 +394,6 @@ export default function StrategyPage() {
               Export PDF
             </Button>
             <DependencyGraphModal nodes={selectedStrategy.nodes || []} />
-            <Button 
-              onClick={() => setShowAIAssistant(!showAIAssistant)}
-              className="bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
-            >
-              <MessageSquare className="w-4 h-4 mr-2" />
-              AI Assistant
-            </Button>
           </div>
         </div>
       </div>
@@ -637,16 +628,6 @@ export default function StrategyPage() {
             </div>
           </Tabs>
         </div>
-
-        {/* AI Assistant Sidebar */}
-        {showAIAssistant && (
-          <div className="w-96 border-l border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm animate-slide-in-right">
-            <ExecutionAssistantAgent 
-              strategy={selectedStrategy}
-              onClose={() => setShowAIAssistant(false)}
-            />
-          </div>
-        )}
       </div>
 
       <style jsx>{`
