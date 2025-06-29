@@ -48,7 +48,7 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0, // 100% of sessions with errors
 
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
-  debug: process.env.NODE_ENV === 'development',
+  debug: false,
 
   // Add context for better debugging
   beforeSend(event, hint) {
