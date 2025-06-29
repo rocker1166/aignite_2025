@@ -3,30 +3,25 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from 'sonner'
-import { Sparkles } from "lucide-react"
-import { WorkflowIcon, HistoryIcon } from "@/components/icons"
-import { PlusIcon } from "@/components/icons/plus-icon"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
 
-import { SimulationHistory } from "@/components/simulation/simulation-history"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+
 import { SimulationLoader } from "@/components/simulation/test/simulation-loader"
 import { AIScenarioSuggestions } from "@/components/simulation/test/ai-scenario-suggestions"
 import { ScenarioProvider, useScenario, ScenarioData } from "@/lib/context/scenario-context"
 import type { Simulation } from "@/lib/types/database"
 import { getUserSupplyChains } from "@/lib/api/supply-chain"
-import { createSimulation, updateSimulation, getSimulations, findCachedSimulation, createSimulationWithCache } from "@/lib/api/simulation"
+import {  updateSimulation, getSimulations, findCachedSimulation, createSimulationWithCache } from "@/lib/api/simulation"
 import { useUser } from "@/lib/stores/user"
 import { useImpact } from "@/lib/context/impact-context"
 
 // Import separated components
 import { SimulationHeader } from "./simulation-header"
 import { FloatingRunButton } from "./floating-run-button"
-import { EnhancedScenarioConfigurationForm } from "./enhanced-scenario-configuration-form"
 import { ProfessionalTemplateSelection } from "./professional-template-selection"
 import type { ApiResponse, SupplyChainData } from "./types"
+import { ScenarioConfigurationForm } from "./enhanced-scenario-configuration-form"
 
 // Glassmorphic Card Component with enhanced styling
 function GlassmorphicCard({ children, className = "", variant = "default", ...props }: { 
@@ -444,99 +439,90 @@ function SimulationPageContent() {
         <div className="absolute bottom-1/3 right-1/3 w-96 h-96 rounded-full bg-gradient-to-br from-blue-400/25 to-cyan-400/15 dark:from-blue-900/40 dark:to-cyan-900/30 blur-3xl animate-bounce [animation-duration:8s]"></div>
         <div className="absolute top-1/2 right-1/4 w-64 h-64 rounded-full bg-gradient-to-br from-emerald-300/20 to-teal-400/10 dark:from-emerald-900/30 dark:to-teal-900/20 blur-2xl animate-pulse [animation-delay:2s]"></div>
         <div className="absolute bottom-1/4 left-1/3 w-72 h-72 rounded-full bg-gradient-to-br from-orange-300/15 to-amber-400/10 dark:from-orange-900/25 dark:to-amber-900/20 blur-3xl animate-pulse [animation-delay:4s]"></div>
-        
+
         {/* Additional floating elements for depth */}
         <div className="absolute top-10 right-10 w-32 h-32 rounded-full bg-gradient-to-br from-rose-300/20 to-pink-300/10 dark:from-rose-900/30 dark:to-pink-900/20 blur-xl animate-bounce [animation-duration:6s] [animation-delay:1s]"></div>
         <div className="absolute bottom-10 left-10 w-40 h-40 rounded-full bg-gradient-to-br from-violet-300/15 to-purple-300/10 dark:from-violet-900/25 dark:to-purple-900/20 blur-xl animate-pulse [animation-delay:3s]"></div>
       </div>
-      
+
       <div className="relative flex flex-col h-full z-10">
         <SimulationHeader />
 
         <div className="flex-1 overflow-y-auto">
-        {view === 'templates' && (
-          <div className="p-6 px-10">
-            <div className="max-w-7xl mx-auto">
-              {/* Enhanced header for templates view */}
-              <div className="text-center mb-12">
-                <h1 className="text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-400 dark:via-purple-400 dark:to-indigo-400 mb-4">
-                  Choose Your Simulation
-                </h1>
-                <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
-                  Start with AI-powered scenarios, professional templates, or build from scratch to analyze your supply chain resilience
-                </p>
+          {view === "templates" && (
+            <div className="relative flex flex-col gap-6 p-6 md:gap-8 md:p-8 max-w-full">
+              <div className="max-w-7xl mx-auto">
+                <div>
+                  <h1 className="text-4xl text-center font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+                    Supply Chain Risk Simulation
+                  </h1>
+                  <p className="text-slate-600 text-center pb-10 dark:text-slate-300">
+                    Choose from AI-powered scenarios, professional templates, or
+                    create custom simulations to test your supply chain
+                    resilience
+                  </p>
+                </div>
+
+                <ProfessionalTemplateSelection
+                  onTemplateSelect={handleTemplateSelect}
+                  onStartFromScratch={handleStartFromScratch}
+                  onAIScenarios={() => setIsAIScenarioOpen(true)}
+                  onSelectScenario={handleForecastScenarioSelect}
+                />
               </div>
-              
-              <ProfessionalTemplateSelection
-                onTemplateSelect={handleTemplateSelect}
-                onStartFromScratch={handleStartFromScratch}
-                onAIScenarios={() => setIsAIScenarioOpen(true)}
-                onSelectScenario={handleForecastScenarioSelect}
+            </div>
+          )}
+
+          {view === "form" && (
+            <div className="relative">
+              <div className="p-4 px-10 space-y-8">
+                {/* Enhanced Header Section */}
+                <div className="max-w-7xl mx-auto">
+                  <div className="border-b border-slate-200 dark:border-slate-800 pb-4 mb-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+                          Scenario Builder
+                        </h1>
+                        <p className="text-slate-600 dark:text-slate-300 text-sm mt-1">
+                          Build and configure supply chain disruption scenarios
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={() => setView("templates")}
+                        className="text-sm self-start"
+                      >
+                        ← Back to Templates
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Enhanced Form Configuration */}
+                <div className="max-w-7xl mx-auto">
+                  <ScenarioConfigurationForm />
+                </div>
+              </div>
+
+              {/* Floating Action Button */}
+              <FloatingRunButton
+                isFormValid={isFormValid}
+                onRunSimulation={runSimulation}
+                scenarioData={scenarioData}
               />
             </div>
-          </div>
-        )}
+          )}
 
-        {view === 'form' &&  (
-          <div className="relative">
-            <div className="p-6 px-10 space-y-8">
-              {/* Enhanced Header Section */}
-              <div className="max-w-7xl mx-auto">
-                <GlassmorphicCard variant="accent" className="p-8 mb-8">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-3">
-                      <h1 className="text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-400 dark:via-purple-400 dark:to-indigo-400">
-                        Scenario Builder
-                      </h1>
-                      <p className="text-slate-600 dark:text-slate-300 text-xl leading-relaxed max-w-2xl">
-                        Configure scenarios and analyze supply chain resilience with advanced Monte Carlo simulations
-                      </p>
-                      <div className="flex items-center gap-4 pt-2">
-                        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                          Real-time analysis enabled
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                          <Sparkles className="w-4 h-4 text-blue-500" />
-                          AI-powered insights
-                        </div>
-                      </div>
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setView('templates')}
-                      className="shadow-lg border-white/40 dark:border-slate-700/30 bg-white/80 dark:bg-slate-900/20 backdrop-blur-xl hover:bg-white/90 dark:hover:bg-slate-900/30 transition-all duration-300 px-6 py-3 text-base"
-                    >
-                      ← Back to Templates
-                    </Button>
-                  </div>
+          {view === "simulation" && simulationRunning && (
+            <div className="p-6 px-10">
+              <div className="max-w-4xl mx-auto">
+                <GlassmorphicCard variant="accent" className="p-12">
+                  <SimulationLoader progress={progress} />
                 </GlassmorphicCard>
               </div>
-
-              {/* Enhanced Form Configuration */}
-              <div className="max-w-7xl mx-auto">
-                <EnhancedScenarioConfigurationForm />
-              </div>
             </div>
-
-            {/* Floating Action Button */}
-            <FloatingRunButton 
-              isFormValid={isFormValid} 
-              onRunSimulation={runSimulation} 
-              scenarioData={scenarioData}
-            />
-          </div>
-        )}
-
-        {view === 'simulation' && simulationRunning && (
-          <div className="p-6 px-10">
-            <div className="max-w-4xl mx-auto">
-              <GlassmorphicCard variant="accent" className="p-12">
-                <SimulationLoader progress={progress} />
-              </GlassmorphicCard>
-            </div>
-          </div>
-        )}
+          )}
         </div>
       </div>
 
@@ -547,7 +533,7 @@ function SimulationPageContent() {
         onSelectScenario={handleAIScenarioSelect}
       />
     </div>
-  )
+  );
 }
 
 // Wrap component with context provider

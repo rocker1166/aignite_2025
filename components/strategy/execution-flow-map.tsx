@@ -31,6 +31,19 @@ interface ExecutionFlowMapProps {
 export function ExecutionFlowMap({ nodes }: ExecutionFlowMapProps) {
   const [hoveredNode, setHoveredNode] = useState<Node | null>(null)
 
+  // Handle empty or undefined nodes
+  if (!nodes || nodes.length === 0) {
+    return (
+      <Card className="bg-slate-800/60 border-slate-700/50">
+        <CardContent className="p-8 text-center">
+          <MapPin className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-slate-300 mb-2">No Execution Nodes</h3>
+          <p className="text-slate-400">No strategy execution nodes have been generated yet.</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   const getRiskLevelColor = (riskLevel: string) => {
     switch (riskLevel) {
       case "CRITICAL":
@@ -80,27 +93,27 @@ export function ExecutionFlowMap({ nodes }: ExecutionFlowMapProps) {
 
   return (
     <TooltipProvider>
-      <Card className="bg-slate-800/60 border-slate-700/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-xl">
+      <Card className="bg-white dark:bg-slate-800/60 border-gray-200 dark:border-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-800/80 transition-all duration-300 hover:shadow-xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-white">
+          <CardTitle className="flex items-center gap-3 text-gray-900 dark:text-white">
             <div className="p-2 bg-blue-500/20 rounded-lg">
               <MapPin className="w-5 h-5 text-blue-400" />
             </div>
             <div>
               <h3 className="text-xl font-bold">Execution Flow Map</h3>
-              <p className="text-sm text-slate-400 font-normal">Visualize the strategy execution timeline</p>
+              <p className="text-sm text-gray-600 dark:text-slate-400 font-normal">Visualize the strategy execution timeline</p>
             </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="relative">
             {/* Timeline Container */}
-            <div className="flex items-center justify-between p-8 bg-gradient-to-r from-slate-700/30 to-slate-800/30 rounded-2xl relative overflow-hidden">
+            <div className="flex items-center justify-between p-8 bg-gradient-to-r from-gray-200/80 to-gray-100/80 dark:from-slate-700/30 dark:to-slate-800/30 rounded-2xl relative overflow-hidden">
               {/* Animated Background */}
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-blue-500/5 animate-pulse" />
               
               {/* Progress Line */}
-              <div className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-slate-600 via-slate-500 to-slate-600 transform -translate-y-1/2" />
+              <div className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-gray-400 via-gray-300 to-gray-400 dark:from-slate-600 dark:via-slate-500 dark:to-slate-600 transform -translate-y-1/2" />
               
               {nodes.map((node, index) => (
                 <Tooltip key={node.id}>
@@ -119,12 +132,12 @@ export function ExecutionFlowMap({ nodes }: ExecutionFlowMapProps) {
                           : `${getNodeStatusColor(node.status)} hover:border-slate-500 hover:shadow-lg`
                         }
                       `}>
-                        <span className="text-base font-bold text-white">
+                        <span className="text-base font-bold text-gray-900 dark:text-white">
                           {node.name.split(' ').map(word => word[0]).join('')}
                         </span>
                         
                         {/* Status Indicator */}
-                        <div className="absolute -top-2 -right-2 p-1 bg-slate-800 rounded-full border-2 border-slate-700">
+                        <div className="absolute -top-2 -right-2 p-1 bg-white dark:bg-slate-800 rounded-full border-2 border-gray-300 dark:border-slate-700">
                           {getStatusIcon(node.status)}
                         </div>
                         
@@ -137,7 +150,7 @@ export function ExecutionFlowMap({ nodes }: ExecutionFlowMapProps) {
                             stroke="currentColor"
                             strokeWidth="3"
                             fill="none"
-                            className="text-slate-600"
+                            className="text-gray-300 dark:text-slate-600"
                           />
                           <circle
                             cx="40"
@@ -163,30 +176,30 @@ export function ExecutionFlowMap({ nodes }: ExecutionFlowMapProps) {
                       
                       {/* Node Label */}
                       <div className="text-center">
-                        <p className="text-sm font-semibold text-white mb-2">{node.name}</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">{node.name}</p>
                         <Badge className={`text-xs ${getRiskLevelColor(node.riskLevel)}`}>
                           {node.riskLevel}
                         </Badge>
-                        <div className="mt-2 text-xs text-slate-400">
+                        <div className="mt-2 text-xs text-gray-600 dark:text-slate-400">
                           {getCompletionPercentage(node)}% Complete
                         </div>
                       </div>
                       
                       {/* Connection Line */}
                       {index < nodes.length - 1 && (
-                        <div className="absolute top-10 left-full w-16 h-0.5 bg-gradient-to-r from-slate-600 to-slate-500 transform translate-x-1" />
+                        <div className="absolute top-10 left-full w-16 h-0.5 bg-gradient-to-r from-gray-400 to-gray-300 dark:from-slate-600 dark:to-slate-500 transform translate-x-1" />
                       )}
                     </div>
                   </TooltipTrigger>
                   
-                  <TooltipContent side="top" className="w-80 p-6 bg-slate-800 border-slate-600 shadow-2xl">
+                  <TooltipContent side="top" className="w-80 p-6 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 shadow-2xl">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-bold text-white text-lg">{node.name}</h4>
+                        <h4 className="font-bold text-gray-900 dark:text-white text-lg">{node.name}</h4>
                         <Badge className={getRiskLevelColor(node.riskLevel)}>{node.riskLevel}</Badge>
                       </div>
                       
-                      <div className="flex items-center gap-6 text-sm text-slate-300">
+                      <div className="flex items-center gap-6 text-sm text-gray-700 dark:text-slate-300">
                         <div className="flex items-center gap-2">
                           <Users className="w-4 h-4" />
                           <span className="font-medium">{node.assignedTeam}</span>
@@ -200,10 +213,10 @@ export function ExecutionFlowMap({ nodes }: ExecutionFlowMapProps) {
                       {/* Progress Bar */}
                       <div className="space-y-2">
                         <div className="flex justify-between text-xs">
-                          <span className="text-slate-400">Progress</span>
-                          <span className="text-white font-medium">{getCompletionPercentage(node)}%</span>
+                          <span className="text-gray-600 dark:text-slate-400">Progress</span>
+                          <span className="text-gray-900 dark:text-white font-medium">{getCompletionPercentage(node)}%</span>
                         </div>
-                        <div className="w-full bg-slate-700 rounded-full h-2">
+                        <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
                           <div 
                             className={`h-2 rounded-full transition-all duration-1000 ease-out ${
                               getCompletionPercentage(node) > 80 ? 'bg-green-500' :
@@ -216,10 +229,10 @@ export function ExecutionFlowMap({ nodes }: ExecutionFlowMapProps) {
                       </div>
                       
                       <div className="space-y-3">
-                        <p className="text-xs text-slate-400 font-medium">Tasks ({node.tasks.length})</p>
+                        <p className="text-xs text-gray-600 dark:text-slate-400 font-medium">Tasks ({node.tasks.length})</p>
                         {node.tasks.slice(0, 3).map((task) => (
-                          <div key={task.id} className="flex items-center justify-between text-xs p-2 bg-slate-700/50 rounded">
-                            <span className="text-slate-300 truncate flex-1">{task.title}</span>
+                          <div key={task.id} className="flex items-center justify-between text-xs p-2 bg-gray-100 dark:bg-slate-700/50 rounded">
+                            <span className="text-gray-700 dark:text-slate-300 truncate flex-1">{task.title}</span>
                             <Badge className={`text-xs ${
                               task.status === "Done" ? "bg-green-500/20 text-green-400" :
                               task.status === "In Progress" ? "bg-blue-500/20 text-blue-400" :
@@ -231,7 +244,7 @@ export function ExecutionFlowMap({ nodes }: ExecutionFlowMapProps) {
                           </div>
                         ))}
                         {node.tasks.length > 3 && (
-                          <p className="text-xs text-slate-400 text-center">+{node.tasks.length - 3} more tasks</p>
+                          <p className="text-xs text-gray-600 dark:text-slate-400 text-center">+{node.tasks.length - 3} more tasks</p>
                         )}
                       </div>
                     </div>
@@ -241,20 +254,20 @@ export function ExecutionFlowMap({ nodes }: ExecutionFlowMapProps) {
             </div>
             
             {/* Legend */}
-            <div className="flex items-center justify-center gap-8 mt-8 p-4 bg-slate-800/40 rounded-xl border border-slate-700/50">
-              <div className="flex items-center gap-2 text-sm text-slate-400">
+            <div className="flex items-center justify-center gap-8 mt-8 p-4 bg-gray-100 dark:bg-slate-800/40 rounded-xl border border-gray-200 dark:border-slate-700/50">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
                 <div className="w-4 h-4 rounded-full bg-green-400 animate-pulse" />
                 <span>Completed</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-slate-400">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
                 <div className="w-4 h-4 rounded-full bg-blue-400" />
                 <span>In Progress</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-slate-400">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
                 <div className="w-4 h-4 rounded-full bg-yellow-400" />
                 <span>Planning</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-slate-400">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
                 <div className="w-4 h-4 rounded-full bg-red-400" />
                 <span>Blocked</span>
               </div>

@@ -53,9 +53,10 @@ interface Strategy {
 interface LiveExecutionStatsProps {
   nodes: Node[]
   strategy: Strategy
+  compact?: boolean
 }
 
-export function LiveExecutionStats({ nodes, strategy }: LiveExecutionStatsProps) {
+export function LiveExecutionStats({ nodes, strategy, compact }: LiveExecutionStatsProps) {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [isLoading, setIsLoading] = useState(true)
 
@@ -76,15 +77,22 @@ export function LiveExecutionStats({ nodes, strategy }: LiveExecutionStatsProps)
   }, [])
 
   const getOverallProgress = () => {
-    const totalTasks = nodes.reduce((sum, node) => sum + node.tasks.length, 0)
+    if (!nodes || nodes.length === 0) return 0
+    
+    const totalTasks = nodes.reduce((sum, node) => sum + (node.tasks?.length || 0), 0)
     const completedTasks = nodes.reduce((sum, node) => 
-      sum + node.tasks.filter(task => task.status === "Done").length, 0
+      sum + (node.tasks?.filter(task => task.status === "Done").length || 0), 0
     )
+    
+    if (totalTasks === 0) return 0
     return Math.round((completedTasks / totalTasks) * 100)
   }
 
   const getBottleneckNodes = () => {
+    if (!nodes || nodes.length === 0) return []
+    
     return nodes.filter(node => {
+      if (!node.tasks || node.tasks.length === 0) return false
       const blockedTasks = node.tasks.filter(task => task.status === "Blocked").length
       const totalTasks = node.tasks.length
       return (blockedTasks / totalTasks) > 0.3 // More than 30% blocked
@@ -92,23 +100,33 @@ export function LiveExecutionStats({ nodes, strategy }: LiveExecutionStatsProps)
   }
 
   const getCriticalTasks = () => {
+    if (!nodes || nodes.length === 0) return []
+    
     return nodes.flatMap(node => 
-      node.tasks.filter(task => task.priority === "critical")
+      node.tasks?.filter(task => task.priority === "critical") || []
     )
   }
 
   const getTeamWorkload = () => {
+    if (!nodes || nodes.length === 0) return {}
+    
     const teamWorkload: { [key: string]: number } = {}
     nodes.forEach(node => {
-      teamWorkload[node.assignedTeam] = (teamWorkload[node.assignedTeam] || 0) + node.tasks.length
+      if (node.assignedTeam && node.tasks) {
+        teamWorkload[node.assignedTeam] = (teamWorkload[node.assignedTeam] || 0) + node.tasks.length
+      }
     })
     return teamWorkload
   }
 
   const getRiskDistribution = () => {
+    if (!nodes || nodes.length === 0) return { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 }
+    
     const distribution = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 }
     nodes.forEach(node => {
-      distribution[node.riskLevel as keyof typeof distribution]++
+      if (node.riskLevel && node.riskLevel in distribution) {
+        distribution[node.riskLevel as keyof typeof distribution]++
+      }
     })
     return distribution
   }
@@ -144,7 +162,7 @@ export function LiveExecutionStats({ nodes, strategy }: LiveExecutionStatsProps)
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2">Live Execution Analytics</h2>
+          <h2 className="text-2xl font-bold text-black dark:text-white mb-2">Live Execution Analytics</h2>
           <p className="text-slate-400">Real-time insights and performance metrics</p>
         </div>
         <div className="flex items-center gap-3 text-sm text-slate-400">
@@ -156,35 +174,37 @@ export function LiveExecutionStats({ nodes, strategy }: LiveExecutionStatsProps)
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-slate-800/60 border-slate-700/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-blue-500/20 rounded-xl">
-                <Target className="w-6 h-6 text-blue-400" />
+      <div className={`grid ${compact ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'} gap-6`}>
+        {/* Overall Progress */}
+        <Card className="bg-white border-gray-200 shadow-md dark:bg-slate-800/60 dark:border-slate-700/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1 min-w-0">
+          <CardContent className={`p-6 ${compact ? 'flex flex-col items-center gap-y-2' : ''}`}> 
+            <div className={`flex ${compact ? 'flex-col items-center gap-y-2' : 'items-center gap-4'}`}> 
+              <div className={`bg-blue-500/20 rounded-xl ${compact ? 'mb-1 p-2 self-center' : 'p-3'}`}> 
+                <Target className={`${compact ? 'w-5 h-5' : 'w-6 h-6'} text-blue-400`} />
               </div>
-              <div>
-                <p className="text-sm text-slate-400 font-medium">Overall Progress</p>
-                <p className="text-2xl font-bold text-white">{getOverallProgress()}%</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <TrendingUp className="w-3 h-3 text-green-400" />
-                  <span className="text-xs text-green-400">+2.3%</span>
+              <div className={`${compact ? 'flex flex-col items-center' : ''} min-w-0`}>
+                <p className={`font-medium text-gray-700 dark:text-slate-300 ${compact ? 'text-xs' : 'text-sm'} text-center truncate`}>Overall Progress</p>
+                <p className={`font-bold text-black dark:text-white ${compact ? 'text-base' : 'text-2xl'} text-center truncate`}>{getOverallProgress()}%</p>
+                <div className={`flex items-center gap-1 mt-1 ${compact ? 'justify-center' : ''}`}>
+                  <TrendingUp className={`${compact ? 'w-3 h-3' : 'w-3 h-3'} text-green-400`} />
+                  <span className={`text-green-400 ${compact ? 'text-xs' : 'text-xs'}`}>+2.3%</span>
                 </div>
               </div>
             </div>
-            <Progress value={getOverallProgress()} className="mt-4 h-2 bg-slate-700" />
+            <Progress value={getOverallProgress()} className="mt-4 h-2 bg-gray-200 dark:bg-slate-700" />
           </CardContent>
         </Card>
-
-        <Card className="bg-slate-800/60 border-slate-700/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-green-500/20 rounded-xl">
-                <CheckCircle className="w-6 h-6 text-green-400" />
+        {/* Completed Tasks */}
+        <Card className="bg-white border-gray-200 shadow-md dark:bg-slate-800/60 dark:border-slate-700/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1 min-w-0">
+          <CardContent className={`p-6 ${compact ? 'flex flex-col items-center gap-y-2' : ''}`}> 
+            <div className={`flex ${compact ? 'flex-col items-center gap-y-2' : 'items-center gap-4'}`}> 
+              <div className={`bg-green-500/20 rounded-xl ${compact ? 'mb-1 p-2 self-center' : 'p-3'}`}> 
+                <CheckCircle className={`${compact ? 'w-5 h-5' : 'w-6 h-6'} text-green-400`} />
               </div>
+
               <div>
                 <p className="text-sm text-slate-400 font-medium">Completed Tasks</p>
-                <p className="text-2xl font-bold text-white">{strategy.completedTasks}</p>
+                <p className="text-2xl font-bold text-white">{strategy?.completedTasks || 0}</p>
                 <div className="flex items-center gap-1 mt-1">
                   <TrendingUp className="w-3 h-3 text-green-400" />
                   <span className="text-xs text-green-400">+3 today</span>
@@ -192,50 +212,57 @@ export function LiveExecutionStats({ nodes, strategy }: LiveExecutionStatsProps)
               </div>
             </div>
             <div className="mt-4 text-xs text-slate-400">
-              {Math.round((strategy.completedTasks / strategy.totalTasks) * 100)}% of total
+              {strategy?.totalTasks && strategy.totalTasks > 0 ? 
+                Math.round(((strategy.completedTasks || 0) / strategy.totalTasks) * 100) : 0}% of total
             </div>
+
           </CardContent>
         </Card>
-
-        <Card className="bg-slate-800/60 border-slate-700/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-red-500/20 rounded-xl">
-                <AlertTriangle className="w-6 h-6 text-red-400" />
+        {/* Bottlenecks */}
+        <Card className="bg-white border-gray-200 shadow-md dark:bg-slate-800/60 dark:border-slate-700/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1 min-w-0">
+          <CardContent className={`p-6 ${compact ? 'flex flex-col items-center gap-y-2' : ''}`}> 
+            <div className={`flex ${compact ? 'flex-col items-center gap-y-2' : 'items-center gap-4'}`}> 
+              <div className={`bg-red-500/20 rounded-xl ${compact ? 'mb-1 p-2 self-center' : 'p-3'}`}> 
+                <AlertTriangle className={`${compact ? 'w-5 h-5' : 'w-6 h-6'} text-red-400`} />
               </div>
-              <div>
-                <p className="text-sm text-slate-400 font-medium">Bottlenecks</p>
-                <p className="text-2xl font-bold text-white">{getBottleneckNodes().length}</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <TrendingDown className="w-3 h-3 text-red-400" />
-                  <span className="text-xs text-red-400">-1 resolved</span>
+              <div className={`${compact ? 'flex flex-col items-center' : ''} min-w-0`}>
+                <p className={`font-medium text-gray-700 dark:text-slate-300 ${compact ? 'text-xs' : 'text-sm'} text-center truncate`}>Bottlenecks</p>
+                <p className={`font-bold text-black dark:text-white ${compact ? 'text-base' : 'text-2xl'} text-center truncate`}>{getBottleneckNodes().length}</p>
+                <div className={`flex items-center gap-1 mt-1 ${compact ? 'justify-center' : ''}`}>
+                  <TrendingDown className={`${compact ? 'w-3 h-3' : 'w-3 h-3'} text-red-400`} />
+                  <span className={`text-red-400 ${compact ? 'text-xs' : 'text-xs'}`}>-1 resolved</span>
                 </div>
               </div>
             </div>
-            <div className="mt-4 text-xs text-slate-400">
-              {getBottleneckNodes().map(node => node.name).join(", ")}
+            <div className={`mt-4 text-gray-600 dark:text-slate-400 ${compact ? 'text-xs text-center truncate' : 'text-xs'}`}>
+              {compact
+                ? getBottleneckNodes().map(node =>
+                    node.name === 'Port of Los Angeles'
+                      ? <span key={node.name} className="block max-w-[90px] break-words mx-auto">Port of<br/>Los Angeles</span>
+                      : <span key={node.name} className="block max-w-[90px] break-words mx-auto">{node.name}</span>
+                  )
+                : getBottleneckNodes().map(node => node.name).join(", ")
+              }
             </div>
           </CardContent>
         </Card>
-
-        <Card className="bg-slate-800/60 border-slate-700/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-purple-500/20 rounded-xl">
-                <Zap className="w-6 h-6 text-purple-400" />
+        {/* Critical Tasks */}
+        <Card className="bg-white border-gray-200 shadow-md dark:bg-slate-800/60 dark:border-slate-700/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/10 transform hover:-translate-y-1 min-w-0">
+          <CardContent className={`p-6 ${compact ? 'flex flex-col items-center gap-y-2' : ''}`}> 
+            <div className={`flex ${compact ? 'flex-col items-center gap-y-2' : 'items-center gap-4'}`}> 
+              <div className={`bg-purple-500/20 rounded-xl ${compact ? 'mb-1 p-2 self-center' : 'p-3'}`}> 
+                <Zap className={`${compact ? 'w-5 h-5' : 'w-6 h-6'} text-purple-400`} />
               </div>
-              <div>
-                <p className="text-sm text-slate-400 font-medium">Critical Tasks</p>
-                <p className="text-2xl font-bold text-white">{getCriticalTasks().length}</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <Clock className="w-3 h-3 text-yellow-400" />
-                  <span className="text-xs text-yellow-400">5 due today</span>
+              <div className={`${compact ? 'flex flex-col items-center' : ''} min-w-0`}>
+                <p className={`font-medium text-gray-700 dark:text-slate-300 ${compact ? 'text-xs' : 'text-sm'} text-center truncate`}>Critical Tasks</p>
+                <p className={`font-bold text-black dark:text-white ${compact ? 'text-base' : 'text-2xl'} text-center truncate`}>{getCriticalTasks().length}</p>
+                <div className={`flex items-center gap-1 mt-1 ${compact ? 'justify-center' : ''}`}>
+                  <Clock className={`${compact ? 'w-3 h-3' : 'w-3 h-3'} text-yellow-400`} />
+                  <span className={`text-yellow-400 ${compact ? 'text-xs' : 'text-xs'}`}>5 due today</span>
                 </div>
               </div>
             </div>
-            <div className="mt-4 text-xs text-slate-400">
-              {getCriticalTasks().filter(task => task.status === "Done").length} completed
-            </div>
+            <div className={`mt-4 text-gray-600 dark:text-slate-400 ${compact ? 'text-xs text-center truncate' : 'text-xs'}`}>{getCriticalTasks().filter(task => task.status === "Done").length} completed</div>
           </CardContent>
         </Card>
       </div>
@@ -243,9 +270,9 @@ export function LiveExecutionStats({ nodes, strategy }: LiveExecutionStatsProps)
       {/* Detailed Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Team Workload */}
-        <Card className="bg-slate-800/60 border-slate-700/50">
+        <Card className="bg-white border-gray-200 shadow-md dark:bg-slate-800/60 dark:border-slate-700/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-white">
+            <CardTitle className="flex items-center gap-3 text-black dark:text-white">
               <Users className="w-5 h-5 text-blue-400" />
               Team Workload Distribution
             </CardTitle>
@@ -255,14 +282,18 @@ export function LiveExecutionStats({ nodes, strategy }: LiveExecutionStatsProps)
               {Object.entries(getTeamWorkload()).map(([team, workload], index) => (
                 <div key={team} className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-white">{team}</span>
-                    <span className="text-sm text-slate-400">{workload} tasks</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-slate-300">{team}</span>
+                    <span className="text-sm text-gray-600 dark:text-slate-400">{workload} tasks</span>
                   </div>
-                  <div className="w-full bg-slate-700 rounded-full h-2">
+                  <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
                     <div 
                       className="h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-1000 ease-out"
                       style={{ 
-                        width: `${(workload / Math.max(...Object.values(getTeamWorkload()))) * 100}%`,
+                        width: `${(() => {
+                          const workloadValues = Object.values(getTeamWorkload())
+                          const maxWorkload = workloadValues.length > 0 ? Math.max(...workloadValues) : 1
+                          return (workload / maxWorkload) * 100
+                        })()}%`,
                         animationDelay: `${index * 100}ms`
                       }}
                     />
@@ -274,9 +305,9 @@ export function LiveExecutionStats({ nodes, strategy }: LiveExecutionStatsProps)
         </Card>
 
         {/* Risk Distribution */}
-        <Card className="bg-slate-800/60 border-slate-700/50">
+        <Card className="bg-white border-gray-200 shadow-md dark:bg-slate-800/60 dark:border-slate-700/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-white">
+            <CardTitle className="flex items-center gap-3 text-black dark:text-white">
               <Shield className="w-5 h-5 text-yellow-400" />
               Risk Level Distribution
             </CardTitle>
@@ -284,23 +315,30 @@ export function LiveExecutionStats({ nodes, strategy }: LiveExecutionStatsProps)
           <CardContent>
             <div className="space-y-4">
               {Object.entries(getRiskDistribution()).map(([risk, count], index) => (
-                <div key={risk} className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg">
+                <div key={risk} className="flex items-center justify-between p-3 bg-gray-200 dark:bg-slate-700/30 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className={`w-3 h-3 rounded-full ${
                       risk === "CRITICAL" ? "bg-red-400" :
                       risk === "HIGH" ? "bg-orange-400" :
                       risk === "MEDIUM" ? "bg-yellow-400" : "bg-green-400"
                     }`} />
-                    <span className="text-sm font-medium text-white">{risk}</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-slate-300">{risk}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-slate-400">{count} nodes</span>
-                    <Badge className={`text-xs ${
+                    {compact ? (
+                      <div className="flex flex-col items-center">
+                        <span className="text-xs text-gray-600 dark:text-slate-400 font-bold">{count}</span>
+                        <span className="text-xs text-gray-600 dark:text-slate-400">nodes</span>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-600 dark:text-slate-400">{count} nodes</span>
+                    )}
+                    <Badge className={`${compact ? 'text-xs' : 'text-xs'} ${
                       risk === "CRITICAL" ? "bg-red-500/20 text-red-400" :
                       risk === "HIGH" ? "bg-orange-500/20 text-orange-400" :
                       risk === "MEDIUM" ? "bg-yellow-500/20 text-yellow-400" : "bg-green-500/20 text-green-400"
                     }`}>
-                      {Math.round((count / nodes.length) * 100)}%
+                      {nodes && nodes.length > 0 ? Math.round((count / nodes.length) * 100) : 0}%
                     </Badge>
                   </div>
                 </div>
@@ -311,17 +349,18 @@ export function LiveExecutionStats({ nodes, strategy }: LiveExecutionStatsProps)
       </div>
 
       {/* Performance Metrics */}
-      <Card className="bg-slate-800/60 border-slate-700/50">
+      <Card className="bg-white border-gray-200 shadow-md dark:bg-slate-800/60 dark:border-slate-700/50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-white">
+          <CardTitle className="flex items-center gap-3 text-black dark:text-white">
             <BarChart3 className="w-5 h-5 text-green-400" />
             Performance Metrics
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
             <div className="text-center p-4 bg-slate-700/30 rounded-xl">
-              <div className="text-3xl font-bold text-white mb-2">{strategy.roi}</div>
+              <div className="text-3xl font-bold text-white mb-2">{strategy?.roi || "N/A"}</div>
               <div className="text-sm text-slate-400 font-medium">Projected ROI</div>
               <div className="flex items-center justify-center gap-1 mt-2">
                 <TrendingUp className="w-4 h-4 text-green-400" />
@@ -329,18 +368,22 @@ export function LiveExecutionStats({ nodes, strategy }: LiveExecutionStatsProps)
               </div>
             </div>
             
+
             <div className="text-center p-4 bg-slate-700/30 rounded-xl">
-              <div className="text-3xl font-bold text-white mb-2">{strategy.riskReduction}</div>
+              <div className="text-3xl font-bold text-white mb-2">{strategy?.riskReduction || "N/A"}</div>
               <div className="text-sm text-slate-400 font-medium">Risk Reduction</div>
+
               <div className="flex items-center justify-center gap-1 mt-2">
                 <Shield className="w-4 h-4 text-blue-400" />
                 <span className="text-xs text-blue-400">On track</span>
               </div>
             </div>
             
+
             <div className="text-center p-4 bg-slate-700/30 rounded-xl">
-              <div className="text-3xl font-bold text-white mb-2">{strategy.cost}</div>
+              <div className="text-3xl font-bold text-white mb-2">{strategy?.cost || "N/A"}</div>
               <div className="text-sm text-slate-400 font-medium">Total Cost</div>
+
               <div className="flex items-center justify-center gap-1 mt-2">
                 <DollarSign className="w-4 h-4 text-yellow-400" />
                 <span className="text-xs text-yellow-400">-5% under budget</span>
@@ -351,9 +394,9 @@ export function LiveExecutionStats({ nodes, strategy }: LiveExecutionStatsProps)
       </Card>
 
       {/* Recent Activity */}
-      <Card className="bg-slate-800/60 border-slate-700/50">
+      <Card className="bg-white border-gray-200 shadow-md dark:bg-slate-800/60 dark:border-slate-700/50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-white">
+          <CardTitle className="flex items-center gap-3 text-black dark:text-white">
             <GitBranch className="w-5 h-5 text-purple-400" />
             Recent Activity
           </CardTitle>
@@ -366,17 +409,17 @@ export function LiveExecutionStats({ nodes, strategy }: LiveExecutionStatsProps)
               { action: "New task added", details: "Emergency supplier evaluation", time: "1 hour ago", status: "info" },
               { action: "Risk level updated", details: "Port of LA risk reduced to MEDIUM", time: "2 hours ago", status: "success" }
             ].map((activity, index) => (
-              <div key={index} className="flex items-center gap-4 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors duration-200">
+              <div key={index} className="flex items-center gap-4 p-3 bg-gray-200 dark:bg-slate-700/30 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600/30 transition-colors duration-200">
                 <div className={`w-2 h-2 rounded-full ${
                   activity.status === "success" ? "bg-green-400" :
                   activity.status === "warning" ? "bg-yellow-400" :
-                  activity.status === "info" ? "bg-blue-400" : "bg-slate-400"
+                  activity.status === "info" ? "bg-blue-400" : "bg-gray-400"
                 }`} />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-white">{activity.action}</p>
-                  <p className="text-xs text-slate-400">{activity.details}</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-slate-300">{activity.action}</p>
+                  <p className="text-xs text-gray-600 dark:text-slate-400">{activity.details}</p>
                 </div>
-                <span className="text-xs text-slate-500">{activity.time}</span>
+                <span className="text-xs text-gray-500 dark:text-slate-500">{activity.time}</span>
               </div>
             ))}
           </div>
@@ -384,4 +427,5 @@ export function LiveExecutionStats({ nodes, strategy }: LiveExecutionStatsProps)
       </Card>
     </div>
   )
-} 
+}
+
