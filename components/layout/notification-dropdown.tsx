@@ -40,7 +40,7 @@ function safeDateFormat(dateString: string): string | null {
     }
 }
 
-// Animation variants for dropdown content
+// Animation variants for dropdown content with dark mode support
 const dropdownContent: Variants = {
     hidden: {
         clipPath: 'inset(10% 50% 90% 50% round 12px)',
@@ -115,12 +115,12 @@ function RelationshipBubble({ relationship }: { relationship: { source: string, 
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <div className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] rounded-md cursor-pointer border bg-orange-50 text-orange-700 border-orange-200">
+                    <div className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] rounded-md cursor-pointer border bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-700">
                         <div className="w-1.5 h-1.5 bg-current rounded-full" />
                         Risk Chain ({Math.round(relationship.strength * 100)}%)
                     </div>
                 </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-sm">
+                <TooltipContent side="bottom" className="max-w-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100">
                     <div className="flex flex-col gap-1">
                         <div className="font-medium text-sm">Risk Relationship</div>
                         <div className="text-xs">
@@ -150,9 +150,10 @@ function NotificationItem({ notification, onMarkAsRead }: { notification: Notifi
         ? `${notification.message.substring(0, 120)}...` 
         : notification.message
 
-    // Simplified severity color - only two colors
-    const severityColor = notification.severity === 'HIGH' ? 'bg-red-100 text-red-800 border-red-200' :
-                         'bg-blue-100 text-blue-800 border-blue-200'
+    // Enhanced severity color with dark mode support
+    const severityColor = notification.severity === 'HIGH' 
+        ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border-red-200 dark:border-red-700' 
+        : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700'
 
     const handleMarkAsRead = async (e: React.MouseEvent) => {
         e.stopPropagation()
@@ -170,10 +171,10 @@ function NotificationItem({ notification, onMarkAsRead }: { notification: Notifi
 
     return (
         <motion.div variants={dropdownItem}>
-            <DropdownMenuItem className={`cursor-pointer p-3 ${!notification.read_status ? 'bg-blue-50/50' : ''}`}>
+            <DropdownMenuItem className={`cursor-pointer p-3 hover:bg-slate-50 dark:hover:bg-slate-800 ${!notification.read_status ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
                 <div className="flex flex-col gap-2.5 w-full text-left">
                     <div className="flex items-start justify-between gap-2">
-                        <div className="font-medium text-sm leading-tight">{notification.title}</div>
+                        <div className="font-medium text-sm leading-tight text-slate-900 dark:text-slate-100">{notification.title}</div>
                         <div className="flex items-center gap-1">
                             {notification.severity && (
                                 <Badge variant="outline" className={`text-[10px] px-1.5 py-0.5 border ${severityColor}`}>
@@ -207,7 +208,7 @@ function NotificationItem({ notification, onMarkAsRead }: { notification: Notifi
                         </div>
                     </div>
                     {truncatedMessage && (
-                        <div className="text-xs text-muted-foreground leading-relaxed">
+                        <div className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                             {truncatedMessage}
                         </div>
                     )}
@@ -231,7 +232,7 @@ function NotificationItem({ notification, onMarkAsRead }: { notification: Notifi
                         <div className="flex flex-wrap gap-1">
                             <RelationshipBubble relationship={citations.relationships[0]} />
                             {citations.relationships.length > 1 && (
-                                <div className="inline-flex items-center px-1.5 py-0.5 text-[10px] bg-muted/50 text-muted-foreground rounded-md border">
+                                <div className="inline-flex items-center px-1.5 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-md border border-slate-200 dark:border-slate-700">
                                     +{citations.relationships.length - 1} more
                                 </div>
                             )}
@@ -242,7 +243,7 @@ function NotificationItem({ notification, onMarkAsRead }: { notification: Notifi
                     {citations?.affectedEntities && citations.affectedEntities.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                             {citations.affectedEntities.slice(0, 3).map((entity, index) => (
-                                <div key={index} className="inline-flex items-center px-1.5 py-0.5 text-[10px] bg-slate-100 text-slate-600 rounded-md border border-slate-200">
+                                <div key={index} className="inline-flex items-center px-1.5 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-md border border-slate-200 dark:border-slate-700">
                                     {entity}
                                 </div>
                             ))}
