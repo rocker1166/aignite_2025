@@ -94,8 +94,18 @@ export function Footer() {
           </div>
           
           <div>
-            <h3 className="font-semibold mb-4">Company</h3>
+            <h3 className="font-semibold mb-4">Pages</h3>
             <ul className="space-y-2 text-sm">
+              <li>
+                <Link href="/" className="text-muted-foreground hover:text-foreground">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link href="/team" className="text-muted-foreground hover:text-foreground">
+                  Team
+                </Link>
+              </li>
               <li>
                 <Link href="#" className="text-muted-foreground hover:text-foreground">
                   About

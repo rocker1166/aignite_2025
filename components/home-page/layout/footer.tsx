@@ -5,8 +5,10 @@ import { ShieldAlert } from "lucide-react"
 
 export function Footer() {
   return (
-    <footer className="w-full bg-black py-12">
-      <div className="max-w-[1400px] mx-auto px-8">
+    <footer className="relative w-full bg-black py-12 z-30">
+      {/* Opaque background overlay */}
+      <div className="absolute inset-0 bg-black opacity-100"></div>
+      <div className="max-w-[1400px] mx-auto px-8 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] md:pr-16">
           {/* Brand and Copyright */}
           <div>
@@ -40,6 +42,7 @@ export function Footer() {
                 <li><a href="#top" className="text-base text-gray-500 hover:text-white transition-colors">Home</a></li>
                 <li><a href="#features" className="text-base text-gray-500 hover:text-white transition-colors">Features</a></li>
                 <li><a href="#benefits" className="text-base text-gray-500 hover:text-white transition-colors">Benefits</a></li>
+                <li><Link href="/team" className="text-base text-gray-500 hover:text-white transition-colors">Team</Link></li>
                 <li><a href="#contact" className="text-base text-gray-500 hover:text-white transition-colors">Contact</a></li>
               </ul>
             </div>
